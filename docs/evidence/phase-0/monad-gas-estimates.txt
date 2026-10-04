@@ -1,0 +1,16 @@
+# Monad-schedule gas via eth_estimateGas on MAINNET (no signature, no funds). Run 2026-10-04T03:13:58Z
+## Kuru mainnet Router owner
+0x8B736DCe2071783Fd9DB0a423dad17cc8ed5788b
+## deployProxy(WMON/USDC fresh params) from 0x...dEaD (expect revert Unauthorized() = 0x82b42900)
+Error: server returned an error response: error code 3: execution reverted, data: "0x82b42900"
+## same call from the owner (expect success)
+1254652
+## MON-USDC market 0x065C9d28E428A0db40191a54d33d5b7c71a9C394 params (pricePrecision,sizePrecision,base,baseDec,quote,quoteDec,tick,minSize,maxSize,taker,maker)
+100000000 [1e8] 10000000000 [1e10] 0x0000000000000000000000000000000000000000 18 0x754704Bc059F8C67012fEd69BC8A327a5aafb603 6 100 2000000000000 [2e12] 2000000000000000000 [2e18] 0 0 
+## estimates from active maker 0x34ae4d081c0d46b23ebf5292c1be4e45f8a73fc5 (has USDC+MON margin): posts far from mid, post-only, min size
+batchUpdate post 1 bid + 1 ask, no cancel: 462674
+addBuyOrder single: 250101
+addSellOrder single: 316004
+## maker activity: OrderCreated events by owner in blocks 110356164..110356263
+270 orders in 100 blocks [('0x34ae4d081c0d46b23ebf5292c1be4e45f8a73fc5', 148), ('0xd0f8a6422ccdd812f29d8fb75cf5fcd41483badc', 120), ('0xdf9aac7069c324d100af421d75a76500a3c53e5a', 2)]
+cancel estimates: not obtainable. These makers' orders are gone (filled/cancelled) within <5 blocks, before an estimate can reference a live order id.

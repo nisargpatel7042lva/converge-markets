@@ -41,11 +41,15 @@ export function dailyCost(
   liveMarkets: number,
   requoteIntervalSec: number,
 ): DailyCost {
+  // Per-round lifecycle: outcome token, market, deposit base + quote, first quote, then teardown
+  // (cancel resting orders, withdraw base + quote). Approvals are one-off per token and excluded.
   const setupGas =
     meanGasLimit(records, "deploy outcome") +
     meanGasLimit(records, "kuru deployProxy") +
-    meanGasLimit(records, "margin deposit") +
-    meanGasLimit(records, "initial bid+ask");
+    2 * meanGasLimit(records, "margin deposit") +
+    meanGasLimit(records, "initial bid+ask") +
+    meanGasLimit(records, "teardown cancel") +
+    2 * meanGasLimit(records, "margin withdraw");
   const setupPerRoundUsd = gasToUsd(setupGas, p);
   const requoteUsd = gasToUsd(meanGasLimit(records, "requote"), p);
   const requotePerMarketPerDayUsd = requoteUsd * (86_400 / requoteIntervalSec);

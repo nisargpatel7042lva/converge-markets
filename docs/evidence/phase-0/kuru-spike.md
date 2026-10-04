@@ -1,84 +1,104 @@
 # Kuru feasibility spike (Phase 0)
 
-**Status: ran end to end on an anvil fork of Monad testnet (real Kuru contracts, Ethereum gas schedule). The live-testnet run is BLOCKED: the deployer `0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1` has 0 MON and the faucet is web-only.**
+**Status:**
 
-- Script: `scripts/spike/src/kuru-spike.ts` (ABIs from `@kuru-labs/kuru-sdk@0.0.95`; addresses from docs.kuru.io)
-- Raw output: `kuru-spike-fork.json` (every tx, with gas limit, gas used and block)
-- Cost table: `kuru-cost-model.txt` (`pnpm --filter @converge/spike report`)
-- Onchain checks against the real chain: `external-onchain-checks.txt`
+- **Ran end to end on an anvil fork of Monad testnet.** It used the real Kuru contracts, but with Ethereum's gas schedule.
+- **Post gas was cross-checked against real Monad mainnet** using `eth_estimateGas`.
+- **The live-testnet run is BLOCKED.** Deployer `0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1` has 0 MON, and the faucet is web-only.
+- **Mainnet market creation is owner-gated** (see "Limits").
+
+Files:
+
+- Script: `scripts/spike/src/kuru-spike.ts` (ABIs from `@kuru-labs/kuru-sdk@0.0.95`, addresses from docs.kuru.io). Every step asserts the expected OrderCreated/OrdersCanceled counts, so the run aborts if order tracking drifts.
+- Raw output: `kuru-spike-fork.json`. Fork costs are repriced at 102 gwei because the anvil base fee decays.
+- Cost table: `kuru-cost-model.txt` (`pnpm --filter @converge/spike report`).
+- Real-chain checks: `external-onchain-checks.txt`, `monad-gas-estimates.txt`.
 
 ## What was done
 
-1. Deployed an open-mint collateral (6 dp) and an outcome token (18 dp) (`contracts/script/spike/SpikeToken.sol`).
-2. Created a Kuru market UP/collateral with `Router.deployProxy` from a plain EOA. Params from the SDK's `calculatePrecisions(0.5, 1, maxPrice 1, minSize 1, tick 20 bps)`: pricePrecision 1e4, sizePrecision 1e4, tick 10 (= 0.001), minSize 1 token, maxSize 1e5 tokens, fees 0/0, AMM spread 100 bps.
-3. Deposited both tokens into Kuru `MarginAccount` and posted a post-only bid and ask (10 tokens each) in one `batchUpdate`.
-4. Ran 20 rounds of atomic cancel and replace (`batchUpdate` with cancel IDs plus a new bid and ask).
-5. Ran 3 rounds of unbatched cancel and replace (`batchCancelOrders` + `addBuyOrder` + `addSellOrder`) for comparison.
-6. Created 2 more markets (fresh outcome token each) to check repeat creation.
+1. Deployed open-mint collateral (6 dp) and an outcome token (18 dp) (`contracts/script/spike/SpikeToken.sol`, test only).
+2. Created a Kuru market UP/collateral with `Router.deployProxy` from a plain EOA.
+   - Params came from SDK `calculatePrecisions(0.5, 1, maxPrice 1, minSize 1, tick 20 bps)`: pricePrecision 1e4, sizePrecision 1e4, tick 10 (= 0.001), minSize 1 token, maxSize 1e5 tokens.
+   - Fees 0/0, AMM spread 100 bps.
+3. Deposited both tokens into `MarginAccount`. Posted a post-only bid and ask (10 tokens each) in one `batchUpdate`.
+4. Ran 20 rounds of atomic cancel and replace (`batchUpdate` with 2 cancel IDs plus a new bid and ask).
+5. Ran 3 rounds of unbatched cancel and replace (`batchCancelOrders` + `addBuyOrder` + `addSellOrder`).
+6. Tore the round down: cancelled resting orders and withdrew both margin balances.
+7. Created 2 more markets, each with a fresh outcome token.
 
 ## Results
 
-Pricing: 102 gwei per gas (live base fee 100 gwei, which is the protocol floor, plus 2 gwei priority). MON/USD $0.03431 (Chainlink, 2026-10-04). **Monad bills the gas limit.** We sent with estimate +15%.
+Pricing: 102 gwei per gas (live base fee 100 gwei, which is the protocol floor, plus 2 gwei priority on both networks). MON/USD $0.03431 (Chainlink, 2026-10-04). **Monad bills the gas limit.** We sent with the estimate +15%.
 
-| Action | gas used (fork) | gas limit billed | MON | USD |
+| Action | gas used (fork) | gas limit billed (fork) | USD | Real Monad `eth_estimateGas` |
 |---|---|---|---|---|
-| Kuru `deployProxy` (market + KuruAMMVault) | 1,195,431 | 1,395,773 | 0.1424 | $0.00489 |
-| Same call, `eth_estimateGas` on **real** testnet (Monad gas schedule) | 1,215,279 (est.) | n/a | | |
-| Outcome token deploy (full OZ ERC-20; a clone factory will be cheaper) | 521,381 | 521,381 | 0.0532 | $0.00183 |
-| MarginAccount deposit (per token) | 142,966 | 166,250 | 0.0170 | $0.00058 |
-| Initial bid+ask (`batchUpdate`, 2 posts) | 528,245 | 616,329 | 0.0629 | $0.00216 |
-| **Re-quote: `batchUpdate` cancel 2 + post 2** (mean of 20) | 477,361 | 556,878 | 0.0568 | **$0.00195** |
-| Unbatched cancel of 2 (`batchCancelOrders`) | 247,968 | 288,926 | 0.0295 | $0.00101 |
-| Unbatched single post (bid / ask) | 317,021 / 342,738 | 369,599 / 399,643 | 0.038 / 0.041 | $0.0013 / $0.0014 |
+| Kuru `deployProxy` (market + KuruAMMVault) | 1,195,435 | 1,395,778 | $0.00489 | testnet WMON/USDC 1,215,279; mainnet (as owner) 1,254,652. Different tokens and params, so only roughly comparable |
+| Outcome token deploy (full OZ ERC-20; a clone factory will be cheaper) | 521,381 | 599,588 | $0.00210 | n/a |
+| MarginAccount deposit (each) | ~142,966 | ~166,250 | $0.00058 | n/a |
+| Initial bid+ask (`batchUpdate`, 2 posts, fresh book) | 528,245 | 616,329 | $0.00216 | 2-post `batchUpdate` on busy mainnet MON-USDC: **462,674** |
+| **Re-quote: `batchUpdate` cancel 2 + post 2** (mean of 20) | 477k | 556,879 | **$0.00195** | not obtainable (see below) |
+| `batchCancelOrders` of 2 | 247,968 | 288,926 | $0.00101 | not obtainable |
+| Single post bid / ask | 317,021 / 342,738 | 369,599 / 399,643 | $0.00129 / $0.00140 | **250,101 / 316,004** (mainnet) |
+| Teardown: cancel 2 / withdraw outcome / withdraw collateral | 247,968 / 114,494 / 97,434 | 288,926 / 132,994 / 113,064 | $0.00188 total | n/a |
 
-**One post plus one cancel costs about $0.0018 on Kuru (≈ 0.65M gas).** Monad's marketing figure is about $0.0001 per post-and-cancel. Our measured cost on Kuru is about **18x higher**. Kuru order placement updates a price tree and linked lists, and touches the margin account, so it is far from a minimal "post" operation. The base fee was at its floor, so under load this only gets worse.
+**One post plus one cancel costs about $0.00185 on Kuru.** That is half a 2-order cancel (144k) plus an average single post (385k), 529k gas in total, or **about 18.5x Monad's $0.0001 figure**. Kuru order placement updates a price tree and linked lists and touches the margin account, so it is far from a minimal "post". On the real Monad gas schedule, posts came in 8–21% cheaper than on the fork. That does not change the order of magnitude.
 
-### What it means for "re-quote every block"
+We could not get real-Monad cancel estimates. The two dominant makers on mainnet MON-USDC posted 270 orders in 100 blocks, and their orders are gone within 5 blocks, before an estimate can reference a live order id. This also shows that professional makers do re-quote nearly every block on a deep, high-volume Kuru pair.
 
-Option A, using the model in `scripts/spike/src/cost-model.ts`: 360 rounds per day (3 assets × (96 + 24)), 6 markets live at once (one UP market per asset × duration).
+**Full per-round Kuru lifecycle** (token + market + 2 deposits + first quote + teardown cancel + 2 withdraws): **$0.0122**.
 
-| Re-quote cadence per live market | setup/day | re-quote/day | total/day |
+### What it means for "re-quote every block" (Option A)
+
+Assumptions: 360 rounds per day, 6 markets live at once (`kuru-cost-model.txt`).
+
+| Re-quote cadence per live market | lifecycle/day | re-quote/day | total/day |
 |---|---|---|---|
-| every block (0.4 s) | $3.40 | $2,525.87 | $2,529.27 |
-| every 2 s | $3.40 | $505.17 | $508.58 |
-| every 10 s | $3.40 | $101.03 | $104.44 |
-| every 60 s | $3.40 | $16.84 | $20.24 |
+| every block (0.4 s) | $4.38 | $2,525.87 | $2,530.26 |
+| every 2 s | $4.38 | $505.17 | $509.56 |
+| every 10 s | $4.38 | $101.03 | $105.42 |
+| every 60 s | $4.38 | $16.84 | $21.22 |
 
-Market creation is cheap (about $0.009 per round including token and deposits). **Continuous re-quoting is not.** At the $5,000 launch TVL cap, re-quoting every block would burn about 50% of TVL per day. Even every 10 s costs about 2% of TVL per day. That needs real taker volume to recover through spread.
+At the $5,000 launch TVL cap, Kuru cancel/replace every block costs about 50% of TVL per day. See ADR-001 for the decision this drove.
 
 ### Latency
 
-Not measured. Anvil mines instantly, so fork timings (300–1000 ms, which is just RPC round trips) say nothing about Monad inclusion. **BLOCKED until the live testnet run.** Docs claim 400 ms blocks and about 800 ms finality.
+Not measured. Anvil mines instantly, so fork timings (about 300–500 ms, which is just RPC round trips) say nothing about Monad inclusion. **BLOCKED until the live testnet run.**
 
 ### Limits observed
 
-- **Permissionless market creation:** confirmed. `deployProxy` succeeded 3 times from an unprivileged EOA on the fork, and `eth_estimateGas` from `0x…dEaD` succeeds on the real testnet. There is no fee beyond gas, no allowlist and no rate limit in the contract.
-- Each market is a UUPS proxy, plus a KuruAMMVault. Kuru's owner can `SOFT_PAUSE` or `HARD_PAUSE` markets, and Router, OrderBook and MarginAccount are all upgradeable. That is a venue risk.
-- Prices are `uint32` in pricePrecision units, and the tick is fixed at creation. At tick 0.001, 0.02–0.98 gives 960 price levels. minSize was 1 outcome token (configurable). `kuruAmmSpread` must be 10–500 bps in multiples of 10.
-- Orders are funded from MarginAccount balances, so the vault must deposit per market (2 extra txs per round, or reuse balances across markets with the same token).
-- `postOnly` is supported on single and batch placement. `batchUpdate` gives atomic cancel/replace for any number of levels in one tx.
+- **Mainnet market creation is owner-gated.**
+  - `Router.deployProxy` on mainnet reverts `Unauthorized()` (`0x82b42900`) for anyone except owner `0x8B736DCe2071783Fd9DB0a423dad17cc8ed5788b`.
+  - **Testnet is open:** 3 creations from our EOA on the fork, and `eth_estimateGas` from `0x…dEaD` succeeds on the real testnet.
+  - There is no fee beyond gas, and no on-contract rate limit on testnet.
+- Every market is a UUPS proxy plus a KuruAMMVault. Kuru's owner can `SOFT_PAUSE` or `HARD_PAUSE` markets, and Router, OrderBook and MarginAccount are all upgradeable. That is venue risk.
+- Prices are `uint32` in pricePrecision units, and the tick is fixed at creation. At tick 0.001, 0.02–0.98 gives 960 levels. minSize was 1 outcome token (configurable). `kuruAmmSpread` must be 10–500 bps in multiples of 10.
+- Orders are funded from MarginAccount balances: 2 deposits plus 2 withdrawals per round, or reuse balances across markets that share a token.
+- `postOnly` is supported. `batchUpdate` gives atomic cancel/replace for any number of levels in one tx.
+- The docs pages do not match the deployed ABI. `bestBidAsk` returns `uint256` (1e18-scaled), not `uint32`. The cancel event is `OrdersCanceled(uint40[],address)`, not `OrderCanceled`. Indexers must use the SDK ABI.
 
-## Gaps in this spike (be explicit)
+## Gaps in this spike
 
-1. The fork uses Ethereum's gas schedule. Monad reprices cold account access (10,100 vs 2,600) and storage (8,100 per 128-slot page vs 2,100 per slot). For `deployProxy` the real Monad estimate came out 1.7% higher than the fork. Re-quote gas on real Monad is **unmeasured**. It could be higher (more cold accesses) or lower (page warming).
-2. No fills were exercised (no taker), so `Trade` event shape and fill gas are unmeasured.
-3. Latency to inclusion is unmeasured (see above).
+1. Cancel and re-quote gas on Monad's real gas schedule is unmeasured. Monad reprices cold account access (10,100 vs 2,600 gas) and storage (8,100 per 128-slot page vs 2,100 per slot).
+2. No fills were exercised (no taker), so `Trade` gas is unmeasured.
+3. Latency to inclusion is unmeasured.
 
-## To finish the live run (about 2 MON needed)
+## To finish the live run (about 2 MON)
 
 ```bash
 # 1. fund 0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1 with ~2 testnet MON (faucet.monad.xyz)
-# 2. run against live testnet (keys are read from .env, never printed)
-set -a; . ./.env; set +a; SPIKE_MODE=testnet pnpm --filter @converge/spike kuru
+# 2. build the spike token, then run against live testnet (loads only the deployer key)
+(cd contracts && forge build)
+DEPLOYER_PRIVATE_KEY=$(grep ^DEPLOYER_PRIVATE_KEY= .env | cut -d= -f2) SPIKE_MODE=testnet pnpm --filter @converge/spike kuru
 pnpm --filter @converge/spike report docs/evidence/phase-0/kuru-spike-testnet.json
 ```
 
 ## Questions for the Kuru team
 
-1. Is creating one new market per 15-minute or 1-hour round (up to 360 per day) acceptable to you? Will such markets show up in Kuru's UI and Flow routing automatically, or is there an off-chain listing or allowlist?
-2. Does the bounty ("Bring New Assets and Markets to Kuru") count expiring outcome-token markets, and does it need them listed in the Kuru app?
-3. Are there plans to lower order-placement gas? We measured about 320–340k gas per post and about 124k per cancelled order (Ethereum schedule). Is there a cheaper "amend price" path than cancel plus re-post?
-4. Can a market be retired cleanly after expiry (for example, soft-paused by the creator)? Today only Kuru's owner controls market state. What happens to resting orders at expiry?
-5. Is it possible to have one long-lived market per asset and duration whose base token we roll each round? We assume not, because base is fixed at deploy.
-6. Are flip orders or `batchProvisionLiquidity` (passive, auto-flipping) the recommended way for a vault to provide two-sided liquidity without re-quoting every block?
+1. **Mainnet `deployProxy` is owner-only.** Will you allowlist Converge's MarketFactory, or otherwise create markets for us, for up to 72 (1h) or 360 (all) expiring UP/USDC markets per day? Do these markets appear in the Kuru UI and Flow routing?
+2. Does "Bring New Assets and Markets to Kuru" count expiring outcome-token markets? Does a testnet-only Kuru integration qualify if mainnet creation stays gated?
+3. Is there a cheaper "amend price" path than cancel plus re-post? We measured about 250–340k gas per post and about 124k per cancelled order.
+4. Can a market be retired after expiry (for example, soft-paused by its creator)? What happens to resting orders?
+5. Is one long-lived market per asset and duration with a rolling base token possible? We assume not, since base is fixed at deploy.
+6. Are flip orders or `batchProvisionLiquidity` the recommended way for a vault to provide passive two-sided liquidity?
 7. What are the upgrade and pause governance details (multisig, timelock)? Our LPs' resting orders depend on them.
+8. Your docs' event and return signatures (`OrderCanceled`, `uint32` `bestBidAsk`/`Trade.price`) differ from the deployed ABI. Is the SDK ABI canonical?

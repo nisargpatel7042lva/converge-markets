@@ -7,11 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      # setup-node first so pnpm 11 (needs Node >= 22.13) never runs on the runner default Node
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: pnpm
+          node-version: 24
+      - uses: pnpm/action-setup@v4 # version from package.json "packageManager"
       - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.4 # pinned: forge fmt/lint output must match local
       - run: make install
       - run: make check-all

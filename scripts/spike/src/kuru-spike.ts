@@ -22,6 +22,7 @@ import {
   createPublicClient,
   createWalletClient,
   decodeEventLog,
+  encodeDeployData,
   encodeFunctionData,
   http,
   parseAbi,
@@ -71,6 +72,7 @@ type TxRecord = {
   gasUsed: string;
   effectiveGasPriceWei: string;
   // Monad charges the declared gas limit, not gas used (docs.monad.xyz/developer-essentials/gas-pricing).
+  // In fork mode these are repriced at 102 gwei (see send()).
   costMonAtLimit: number;
   costMonAtUsed: number;
   latencyMs: number;
@@ -104,7 +106,9 @@ async function main(): Promise<void> {
     const receipt = await pub.waitForTransactionReceipt({ hash, pollingInterval: 100 });
     const latencyMs = Math.round(performance.now() - t0);
     if (receipt.status !== "success") throw new Error(`${label} reverted: ${hash}`);
-    const price = receipt.effectiveGasPrice;
+    // On an anvil fork the base fee decays toward 0 on empty blocks, so fork costs are repriced
+    // at the live Monad price (100 gwei floor + 2 gwei priority, read 2026-10-04).
+    const price = env.SPIKE_MODE === "fork" ? 102_000_000_000n : receipt.effectiveGasPrice;
     const rec: TxRecord = {
       label,
       hash,
@@ -129,28 +133,17 @@ async function main(): Promise<void> {
   ) as { abi: Abi; bytecode: { object: Hex } };
 
   async function deployToken(label: string, name: string, symbol: string, decimals: number) {
-    const hash = await wallet.deployContract({
-      abi: artifact.abi,
-      bytecode: artifact.bytecode.object,
-      args: [name, symbol, decimals],
-    });
-    // Re-measure via receipt for consistent records
-    const t0 = performance.now();
-    const receipt = await pub.waitForTransactionReceipt({ hash, pollingInterval: 100 });
-    const tx = await pub.getTransaction({ hash });
-    records.push({
+    const receipt = await send(
       label,
-      hash,
-      gasLimit: tx.gas.toString(),
-      gasUsed: receipt.gasUsed.toString(),
-      effectiveGasPriceWei: receipt.effectiveGasPrice.toString(),
-      costMonAtLimit: Number(tx.gas * receipt.effectiveGasPrice) / 1e18,
-      costMonAtUsed: Number(receipt.gasUsed * receipt.effectiveGasPrice) / 1e18,
-      latencyMs: Math.round(performance.now() - t0),
-      block: receipt.blockNumber.toString(),
-    });
+      undefined,
+      encodeDeployData({
+        abi: artifact.abi,
+        bytecode: artifact.bytecode.object,
+        args: [name, symbol, decimals],
+      }),
+    );
     if (!receipt.contractAddress) throw new Error(`${label}: no contract address`);
-    console.log(`${label.padEnd(28)} -> ${receipt.contractAddress} gasUsed=${receipt.gasUsed}`);
+    console.log(`${label.padEnd(28)} -> ${receipt.contractAddress}`);
     return receipt.contractAddress;
   }
 
@@ -285,39 +278,63 @@ async function main(): Promise<void> {
     }),
   );
 
-  const price = (x: number) =>
-    Number(
-      (BigInt(Math.round(x * Number(params.pricePrecision))) / params.tickSize) * params.tickSize,
-    );
+  // Bids round down and asks round up to the tick, so rounding never tightens the quote.
+  const toTicks = (x: number, side: "bid" | "ask") => {
+    const raw = x * Number(params.pricePrecision);
+    const t = Number(params.tickSize);
+    return (side === "bid" ? Math.floor(raw / t) : Math.ceil(raw / t)) * t;
+  };
   const size = 10n * params.sizePrecision; // 10 outcome tokens
 
-  const orderIdsFrom = (receipt: TransactionReceipt): bigint[] => {
-    const ids: bigint[] = [];
+  /** Decodes OrderCreated / OrdersCanceled from a receipt and asserts the expected counts, so a
+   *  dropped or crossed post-only order can never silently corrupt later cancel ids or gas data. */
+  const orderEvents = (
+    receipt: TransactionReceipt,
+    label: string,
+    expectCreated: number,
+    expectCanceled: number,
+  ): bigint[] => {
+    const created: bigint[] = [];
+    let canceled = 0;
     for (const log of receipt.logs) {
       if (log.address.toLowerCase() !== market.toLowerCase()) continue;
       try {
         const ev = decodeEventLog({ abi: orderBookAbi, data: log.data, topics: log.topics });
         if (ev.eventName === "OrderCreated")
-          ids.push((ev.args as unknown as { orderId: bigint }).orderId);
+          created.push((ev.args as unknown as { orderId: bigint }).orderId);
+        if (ev.eventName === "OrdersCanceled")
+          canceled += (ev.args as unknown as { orderId: readonly bigint[] }).orderId.length;
       } catch {
         // other events
       }
     }
-    return ids;
+    if (created.length !== expectCreated || canceled !== expectCanceled)
+      throw new Error(
+        `${label}: created ${created.length}/${expectCreated}, canceled ${canceled}/${expectCanceled}`,
+      );
+    return created;
   };
 
   const batch = (bid: number, ask: number, cancel: bigint[]) =>
     encodeFunctionData({
       abi: orderBookAbi,
       functionName: "batchUpdate",
-      args: [[price(bid)], [size], [price(ask)], [size], cancel.map(Number), true],
+      args: [
+        [toTicks(bid, "bid")],
+        [size],
+        [toTicks(ask, "ask")],
+        [size],
+        cancel.map(Number),
+        true,
+      ],
     });
 
-  let live = orderIdsFrom(
+  let live = orderEvents(
     await send("initial bid+ask (batchUpdate)", market, batch(0.48, 0.52, [])),
+    "initial",
+    2,
+    0,
   );
-  if (live.length !== 2)
-    notes.push(`initial batchUpdate created ${live.length} orders (expected 2)`);
 
   const t20 = performance.now();
   for (let i = 1; i <= 20; i++) {
@@ -327,13 +344,13 @@ async function main(): Promise<void> {
       market,
       batch(mid - 0.02, mid + 0.02, live),
     );
-    live = orderIdsFrom(r);
+    live = orderEvents(r, `requote ${i}`, 2, live.length);
   }
   const wall20 = Math.round(performance.now() - t20);
 
   // Unbatched comparison: cancel in one tx, re-post bid and ask in two more.
   for (let i = 1; i <= 3; i++) {
-    await send(
+    const c = await send(
       `unbatched cancel ${i}`,
       market,
       encodeFunctionData({
@@ -342,13 +359,14 @@ async function main(): Promise<void> {
         args: [live.map(Number)],
       }),
     );
+    orderEvents(c, `unbatched cancel ${i}`, 0, live.length);
     const b = await send(
       `unbatched bid ${i}`,
       market,
       encodeFunctionData({
         abi: orderBookAbi,
         functionName: "addBuyOrder",
-        args: [price(0.47), size, true],
+        args: [toTicks(0.47, "bid"), size, true],
       }),
     );
     const a = await send(
@@ -357,10 +375,42 @@ async function main(): Promise<void> {
       encodeFunctionData({
         abi: orderBookAbi,
         functionName: "addSellOrder",
-        args: [price(0.53), size, true],
+        args: [toTicks(0.53, "ask"), size, true],
       }),
     );
-    live = [...orderIdsFrom(b), ...orderIdsFrom(a)];
+    live = [...orderEvents(b, `bid ${i}`, 1, 0), ...orderEvents(a, `ask ${i}`, 1, 0)];
+  }
+
+  // Round teardown: pull resting orders, then withdraw both margin balances.
+  orderEvents(
+    await send(
+      "teardown cancel",
+      market,
+      encodeFunctionData({
+        abi: orderBookAbi,
+        functionName: "batchCancelOrders",
+        args: [live.map(Number)],
+      }),
+    ),
+    "teardown cancel",
+    0,
+    live.length,
+  );
+  for (const [name, token] of [
+    ["outcome", up],
+    ["collateral", collateral],
+  ] as const) {
+    const bal = (await pub.readContract({
+      address: KURU_MARGIN_ACCOUNT,
+      abi: marginAbi,
+      functionName: "getBalance",
+      args: [account.address, token],
+    })) as bigint;
+    await send(
+      `margin withdraw ${name}`,
+      KURU_MARGIN_ACCOUNT,
+      encodeFunctionData({ abi: marginAbi, functionName: "withdraw", args: [bal, token] }),
+    );
   }
 
   // Repeat market creation (rate limits / allowlists / cost drift).

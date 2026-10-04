@@ -1,62 +1,60 @@
 # ADR-001: Market venue
 
-- Status: **Accepted (provisional)**. Re-check once the live-testnet spike numbers exist (one named input below).
-- Date: 2026-10-04
-- Evidence: `docs/evidence/phase-0/kuru-spike.md`, `kuru-spike-fork.json`, `kuru-cost-model.txt`
+- Status: **Accepted for 15m. Kuru (1h) leg pending one named answer from Kuru**: will they grant Converge mainnet market-creation rights?
+- Date: 2026-10-04 (revised the same day after the hostile review)
+- Evidence: `docs/evidence/phase-0/kuru-spike.md`, `kuru-spike-fork.json`, `kuru-cost-model.txt`, `monad-gas-estimates.txt`, `external-onchain-checks.txt`
 
-## Context
+## Context: what we measured
 
-The vault has to provide two-sided liquidity for 3 assets × (96 × 15m + 24 × 1h) = **360 rounds per day**. CLAUDE.md assumes we "re-quote every block" because Monad claims about $0.0001 per post-and-cancel. We were told to measure that claim. The spike shows it **does not hold on Kuru**:
+The vault must provide liquidity for 3 assets × (96 × 15m + 24 × 1h) = **360 rounds per day**. CLAUDE.md assumes re-quoting every block at about $0.0001 per post-and-cancel. Measured at 102 gwei, MON $0.0343, Monad billing the gas limit:
 
-| Measured (fork, Ethereum gas schedule, 102 gwei, MON $0.0343) | USD |
-|---|---|
-| Create one Kuru market (`deployProxy`, gas limit 1.40M) | $0.0049 |
-| Full per-round setup (outcome token + market + 2 margin deposits + first bid/ask) | $0.0094 |
-| One re-quote (atomic `batchUpdate`: cancel 2, post 2; 557k gas limit) | **$0.0019** |
-| One post + one cancel, unbatched | ~$0.0018 (about 18x Monad's $0.0001 claim) |
+| Item | USD | Source |
+|---|---|---|
+| One post + one cancel on Kuru (half a 2-order cancel + avg single post = 529k gas) | **$0.00185 (~18.5x the $0.0001 claim)** | fork |
+| One re-quote, atomic `batchUpdate` cancel 2 + post 2 (557k gas) | $0.00195 | fork |
+| Same posts on **real Monad mainnet** gas schedule (`eth_estimateGas`): 2-post `batchUpdate` 462,674; single bid 250,101; single ask 316,004 gas | 12–21% below fork | `monad-gas-estimates.txt` |
+| Full Kuru round lifecycle: outcome token, market, 2 deposits, first quote, teardown cancel, 2 withdraws | $0.0122 | fork |
 
-Creating markets is cheap. **Re-quoting is the cost driver.**
+Two findings change the picture:
+
+1. **Kuru mainnet market creation is owner-gated.** `Router.deployProxy` on mainnet reverts `Unauthorized()` for anyone except the Kuru owner `0x8B736DCe2071783Fd9DB0a423dad17cc8ed5788b`. Testnet is open. We cannot create one Kuru market per round on mainnet without Kuru's cooperation.
+2. **A pure pm-AMM is not free.** Paradigm's paper (https://www.paradigm.xyz/2024/11/pm-amm) analyses zero-fee pools and states that for the dynamic pm-AMM (L_t = L·√(T−t)) "half the initial wealth is lost by the end" to arbitrage, with constant expected LVR over time. A 15m pool funded with V₀ is expected to lose about V₀/2 per round unless fees and uninformed flow cover it. At 288 rounds per day that dominates every gas number above. Example: $20 per pool gives about $10 × 288 = $2,880 per day of expected LVR before fees.
 
 ## Options and scoring
 
-Assumptions: 6 markets live at once (one UP market per asset × duration; DOWN is synthetic through mint/merge). Re-quote cost from the spike. pm-AMM swaps price themselves from the curve and time-to-expiry, so they need **no keeper transactions to keep quotes current**.
-
-| | A. New Kuru market every round | B. Hybrid: Kuru for 1h+, in-vault pm-AMM for 15m | C. pm-AMM for everything, Kuru only for longer-dated |
+| | A. New Kuru market every round | B. Kuru 1h + pure pm-AMM 15m (first draft) | **D. Oracle-anchored in-vault pool for every round + Kuru 1h when allowed** |
 |---|---|---|---|
-| Kuru markets created/day | 360 | 72 | ~0 in the wedge (we list no longer-dated markets yet) |
-| Setup cost/day | $3.40 | $0.68 | ~$0 |
-| Keeper re-quote cost/day, every block | $2,526 | $1,263 (3 Kuru markets) | $0 |
-| …every 10 s | $101 | $51 | $0 |
-| …event-driven (move ≥ 1 tick, max every 30 s, assumed ≈ 1 per 20 s) | ~$50 | ~$25 | $0 |
-| UX latency for a taker | 1 tx (Kuru market order), about 1 block | 15m: 1 tx against the vault. 1h: 1 tx on Kuru | 1 tx against the vault |
-| Price quality | Depends on keeper cadence. Stale between re-quotes, so toxic flow risk | 15m: continuous curve but LVR (bounded by pm-AMM design). 1h: keeper | Continuous curve, LVR |
-| Kuru bounty eligibility | Strongest (every round is a new Kuru market) | **Real**: 72 new Kuru markets per day and a vault that makes them viable | Weak to none in the wedge |
-| Complexity for Oct 13 | High: per-round margin deposit/withdraw, order-id tracking, re-quote loop for 6 books, upgradeable venue in the vault's trust path for all flow | Medium-high: two venue adapters, but each is smaller | Lowest |
-| Venue risk | All LP inventory sits in Kuru MarginAccount (UUPS, owner can pause) | Only 1h inventory | None |
+| Mainnet feasible today | **No** (owner-gated) | Partly (15m only) | **Yes** for in-vault; Kuru leg needs Kuru |
+| Kuru round lifecycle/day | 360 × $0.0122 = $4.38 | 72 × $0.0122 = $0.88 | 72 × $0.0122 = $0.88 |
+| Quote upkeep/day | $2,526 every block; $101 every 10 s (6 markets) | Kuru $1,263 every block / $51 every 10 s; 15m $0 gas | In-vault: keeper writes fair mids for all live rounds in one tx. **Estimated** ~60k gas ≈ $0.0002 per update. Every block ≈ $46/day, every 2 s ≈ $9/day (to be measured in Phase 1/4). Kuru 1h: same as B |
+| LVR / adverse selection | Bounded by re-quote cadence and toxicity guard | **15m: ~50% of pool value per round to arbitrage (paper)** | Bounded by update cadence (one block of staleness at most if updated every block), no-quote window and toxicity guard |
+| Taker UX | 1 tx on Kuru | 1 tx (vault) / 1 tx (Kuru) | 1 tx against the vault; 1h also on Kuru |
+| Kuru bounty | Strongest, if Kuru allows | Real, if Kuru allows | Real, if Kuru allows. Otherwise testnet-only Kuru demo |
+| Complexity for Oct 13 | High (6 Kuru books, margin per round) | Medium-high | Medium: one vault pool type + one adapter |
+| Venue risk | All inventory in Kuru MarginAccount (UUPS, owner pause) | 1h inventory only | 1h inventory only |
+
+"Event-driven ≈ 1 re-quote per 20 s" in the first draft was a **guess**. A digital option's delta is large near the strike close to expiry, so fair value moves by 1 tick (0.001) almost every block in the final minutes. The real rate must come from the Phase 3 backtest on historical paths. Until then, use the range from 10 s to every block shown above.
 
 ## Decision
 
-**Option B, hybrid.**
+**Option D.**
 
-1. **15-minute rounds trade against an in-vault pm-AMM pool.** No re-quote transactions. Liquidity decays toward expiry per the pm-AMM schedule (to be verified against the paper in Phase 3), with the minimum concentration floor.
-2. **1-hour rounds get a fresh Kuru UP/USDC market each round** (72 per day, about $0.68 per day to create). The vault quotes them through a Kuru venue adapter using **event-driven re-quotes**: post a ladder with `batchUpdate`, and re-quote only when fair value moves at least 1 tick or the toxicity guard fires. Hard budget: a per-market re-quote gas cap per round, enforced by the keeper and tracked in metrics.
-3. Both venues sit behind one `IVenueAdapter` interface, so a single round type can move venues without touching the vault.
+1. **All rounds trade against an in-vault, oracle-anchored pool.** The keeper writes fair mid-prices (N(d2) from the strategy library) for every live round in a single batched transaction. The pool prices swaps as mid ± spread. Depth follows the pm-AMM schedule (liquidity ∝ √(T−t)) with the minimum concentration floor. So we keep pm-AMM's liquidity shape without its no-oracle LVR. Quotes go stale after N blocks without an update, and the no-quote window and toxicity guard apply.
+2. **1h rounds are also listed on Kuru**, through an `IVenueAdapter`, **if Kuru grants mainnet creation rights** (allowlisting our factory or creating markets on request). The vault quotes them with event-driven `batchUpdate` under a hard per-round gas budget. On testnet (open creation) we build and demo the Kuru leg regardless.
+3. Every venue sits behind `IVenueAdapter`, so a round type can move without touching vault accounting.
 
-## Why not A
+## Pending (the named answer)
 
-The economics fail at our launch size. At the $5,000 TVL cap, re-quoting every block costs about $2.5k per day (about 50% of TVL per day). Even every 10 s costs about $100 per day (2% per day), which LPs would have to recover through spread on day-one volume we don't have. It also puts all LP inventory inside an upgradeable third-party margin account.
-
-## Why not C
-
-It is the cheapest, but it gives up the Kuru bounty and the "new class of markets on Kuru" story. B keeps both at a known, bounded cost.
+- **Kuru:** will you allowlist Converge's MarketFactory (or another mechanism) to create up to 72 (1h) or 360 (all) UP/USDC markets per day on mainnet? If no: the Kuru leg ships on testnet only, the bounty submission rests on that, and mainnet runs in-vault only.
 
 ## Consequences and deviations
 
-- **Deviation from CLAUDE.md:** the line "re-quoting every block" does not hold on Kuru at today's gas. Under B, the 15m product needs no re-quotes at all, and the Kuru side re-quotes on events. We will publish the measured numbers (the CLAUDE.md requirement to "MEASURE and publish this number" is met by this ADR). CLAUDE.md is left verbatim per the Phase 0 instruction. Nisarg should approve wording for an amendment.
-- The keeper (Phase 5) becomes much simpler for 15m markets and is budgeted for 1h markets.
-- Kuru markets are UP-only. DOWN exposure comes from mint (UP+DOWN) and selling UP, or from the vault's pm-AMM.
+- **Deviation from CLAUDE.md:** "re-quoting every block" is only economic as a cheap in-vault state write, not as Kuru cancel/replace. Kuru-based per-block re-quoting would cost about $2.5k/day, roughly half the $5k launch TVL. Note that the two dominant makers on Kuru's MON-USDC market do re-quote almost every block (270 new orders in 100 blocks, `monad-gas-estimates.txt`). That pays off on a deep, high-volume pair, not on new outcome markets. CLAUDE.md is kept verbatim per the Phase 0 instruction. Nisarg should approve an amendment.
+- "Monad lets you re-quote every block" becomes our published, measured claim: about $0.0002 per batched in-vault update (to be measured) vs $0.0019 per Kuru re-quote.
+- Phase 3 must deliver: LVR and adverse-selection P&L per round for D at the chosen update cadence, and the fee and spread needed to keep LP returns positive (CLAUDE.md requires LP returns from spreads, not emissions).
 
-## Revisit triggers (the named input)
+## Revisit triggers
 
-- **Live-testnet spike (needs about 2 testnet MON):** if real Monad gas for a `batchUpdate` re-quote is at least 30% different from the fork, recompute the table. If a re-quote drops below about $0.0003, put Option A back on the table for 15m.
-- Kuru's answers to the questions in `kuru-spike.md` (especially listing policy and bounty eligibility of expiring markets).
+- Kuru's answer above.
+- A live-testnet spike or real-Monad cancel gas differing by 30% or more from the fork.
+- A Phase 1/4 measurement of the batched mid-update showing over 100k gas per update.

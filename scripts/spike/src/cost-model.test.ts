@@ -25,14 +25,16 @@ describe("cost model", () => {
       rec("kuru deployProxy r1", 1_000_000),
       rec("margin deposit a", 500_000),
       rec("initial bid+ask", 500_000),
+      rec("teardown cancel", 250_000),
+      rec("margin withdraw outcome", 125_000),
       rec("requote 01", 1_000_000),
     ];
     const p = { gasPriceWei: 1_000_000_000_000n, monUsd: 1 }; // 1e-6 MON per gas
     const c = dailyCost(rs, p, 10, 2, 1);
-    expect(c.setupPerRoundUsd).toBeCloseTo(3, 9);
-    expect(c.setupPerDayUsd).toBeCloseTo(30, 9);
+    expect(c.setupPerRoundUsd).toBeCloseTo(4, 9); // 1+1+2*0.5+0.5+0.25+2*0.125 Mgas
+    expect(c.setupPerDayUsd).toBeCloseTo(40, 9);
     expect(c.requotePerMarketPerDayUsd).toBeCloseTo(86_400, 6);
     expect(c.requotePerDayUsd).toBeCloseTo(172_800, 6);
-    expect(c.totalPerDayUsd).toBeCloseTo(172_830, 6);
+    expect(c.totalPerDayUsd).toBeCloseTo(172_840, 6);
   });
 });

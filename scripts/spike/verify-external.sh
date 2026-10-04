@@ -29,3 +29,13 @@ cast estimate 0x7EFbE105Ca7415dE98F96622173458ac1c054630 \
   "deployProxy(uint8,address,address,uint96,uint32,uint32,uint96,uint96,uint256,uint256,uint96)" \
   0 0xFb8bf4c1CC7a94c73D209a149eA2AbEa852BC541 0x3bA3d39AFcf8bb994f7964B3e0171Ea2Ba361570 10000 10000 13 10000 1000000000 0 0 100 \
   --from 0x000000000000000000000000000000000000dEaD --rpc-url $T
+echo "## Data Streams VerifierProxy config (mainnet)"
+V=0xEd813D895457907399E41D36Ec0bE103E32148c8
+echo "$(cast call $V 'typeAndVersion()(string)' --rpc-url $M) feeManager=$(cast call $V 's_feeManager()(address)' --rpc-url $M) accessController=$(cast call $V 's_accessController()(address)' --rpc-url $M)"
+echo "## Kuru MAINNET deployProxy from unprivileged EOA (expect revert 0x82b42900 Unauthorized)"
+cast estimate 0xd651346d7c789536ebf06dc72aE3C8502cd695CC \
+  "deployProxy(uint8,address,address,uint96,uint32,uint32,uint96,uint96,uint256,uint256,uint96)" \
+  0 0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A 0x754704Bc059F8C67012fEd69BC8A327a5aafb603 10000 10000 13 10000 1000000000 0 0 100 \
+  --from 0x000000000000000000000000000000000000dEaD --rpc-url $M 2>&1 | tail -1
+echo "## Envio HyperSync auth (expect 401 without token)"
+curl -s -o /dev/null -w "%{http_code}\n" -X POST https://143.hypersync.xyz/query -H 'content-type: application/json' -d '{"from_block":0}'

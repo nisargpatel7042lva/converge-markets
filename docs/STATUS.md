@@ -16,8 +16,8 @@
 
 ## Decisions in force
 
-- ADR-001: hybrid venue. 15m rounds use an in-vault pm-AMM; 1h rounds get a fresh Kuru market each round with event-driven re-quotes.
-- ADR-002: resolve with Chainlink Data Streams reports verified onchain, delivered by CRE, submission permissionless, void if missing. Push feeds are a sanity bound only.
+- ADR-001: every round trades against an oracle-anchored in-vault pool (pm-AMM depth schedule, keeper-written mids). 1h rounds are also listed on Kuru once Kuru grants mainnet creation rights; testnet leg regardless.
+- ADR-002: resolve with Chainlink Data Streams reports verified onchain (canonical = earliest report at or after T, finalization delay), delivered by CRE plus a fallback submitter, void = 0.5 USDC per token. Push feeds are a sanity bound only.
 - ADR-003: USDC (6 dp) collateral.
 
 ## Open blockers
@@ -25,4 +25,6 @@
 1. Testnet MON for deployer `0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1` (live Kuru spike).
 2. Data Streams account and stream IDs (BTC, ETH, MON).
 3. CRE account / early access (`cre workflow supported-chains`).
-4. Kuru answers (see `docs/evidence/phase-0/kuru-spike.md`).
+4. Kuru: mainnet `deployProxy` is owner-gated. Need creation rights (question #1 in `docs/evidence/phase-0/kuru-spike.md`).
+5. Envio HyperSync API token.
+6. GitHub remote (CI has not run on GitHub yet).

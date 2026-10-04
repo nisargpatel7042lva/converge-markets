@@ -1,0 +1,8 @@
+# command: actionlint 1.7.12 -verbose .github/workflows/ci.yml   (2026-10-04T03:20:10Z)
+verbose: Linting .github/workflows/ci.yml
+verbose: Using project at /home/mysterioxplorer/converge
+verbose: Found 0 parse errors in 0 ms for .github/workflows/ci.yml
+verbose: Rule "shellcheck" was disabled: exec: "shellcheck": executable file not found in $PATH
+verbose: Rule "pyflakes" was disabled: exec: "pyflakes": executable file not found in $PATH
+verbose: Found total 0 errors in 14 ms for .github/workflows/ci.yml
+actionlint exit=0
