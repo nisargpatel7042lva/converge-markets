@@ -89,7 +89,21 @@ Full log with dispositions: `docs/evidence/phase-0/hostile-review.md`.
 - The strike chain was undefined under void and on the first round.
 - The replacement/tie-break rule was inconsistent, and the finalization delay could be restarted.
 
-**Open:** LOW only. CI has not run on GitHub (no remote), actions are pinned by tag rather than SHA, and `MON_USD` is hardcoded in the spike. **There are no open CRITICAL or HIGH findings**, based on the author's check of each iteration-2 fix. An independent iteration-3 pass is recorded in `hostile-review.md` when it completes.
+**Iteration 3** (1 HIGH, 4 MEDIUM, 3 LOW): all addressed in the docs.
+
+- **HIGH:** the bounded keeper's push-feed reference is rarely fresh (BTC 25%, ETH 9% of the time), and its gas was uncounted. ADR-001 now takes the reference from attached Data Streams reports, stops quoting instead of clamping, and makes Phase 4 measure verify and N(d2) gas before choosing a cadence.
+- **MEDIUM:**
+  - ADR-002's push sanity bound could itself force voids, so it is now disabled.
+  - The BTC push fallback would void about 57% of boundaries, so the fallback is MON-only.
+  - Fork and real gas are now priced on a stated common basis.
+  - The canonical report is now the report whose window contains T. Chainlink documents report windows as contiguous and non-overlapping, so no submitter choice remains.
+
+**Open:**
+
+- **Design-level (needs Phase 4 measurement):** the gas of the onchain keeper bound (report verification plus N(d2)). This blocks choosing Option D's cadence, not Phase 1.
+- **LOW:** CI has not run on GitHub (no remote), actions are pinned by tag rather than SHA, and `MON_USD` is hardcoded in the spike.
+
+**There is no open CRITICAL or HIGH finding** against Phase 0's deliverables after iteration 3's fixes. These fixes were not independently re-reviewed (a 4th pass); Phase 1's review re-reads ADR-002 because Phase 1 implements it.
 
 ## Deviations from the spec, and ADRs written
 
@@ -126,7 +140,7 @@ ADRs written: ADR-001 (market venue), ADR-002 (oracle), ADR-003 (collateral).
 ## Needs from Nisarg
 
 1. **GitHub:** create the repo (name?) and give the remote. Should I push `main` so CI runs? Nothing has been pushed yet.
-2. **Testnet MON:** send about 2 MON to `0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1` (deployer) and about 1 MON to `0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4` (keeper). Or give me your funded testnet wallets instead. Then I'll run the live spike (latency, real cancel gas).
+2. **Testnet MON:** send about 2 MON to `0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1` (deployer) and about 1 MON to `0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4` (keeper). Or give me your funded testnet wallets instead. Then I'll run the live spike (latency, and receipts on our own fresh markets).
 3. **Kuru mentors:** please send the questions in `docs/evidence/phase-0/kuru-spike.md`. **#1 (mainnet market-creation rights for our factory) decides ADR-001's Kuru leg.**
 4. **Chainlink:** sign up for Data Streams and confirm stream IDs for BTC/ETH/MON-USD, API access, and whether verification is live on Monad mainnet (ADR-002). Also, do you have CRE early access? I need `cre workflow supported-chains` output for your org.
 5. **Envio:** an API token for HyperSync (`ENVIO_API_TOKEN`).
@@ -138,4 +152,4 @@ ADRs written: ADR-001 (market venue), ADR-002 (oracle), ADR-003 (collateral).
 
 ## Readiness for the next phase
 
-**Yes for Phase 1 (outcome market contracts).** Phase 1 depends on the interfaces (`IStreamsVerifier`, `IVenueAdapter`), the USDC collateral, and the ADR-002 settlement rules, all of which are now decided. A mock verifier is acceptable on testnet. Kuru's answer affects Phase 4/5 (venue adapter, keeper), not Phase 1. Answers to #4 and #6 should arrive before Phase 2 (CRE settlement) and Phase 3 (strategy) respectively.
+**Yes for Phase 1 (outcome market contracts).** Phase 1 depends on the interfaces (`IPriceResolver`, `IVenueAdapter`), the USDC collateral, and the ADR-002 settlement rules, all of which are now decided. A mock verifier is acceptable on testnet. Kuru's answer affects Phase 4/5 (venue adapter, keeper), not Phase 1. Answers to #4 and #6 should arrive before Phase 2 (CRE settlement) and Phase 3 (strategy) respectively.

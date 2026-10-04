@@ -34,28 +34,31 @@ Every round (15m and 1h) resolves with a **Chainlink Data Streams report verifie
 
 ### 2. Boundary prices and the canonical report rule
 
-The contract keeps **one boundary-price record P(asset, T) per aligned UTC boundary T**. A round [T_start, T_end) opens with strike K = P(T_start) and settles on P(T_end). Round n+1's strike is round n's settlement record, so there is a single source of truth and nothing to re-fetch. The first round of a series bootstraps from P(T₀) like any other boundary.
+The contract keeps **one boundary-price record P(asset, T) per aligned UTC boundary T**. A round [T_start, T_end) opens with strike K = P(T_start) and settles on P(T_end). Round n+1's strike is round n's settlement record. The first round of a series bootstraps from P(T₀) like any other boundary.
 
 Rules for P(T):
 
-- **Exact match preferred.** A report with `observationsTimestamp == T` is canonical. Otherwise the canonical report is the one with the smallest `observationsTimestamp` in (T, T + tolerance], e.g. 10 s.
-- **Proposals.** The first valid proposal starts a finalization window of fixed length (e.g. 2 minutes) **anchored to the first proposal and never restarted**. During the window, anyone may replace the current proposal with a valid report that has
-  - a strictly earlier `observationsTimestamp` (still ≥ T), or
-  - an equal `observationsTimestamp` and a lower `keccak256(reportData)`. The hash covers `reportData` only, not signatures, so the submitter can't grind it.
-- **Bounded griefing.** Because the window never restarts, replacement spam can't delay finalization.
-- **Finality.** P(T) is final at first-proposal + window. Trading in the round that starts at T opens only then. With the 60 s no-quote window at the end, a 15m round therefore trades for about **12 of its 15 minutes**.
+- **Canonical report = the report whose window contains T** (`validFromTimestamp ≤ T ≤ observationsTimestamp`).
+  - Chainlink documents that report windows are contiguous with no gaps and no overlap ("every time interval belonging to exactly one report", https://docs.chain.link/data-streams/how-report-timestamps-work).
+  - So exactly one report qualifies, and the submitter has nothing to choose. This replaces the earlier "smallest timestamp ≥ T in a tolerance window" rule, which an attacker could exploit by proposing a later report first.
+- **Defense in depth:**
+  - The first valid proposal starts a finalization window of fixed length (e.g. 2 minutes), **anchored to the first proposal and never restarted**.
+  - If a *different* report that also contains T appears (violating Chainlink's no-overlap guarantee), the one with the lower `keccak256(reportData)` wins. The hash covers report data, not signatures, so it can't be ground.
+  - Replacement spam can't delay finality.
+- **Finality.** P(T) is final at first-proposal + window. Trading in the round that starts at T opens only then. With the 60 s no-quote window, a 15m round trades for about **12 of its 15 minutes**.
 
 Single-source fallback rule (round-proof mode, used where Data Streams is unavailable):
 
 - P(T) = the answer of the **first** push-feed round with `updatedAt ≥ T`, proven by supplying that roundId. The contract checks that the previous round in the same phase has `updatedAt < T`.
 - If none arrives within `maxOracleDelay`, P(T) is unresolvable.
 - This is deterministic (no cherry-picking), but inherits the push-feed staleness above. It is acceptable only for MON (about 30 s cadence).
+- **Phase boundary:** if the first qualifying round is round 1 of a new aggregator phase, there is no same-phase predecessor to prove against, so the proof is rejected. P(T) then becomes unresolvable via the liveness fallback (no proof by T + grace), which voids the rounds touching T. Phase changes are rare, aggregator upgrades.
 
 Both modes sit behind one `IPriceResolver` interface.
 
 ### 3. Delivery
 
-- **Primary:** the Chainlink CRE workflow (Phase 2) fetches the report at each boundary and submits it. CRE supports Monad as a write target (KeystoneForwarder `0x76c9cf548b4179F8901cda1f8623568b58215E62`).
+- **Primary:** the Chainlink CRE workflow (Phase 2) fetches the report containing T at each boundary and submits it, even if a proposal already exists. The contract's tie-break makes a redundant submission harmless, and an alert fires if a proposal differs from the one CRE fetched. CRE supports Monad as a write target (KeystoneForwarder `0x76c9cf548b4179F8901cda1f8623568b58215E62`).
 - **Secondary:** a TS fallback submitter in `services/scheduler`, independent of CRE, with its own Data Streams credentials.
 - **Incentive:** submission is permissionless onchain. A fixed settlement reward goes to whoever submitted the finalized report, **funded by a protocol fee in basis points on vault swaps** (a Phase 4 parameter; 0 until the vault exists, during which the team's submitters run unpaid). Reports need API credentials to fetch, so permissionless submission is a backstop, not the main path.
 
@@ -65,13 +68,15 @@ Both modes sit behind one `IPriceResolver` interface.
 - Void payout is fixed per token: **each UP and each DOWN redeems for 0.5 collateral**, so a complete pair = 1.
 - **A void is not neutral.** Once the price path is known, 0.5/0.5 moves value from would-be winners to would-be losers, so losers gain from forcing a void. Mitigations:
   - two independent submitters plus the reward make non-submission costly;
-  - the sanity bound (below) can never cause a void;
+  - the sanity bound (below) is disabled by default (see §5);
   - Phase 9 monitors the void rate.
   - The residual risk is accepted and documented in `docs/security/`.
 
-### 5. Sanity bound
+### 5. Sanity bound (disabled at launch)
 
-A report deviating more than X% from the push feed is rejected **only when the push price is fresh** (age < N s at T). A stale push feed disables the check rather than rejecting a valid report, because ETH's push feed can be 60 minutes stale and a stale bound could otherwise force voids. Push feeds are never the resolution source in Data Streams mode.
+A push-feed sanity bound can itself cause voids. If the push price is fresh but every report near T deviates by more than X%, as in a flash move or a lagging feed, every report is rejected and both rounds void. The contract also only sees `latestRoundData` at submission time, not the push price at T.
+
+So v1 ships **without** the bound: verified Data Streams reports are accepted on signature alone. Phase 9 may add a deviation alert that escalates to the guardian, which can pause new creation and split but never settlement. It will never be a reject rule.
 
 ### 6. Testnet
 
@@ -86,7 +91,7 @@ Nisarg: sign up for Data Streams (https://app.chain.link) and confirm:
 - (c) API/WebSocket access;
 - (d) **whether verification is live on Monad mainnet.** Onchain, the VerifierProxy (`typeAndVersion` "VerifierProxy 2.0.0") has `s_feeManager() = 0x0` and `s_accessController() = 0x0`. Either verification is free/ungated, or it is not wired up for live streams yet.
 
-If **MON/USD is not available as a stream**: launch MON at 1h only, resolved by the MON push feed in round-proof mode (first round with `updatedAt ≥ T`, `maxOracleDelay` 120 s). This is acceptable only because of its observed ~30 s cadence (max gap seen 90 s), and note its "new" risk category. With a 60 s cap instead, about 2% of boundaries would void, from gaps of 61, 61 and 90 s in 1,470 s. Drop MON 15m at launch. If **(d) is "not live"**, mainnet launch waits on Chainlink, or launches 1h BTC/MON on push feeds under the same strict rule (ETH excluded given its 60-minute gaps).
+If **MON/USD is not available as a stream**: launch MON at 1h only, resolved by the MON push feed in round-proof mode (first round with `updatedAt ≥ T`, `maxOracleDelay` 120 s). This is acceptable only because of its observed ~30 s cadence (max gap seen 90 s), and note its "new" risk category. With a 60 s cap instead, about 2% of boundaries would void, from gaps of 61, 61 and 90 s in 1,470 s. Drop MON 15m at launch. If **(d) is "not live"**, mainnet launch waits on Chainlink, or launches **MON only** on its push feed in round-proof mode. BTC and ETH are excluded: with `maxOracleDelay` 120 s, about 57% of BTC boundaries would void, Σmax(0, gap − 120)/span over the 40 observed rounds.
 
 ## Consequences
 

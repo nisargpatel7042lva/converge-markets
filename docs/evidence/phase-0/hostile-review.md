@@ -37,6 +37,17 @@ The reviewer was a separate subagent (auditor + product reviewer) that did not w
 
 Iteration 2's per-criterion verdict was PASS for all six criteria, subject to the HIGH fixes above.
 
-## Iteration 3
+## Iteration 3 (HEAD 49158cb): 1 HIGH, 4 MEDIUM, 3 LOW (independent reviewer)
 
-The fixes for iteration 2 were checked in a separate clean pass by the author (not an independent reviewer), against each finding above. No CRITICAL or HIGH remains open. The protocol allows 5 iterations. A third independent pass was not run because Phase 1 was requested; Phase 1's hostile review will re-read ADR-002, because it implements those rules.
+| # | Sev | Finding | Disposition |
+|---|---|---|---|
+| 1 | HIGH | The keeper bound's push reference is rarely fresh (BTC 24.8%, ETH 9.2% of the time under 60 s); verify, oracle-read and N(d2) gas are missing from the estimate | Fixed in ADR-001 §2: reference = attached Data Streams reports; stop quoting instead of clamping; gas caveat (2–3x) + Phase 4 must measure; swap-time alternative |
+| 2 | MED | "Sanity bound never voids" is false | Fixed. Bound disabled in v1 (ADR-002 §5); alert-only later |
+| 3 | MED | BTC push fallback would void ~57% | Fixed. Fallback is MON-only |
+| 4 | MED | Per-block move cap quotes stale clamped mids | Fixed. Out of band → stop quoting |
+| 5 | MED | Real vs fork gas priced on different bases | Fixed. Basis stated; +15% figures given |
+| 6 | LOW | First proposer can pick a later report | Fixed by switching to the containment rule (only the report whose window contains T qualifies) + CRE always submits |
+| 7 | LOW | Round-proof edge case at a phase boundary | Fixed. Documented → liveness void |
+| 8 | LOW | Stale doc references | Fixed |
+
+After iteration 3 no CRITICAL/HIGH is open against Phase 0 deliverables. The iteration-3 fixes were checked by the author, not by an independent 4th pass.
