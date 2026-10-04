@@ -1,0 +1,21 @@
+{
+  "name": "@converge/spike",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "kuru": "tsx src/kuru-spike.ts",
+    "report": "tsx src/report.ts"
+  },
+  "dependencies": {
+    "@kuru-labs/kuru-sdk": "0.0.95",
+    "viem": "^2.21.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "vitest": "^2.1.0"
+  }
+}

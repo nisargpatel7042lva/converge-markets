@@ -1,0 +1,13 @@
+$ tsx src/report.ts
+source: /home/mysterioxplorer/converge/docs/evidence/phase-0/kuru-spike-fork.json
+price/gas: 102 gwei, MON/USD: 0.03431197
+kuru deployProxy   gasLimit= 1395773  usd=0.004885
+requote            gasLimit=  556878  usd=0.001949
+unbatched cancel   gasLimit=  288926  usd=0.001011
+unbatched bid      gasLimit=  369599  usd=0.001294
+
+Option A (new Kuru market per round), 360 rounds/day, 6 live markets
+re-quote every block (0.4s)   setup/day=$3.40  requote/day=$2525.87  total/day=$2529.27
+re-quote every 2s             setup/day=$3.40  requote/day=$505.17  total/day=$508.58
+re-quote every 10s            setup/day=$3.40  requote/day=$101.03  total/day=$104.44
+re-quote every 60s            setup/day=$3.40  requote/day=$16.84  total/day=$20.24

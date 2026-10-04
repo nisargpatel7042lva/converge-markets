@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - services/*
+  - scripts/*
   - indexer
   - apps/*
   - backtest
