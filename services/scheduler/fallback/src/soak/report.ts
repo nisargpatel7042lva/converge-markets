@@ -19,9 +19,6 @@ const dev = JSON.parse(readFileSync(resolve(ROOT, ".soak/devnet.json"), "utf8"))
   epoch: number;
 };
 const out = process.argv[2] ?? resolve(ROOT, "docs/evidence/phase-2/soak-local.md");
-const chainHead = (
-  await createPublicClient({ chain: foundry, transport: http(dev.rpc) }).getBlock()
-).timestamp;
 const pub = createPublicClient({ chain: foundry, transport: http(dev.rpc) });
 const config = devnetSeriesConfig();
 const head = await pub.getBlock();
