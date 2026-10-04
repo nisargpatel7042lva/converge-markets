@@ -70,7 +70,10 @@ type TxRecord = {
   hash: Hash;
   gasLimit: string;
   gasUsed: string;
+  /** price actually paid per the receipt */
   effectiveGasPriceWei: string;
+  /** price used for the cost fields (102 gwei in fork mode, else the receipt price) */
+  pricedAtWei: string;
   // Monad charges the declared gas limit, not gas used (docs.monad.xyz/developer-essentials/gas-pricing).
   // In fork mode these are repriced at 102 gwei (see send()).
   costMonAtLimit: number;
@@ -114,7 +117,8 @@ async function main(): Promise<void> {
       hash,
       gasLimit: gas.toString(),
       gasUsed: receipt.gasUsed.toString(),
-      effectiveGasPriceWei: price.toString(),
+      effectiveGasPriceWei: receipt.effectiveGasPrice.toString(),
+      pricedAtWei: price.toString(),
       costMonAtLimit: Number(gas * price) / 1e18,
       costMonAtUsed: Number(receipt.gasUsed * price) / 1e18,
       latencyMs,
@@ -279,10 +283,13 @@ async function main(): Promise<void> {
   );
 
   // Bids round down and asks round up to the tick, so rounding never tightens the quote.
+  // Integer math (x scaled by 1e9 first) so 0.57 * 1e4 never floors to 5699.
   const toTicks = (x: number, side: "bid" | "ask") => {
-    const raw = x * Number(params.pricePrecision);
-    const t = Number(params.tickSize);
-    return (side === "bid" ? Math.floor(raw / t) : Math.ceil(raw / t)) * t;
+    const SCALE = 1_000_000_000n;
+    const num = BigInt(Math.round(x * 1e9)) * params.pricePrecision;
+    const den = SCALE * params.tickSize;
+    const ticks = side === "bid" ? num / den : (num + den - 1n) / den;
+    return Number(ticks * params.tickSize);
   };
   const size = 10n * params.sizePrecision; // 10 outcome tokens
 

@@ -41,10 +41,12 @@ export function dailyCost(
   liveMarkets: number,
   requoteIntervalSec: number,
 ): DailyCost {
-  // Per-round lifecycle: outcome token, market, deposit base + quote, first quote, then teardown
-  // (cancel resting orders, withdraw base + quote). Approvals are one-off per token and excluded.
+  // Per-round lifecycle: outcome token (+ its approval, new token every round), market, deposit
+  // base + quote, first quote, then teardown (cancel resting orders, withdraw base + quote).
+  // The collateral approval is one-off and excluded.
   const setupGas =
     meanGasLimit(records, "deploy outcome") +
+    meanGasLimit(records, "approve outcome") +
     meanGasLimit(records, "kuru deployProxy") +
     2 * meanGasLimit(records, "margin deposit") +
     meanGasLimit(records, "initial bid+ask") +

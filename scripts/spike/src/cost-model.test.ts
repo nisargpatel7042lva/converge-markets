@@ -22,6 +22,7 @@ describe("cost model", () => {
   it("scales re-quote cost with frequency and live markets", () => {
     const rs = [
       rec("deploy outcome r1", 1_000_000),
+      rec("approve outcome", 100_000),
       rec("kuru deployProxy r1", 1_000_000),
       rec("margin deposit a", 500_000),
       rec("initial bid+ask", 500_000),
@@ -31,10 +32,10 @@ describe("cost model", () => {
     ];
     const p = { gasPriceWei: 1_000_000_000_000n, monUsd: 1 }; // 1e-6 MON per gas
     const c = dailyCost(rs, p, 10, 2, 1);
-    expect(c.setupPerRoundUsd).toBeCloseTo(4, 9); // 1+1+2*0.5+0.5+0.25+2*0.125 Mgas
-    expect(c.setupPerDayUsd).toBeCloseTo(40, 9);
+    expect(c.setupPerRoundUsd).toBeCloseTo(4.1, 9); // 1+0.1+1+2*0.5+0.5+0.25+2*0.125 Mgas
+    expect(c.setupPerDayUsd).toBeCloseTo(41, 9);
     expect(c.requotePerMarketPerDayUsd).toBeCloseTo(86_400, 6);
     expect(c.requotePerDayUsd).toBeCloseTo(172_800, 6);
-    expect(c.totalPerDayUsd).toBeCloseTo(172_840, 6);
+    expect(c.totalPerDayUsd).toBeCloseTo(172_841, 6);
   });
 });

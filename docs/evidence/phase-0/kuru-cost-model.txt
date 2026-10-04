@@ -6,7 +6,7 @@ requote            gasLimit=  556879  usd=0.001949
 unbatched cancel   gasLimit=  288926  usd=0.001011
 unbatched bid      gasLimit=  369599  usd=0.001294
 Option A (new Kuru market per round), 360 rounds/day, 6 live markets
-re-quote every block (0.4s)   setup/day=$4.38  requote/day=$2525.87  total/day=$2530.26
-re-quote every 2s             setup/day=$4.38  requote/day=$505.17  total/day=$509.56
-re-quote every 10s            setup/day=$4.38  requote/day=$101.03  total/day=$105.42
-re-quote every 60s            setup/day=$4.38  requote/day=$16.84  total/day=$21.22
+re-quote every block (0.4s)   setup/day=$4.46  requote/day=$2525.87  total/day=$2530.33
+re-quote every 2s             setup/day=$4.46  requote/day=$505.17  total/day=$509.63
+re-quote every 10s            setup/day=$4.46  requote/day=$101.03  total/day=$105.49
+re-quote every 60s            setup/day=$4.46  requote/day=$16.84  total/day=$21.30
