@@ -44,8 +44,11 @@ contract SchedulerLens {
         AssetQuery[] assets;
         uint64 now_;
         uint8 lookahead;
-        /// @dev Unsettled markets are scanned back this far.
+        /// @dev Unsettled markets are scanned back this far (deep sweep).
         uint64 lookback;
+        /// @dev Missing past rounds (missed creates) are only reported back this far, which bounds
+        ///      the response size at go-live and after long outages.
+        uint64 missedLookback;
         /// @dev Ignore rounds starting before this time (scheduler go-live).
         uint64 epoch;
     }
@@ -58,61 +61,141 @@ contract SchedulerLens {
         uint8 state; // Market.State, 255 if missing
         address resolver;
         uint64 boundary; // 0 if not due
-        uint8 boundaryStatus; // IPriceResolver.Status, 255 if not due
+        uint8 boundaryStatus; // IPriceResolver.Status; 255 not due; 254 oracle call reverted
         bool proposalPending; // Data Streams: a proposal exists for `boundary`
         Finding finding; // ROUND + PENDING boundaries only
         uint80 roundId; // FOUND: the proof to submit
     }
 
-    uint256 internal constant MAX_SLOTS = 512;
+    uint256 internal constant MAX_SLOTS = 256;
+    /// @notice Gas forwarded to the per-slot oracle evaluation. Bounds what one broken or
+    ///         malicious resolver/feed can burn; a mainnet round search costs well under this.
+    uint256 public constant ORACLE_GAS = 1_500_000;
+    /// @notice boundaryStatus value when the resolver/feed evaluation failed for this slot only
+    ///         (revert, out of gas, or undecodable return data).
+    uint8 public constant STATUS_ORACLE_ERROR = 254;
 
-    error TooManySlots();
+    struct OracleView {
+        uint8 status;
+        bool proposalPending;
+        Finding finding;
+        uint80 roundId;
+    }
+
+    /// @dev Per-series cursor for the round-robin pass over past slots.
+    struct Cursor {
+        bytes32 assetId;
+        ResolverKind kind;
+        address resolver;
+        uint64 d;
+        uint64 first;
+        uint64 next; // next past start to visit (newest first)
+        bool done;
+    }
 
     /// @notice Snapshot of every actionable slot (see contract notes). One call.
-    function snapshot(Query calldata q) external view returns (Slot[] memory out) {
+    /// @dev Pass 1 returns upcoming missing markets (creates) for every series; pass 2 visits past
+    ///      slots newest-first, round-robin across series, so truncation (at MAX_SLOTS, flagged by
+    ///      `truncated`) cannot starve a whole asset. Each slot's oracle evaluation runs in a
+    ///      gas-capped self-call: a reverting, gas-burning or malformed resolver/feed flags only its
+    ///      own slots (STATUS_ORACLE_ERROR).
+    function snapshot(Query calldata q) external view returns (Slot[] memory out, bool truncated) {
         Slot[] memory buf = new Slot[](MAX_SLOTS);
         uint256 n = 0;
-        for (uint256 i; i < q.assets.length; ++i) {
+        uint256 series = 0;
+        for (uint256 i = 0; i < q.assets.length; ++i) {
+            series += q.assets[i].durations.length;
+        }
+        Cursor[] memory cur = new Cursor[](series);
+        uint256 c = 0;
+        // Pass 1: upcoming starts (strictly after now), for every series.
+        for (uint256 i = 0; i < q.assets.length; ++i) {
             AssetQuery calldata a = q.assets[i];
             address resolver = address(q.factory.asset(a.assetId).resolver);
-            for (uint256 j; j < a.durations.length; ++j) {
+            for (uint256 j = 0; j < a.durations.length; ++j) {
                 uint64 d = a.durations[j];
                 uint64 first = q.now_ - (q.now_ % d) + d; // first start strictly after now
-                uint64 s = first + uint64(q.lookahead - 1) * d; // last upcoming start
-                while (true) {
-                    if (s < q.epoch) break;
-                    if (s < first && s + q.lookback <= q.now_) break; // older than lookback
-                    Slot memory slot = _slot(q, a, resolver, d, s);
-                    // actionable: missing (create, or report missed) or a due, unsettled boundary
-                    if (slot.market == address(0) || slot.boundary != 0) {
-                        if (n == MAX_SLOTS) revert TooManySlots();
-                        buf[n++] = slot;
-                    }
-                    if (s < d) break;
-                    s -= d;
-                }
+                cur[c] = Cursor(a.assetId, a.kind, resolver, d, first, first - d, first < d);
+                (n, truncated) = _upcoming(q, cur[c++], buf, n);
+                if (truncated) return (_trim(buf, n), true);
             }
         }
+        // Pass 2: past starts, one per series per round, until every series is exhausted.
+        bool any = true;
+        while (any) {
+            any = false;
+            for (uint256 k = 0; k < series; ++k) {
+                if (cur[k].done) continue;
+                bool visited;
+                (n, truncated, visited) = _past(q, cur[k], buf, n);
+                if (truncated) return (_trim(buf, n), true);
+                any = any || visited;
+            }
+        }
+        out = _trim(buf, n);
+    }
+
+    /// @dev Visits the next past start of one series (advancing its cursor) and appends it if
+    ///      actionable. `visited` is false once the series is exhausted.
+    function _past(Query calldata q, Cursor memory x, Slot[] memory buf, uint256 n)
+        private
+        view
+        returns (uint256, bool truncated, bool visited)
+    {
+        uint64 s = x.next;
+        if (s < q.epoch || s + q.lookback <= q.now_) {
+            x.done = true;
+            return (n, false, false);
+        }
+        if (s < x.d) x.done = true;
+        else x.next = s - x.d;
+        Slot memory slot = _slot(q.factory, x, s, q.now_);
+        bool report = slot.market == address(0) && s + q.missedLookback > q.now_;
+        if (report || slot.boundary != 0) {
+            if (n == MAX_SLOTS) return (n, true, true);
+            buf[n++] = slot;
+        }
+        return (n, false, true);
+    }
+
+    function _trim(Slot[] memory buf, uint256 n) private pure returns (Slot[] memory out) {
         out = new Slot[](n);
-        for (uint256 k; k < n; ++k) {
+        for (uint256 k = 0; k < n; ++k) {
             out[k] = buf[k];
         }
     }
 
-    // Only the needed tuple fields are used.
-    // slither-disable-next-line unused-return
-    function _slot(Query calldata q, AssetQuery calldata a, address resolver, uint64 d, uint64 s)
+    /// @dev Appends the upcoming missing markets of one series (newest first).
+    function _upcoming(Query calldata q, Cursor memory x, Slot[] memory buf, uint256 n)
+        private
+        view
+        returns (uint256, bool)
+    {
+        for (uint64 k = q.lookahead; k > 0; --k) {
+            uint64 s = x.first + (k - 1) * x.d;
+            if (s < q.epoch) continue;
+            Slot memory slot = _slot(q.factory, x, s, q.now_);
+            if (slot.market == address(0)) {
+                if (n == MAX_SLOTS) return (n, true);
+                buf[n++] = slot;
+            }
+        }
+        return (n, false);
+    }
+
+    function _slot(MarketFactory factory, Cursor memory x, uint64 s, uint64 now_)
         private
         view
         returns (Slot memory slot)
     {
-        slot.assetId = a.assetId;
+        (bytes32 assetId, address resolver, uint64 d) = (x.assetId, x.resolver, x.d);
+        slot.assetId = assetId;
         slot.duration = d;
         slot.startTime = s;
         slot.resolver = resolver;
         slot.state = 255;
         slot.boundaryStatus = 255;
-        slot.market = q.factory.getMarket(a.assetId, d, s);
+        slot.market = factory.getMarket(assetId, d, s);
         if (slot.market == address(0)) return slot;
         Market m = Market(slot.market);
         slot.state = uint8(m.state());
@@ -120,17 +203,38 @@ contract SchedulerLens {
         if (slot.state == uint8(Market.State.CREATED)) b = s;
         else if (slot.state == uint8(Market.State.OPEN)) b = s + d;
         else return slot;
-        if (q.now_ < b) return slot;
+        if (now_ < b) return slot;
         slot.boundary = b;
-        (IPriceResolver.Status st,) = IPriceResolver(resolver).priceAt(a.assetId, b);
-        slot.boundaryStatus = uint8(st);
-        if (st != IPriceResolver.Status.PENDING) return slot;
-        if (a.kind == ResolverKind.STREAMS) {
-            slot.proposalPending =
-                DataStreamsResolver(payable(resolver)).proposal(a.assetId, b).firstProposedAt != 0;
+        // Isolated and gas-capped: any failure inside (revert, OOG, bad return data) lands here.
+        try this.oracleView{gas: ORACLE_GAS}(resolver, x.kind, assetId, b) returns (
+            OracleView memory v
+        ) {
+            slot.boundaryStatus = v.status;
+            slot.proposalPending = v.proposalPending;
+            (slot.finding, slot.roundId) = (v.finding, v.roundId);
+        } catch {
+            slot.boundaryStatus = STATUS_ORACLE_ERROR;
+        }
+    }
+
+    /// @notice Oracle evaluation of one due boundary (called by `snapshot` via a gas-capped
+    ///         self-call; reverts on any resolver/feed failure, including out-of-range enums).
+    // Only the needed tuple fields are used.
+    // slither-disable-next-line unused-return
+    function oracleView(address resolver, ResolverKind kind, bytes32 assetId, uint64 b)
+        external
+        view
+        returns (OracleView memory v)
+    {
+        (IPriceResolver.Status st,) = IPriceResolver(resolver).priceAt(assetId, b);
+        v.status = uint8(st);
+        if (st != IPriceResolver.Status.PENDING) return v;
+        if (kind == ResolverKind.STREAMS) {
+            v.proposalPending =
+                DataStreamsResolver(payable(resolver)).proposal(assetId, b).firstProposedAt != 0;
         } else {
-            (IAggregatorV3 feed,) = ChainlinkRoundResolver(resolver).assetConfig(a.assetId);
-            (slot.finding, slot.roundId) = firstRoundAtOrAfter(feed, b);
+            (IAggregatorV3 feed,) = ChainlinkRoundResolver(resolver).assetConfig(assetId);
+            (v.finding, v.roundId) = firstRoundAtOrAfter(feed, b);
         }
     }
 

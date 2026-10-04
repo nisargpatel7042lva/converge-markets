@@ -25,19 +25,20 @@ contract SchedulerLensTest is Base {
         q.now_ = now_;
         q.lookahead = 3;
         q.lookback = lookback;
+        q.missedLookback = lookback;
         q.epoch = epoch;
     }
 
     function test_snapshot_missingUpcomingAndDueBoundaries() public {
         // now = T0 - 10 min: upcoming starts T0, T0+15m, T0+30m are all missing
-        L.Slot[] memory s0 = lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 2 hours, 0));
+        (L.Slot[] memory s0,) = lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 2 hours, 0));
         assertEq(s0.length, 2 * (3 + 8)); // 3 upcoming + 8 recent (all missing) per asset
         Market m = _create(BTC, M15, T0);
         _create(ETH, M15, T0);
         vm.warp(T0 + 10);
         // BTC round proof available: first round at/after T0
         feed.setRound(1, 2, 61_000e8, T0 + 3);
-        L.Slot[] memory s = lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 30 minutes, T0));
+        (L.Slot[] memory s,) = lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 30 minutes, T0));
         // epoch=T0 filters recent; T0 slots now due (boundary = start)
         bool sawBtc;
         bool sawEth;
@@ -61,7 +62,7 @@ contract SchedulerLensTest is Base {
         assertTrue(sawBtc && sawEth);
         // the lens proof is accepted by the resolver -> open, after which the slot disappears
         m.open(abi.encode(btcProof));
-        L.Slot[] memory after_ =
+        (L.Slot[] memory after_,) =
             lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 30 minutes, T0));
         for (uint256 i; i < after_.length; ++i) {
             assertFalse(after_[i].market == address(m), "settled/not-due slots are omitted");
@@ -72,7 +73,7 @@ contract SchedulerLensTest is Base {
         Market em = _create(ETH, M15, T0);
         vm.warp(T0 + 3);
         em.open(_report(ETH_FEED, uint32(T0), uint32(T0), 3000e18));
-        L.Slot[] memory s = lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 30 minutes, T0));
+        (L.Slot[] memory s,) = lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 30 minutes, T0));
         bool found;
         for (uint256 i; i < s.length; ++i) {
             if (s[i].market == address(em)) {
@@ -86,9 +87,9 @@ contract SchedulerLensTest is Base {
     function test_snapshot_respectsEpochAndLookback() public {
         vm.warp(T0 + 5 hours + 60); // not on a boundary (a round starting exactly now would be "missed")
         uint64 nowTs = uint64(block.timestamp);
-        L.Slot[] memory a = lens.snapshot(_query(nowTs, 1 hours, 0));
-        L.Slot[] memory b = lens.snapshot(_query(nowTs, 4 hours, 0));
-        L.Slot[] memory c = lens.snapshot(_query(nowTs, 4 hours, nowTs));
+        (L.Slot[] memory a,) = lens.snapshot(_query(nowTs, 1 hours, 0));
+        (L.Slot[] memory b,) = lens.snapshot(_query(nowTs, 4 hours, 0));
+        (L.Slot[] memory c,) = lens.snapshot(_query(nowTs, 4 hours, nowTs));
         assertEq(a.length, 2 * (3 + 4));
         assertEq(b.length, 2 * (3 + 16));
         assertEq(c.length, 2 * 3); // only upcoming survive the epoch
@@ -141,5 +142,109 @@ contract SchedulerLensTest is Base {
             assertEq(uint8(k), uint8(L.Finding.NOT_YET));
             assertLt(lastUpdated, t);
         }
+    }
+
+    /// Review M-b: a reverting resolver flags only its own slots; the snapshot still returns.
+    function test_oracleRevertIsIsolated() public {
+        Market bm = _create(BTC, M15, T0);
+        Market em = _create(ETH, M15, T0);
+        vm.warp(T0 + 10);
+        vm.mockCallRevert(
+            address(roundResolver),
+            abi.encodeWithSelector(IPriceResolver.priceAt.selector, BTC, T0),
+            "broken"
+        );
+        (L.Slot[] memory s, bool truncated) =
+            lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 30 minutes, T0));
+        assertFalse(truncated);
+        bool sawBtc;
+        bool sawEth;
+        for (uint256 i; i < s.length; ++i) {
+            if (s[i].market == address(bm)) {
+                sawBtc = true;
+                assertEq(s[i].boundaryStatus, lens.STATUS_ORACLE_ERROR());
+            }
+            if (s[i].market == address(em)) {
+                sawEth = true;
+                assertEq(s[i].boundaryStatus, uint8(IPriceResolver.Status.PENDING));
+            }
+        }
+        assertTrue(sawBtc && sawEth);
+    }
+
+    function test_feedRevertIsIsolated() public {
+        Market bm = _create(BTC, M15, T0);
+        vm.warp(T0 + 10);
+        vm.mockCallRevert(
+            address(feed), abi.encodeWithSelector(IAggregatorV3.latestRoundData.selector), "dead"
+        );
+        _assertBtcOracleErrorOnly(bm, Market(address(0)));
+    }
+
+    /// Review iteration 3 M-1: a gas-burning feed is capped per slot and flags only its slots.
+    function test_gasBurningFeedIsIsolated() public {
+        Market bm = _create(BTC, M15, T0);
+        Market em = _create(ETH, M15, T0);
+        vm.warp(T0 + 10);
+        vm.etch(address(feed), hex"5b600056"); // JUMPDEST PUSH1 0 JUMP: loops until out of gas
+        _assertBtcOracleErrorOnly(bm, em);
+    }
+
+    /// Review iteration 3 M-1: out-of-range enum return data is caught, not a whole-call revert.
+    function test_malformedResolverReturnIsIsolated() public {
+        Market bm = _create(BTC, M15, T0);
+        Market em = _create(ETH, M15, T0);
+        vm.warp(T0 + 10);
+        vm.mockCall(
+            address(roundResolver),
+            abi.encodeWithSelector(IPriceResolver.priceAt.selector, BTC, T0),
+            abi.encode(uint256(7), int256(0))
+        );
+        _assertBtcOracleErrorOnly(bm, em);
+    }
+
+    function _assertBtcOracleErrorOnly(Market bm, Market em) internal view {
+        (L.Slot[] memory s, bool truncated) =
+            lens.snapshot(_query(uint64(vm.getBlockTimestamp()), 30 minutes, T0));
+        assertFalse(truncated);
+        bool sawBtc;
+        bool sawEth;
+        for (uint256 i; i < s.length; ++i) {
+            if (s[i].market == address(bm)) {
+                sawBtc = true;
+                assertEq(s[i].boundaryStatus, lens.STATUS_ORACLE_ERROR());
+            }
+            if (address(em) != address(0) && s[i].market == address(em)) {
+                sawEth = true;
+                assertEq(s[i].boundaryStatus, uint8(IPriceResolver.Status.PENDING));
+            }
+        }
+        assertTrue(sawBtc, "BTC slot present");
+        assertTrue(sawEth || address(em) == address(0), "ETH slot present and unaffected");
+    }
+
+    /// Review M-a/M-b: huge lookbacks truncate (flagged) instead of reverting; missed slots are
+    /// only reported within missedLookback.
+    function test_truncatesAndBoundsMissed() public {
+        vm.warp(T0 + 3 days + 60);
+        L.Query memory q = _query(uint64(vm.getBlockTimestamp()), 3 days, 0);
+        (L.Slot[] memory big, bool truncated) = lens.snapshot(q);
+        assertTrue(truncated);
+        assertEq(big.length, 256);
+        // Review iteration 3 M-2: truncation is fair. Upcoming creates of every asset come first,
+        // then past slots alternate between series, so neither asset is starved.
+        uint256 btc;
+        uint256 eth;
+        for (uint256 i; i < big.length; ++i) {
+            if (i < 6) assertGt(big[i].startTime, q.now_, "upcoming creates first");
+            if (big[i].assetId == BTC) ++btc;
+            else ++eth;
+        }
+        assertEq(btc, 128);
+        assertEq(eth, 128);
+        q.missedLookback = 1 hours;
+        (L.Slot[] memory small, bool t2) = lens.snapshot(q);
+        assertFalse(t2);
+        assertEq(small.length, 2 * (3 + 4)); // 3 upcoming + 4 recent missed per asset
     }
 }

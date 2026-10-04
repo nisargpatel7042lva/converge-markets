@@ -42,6 +42,10 @@ export type Plan = {
   waiting: Waiting[];
   /** Rounds that already started without a market (a missed create: can no longer be fixed). */
   missed: SlotState[];
+  /** Due boundaries whose resolver/feed call reverted (alert: oracle broken for this asset). */
+  oracleErrors: SlotState[];
+  /** The snapshot was truncated (alert: more actionable slots than one read returns). */
+  truncated: boolean;
 };
 
 export function plan(snapshot: Snapshot): Plan {
@@ -49,6 +53,7 @@ export function plan(snapshot: Snapshot): Plan {
   const actions: PlannedAction[] = [];
   const waiting: Waiting[] = [];
   const missed: SlotState[] = [];
+  const oracleErrors: SlotState[] = [];
   for (const s of slots) {
     const base = {
       assetId: s.assetId,
@@ -70,6 +75,10 @@ export function plan(snapshot: Snapshot): Plan {
       } else {
         missed.push(s);
       }
+      continue;
+    }
+    if (s.oracleError) {
+      oracleErrors.push(s);
       continue;
     }
     if (s.boundary === null || s.boundaryStatus === null) continue; // settled or not yet due
@@ -96,7 +105,7 @@ export function plan(snapshot: Snapshot): Plan {
       actions.push({ ...base, kind, boundary: s.boundary, needsEvidence: true, dueAt: s.boundary });
     }
   }
-  return { actions, waiting, missed };
+  return { actions, waiting, missed, oracleErrors, truncated: snapshot.truncated ?? false };
 }
 
 /** Late = an open/resolve/invalidate still outstanding `lateAfter` seconds after it was due, or

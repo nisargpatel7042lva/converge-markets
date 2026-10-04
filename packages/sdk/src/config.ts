@@ -6,9 +6,17 @@ export const SeriesConfigSchema = z.object({
   /** Keep markets created this many rounds ahead. */
   lookaheadRounds: z.number().int().min(1).max(12),
   /** Every run checks markets that started within this window. */
-  recentLookbackSeconds: z.number().int().positive(),
+  recentLookbackSeconds: z
+    .number()
+    .int()
+    .positive()
+    .max(7 * 86_400),
   /** Periodic deep sweep window (covers the longest resolver liveness grace). */
-  deepLookbackSeconds: z.number().int().positive(),
+  deepLookbackSeconds: z
+    .number()
+    .int()
+    .positive()
+    .max(30 * 86_400),
   /** An action still pending this long after it became due is "late" (alert). */
   lateAfterSeconds: z.number().int().positive(),
   durations: z.array(z.union([z.literal(900), z.literal(3600)])).min(1),

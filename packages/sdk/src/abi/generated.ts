@@ -3957,6 +3957,32 @@ export const schedulerReceiverAbi = [
 export const schedulerLensAbi = [
   {
     "type": "function",
+    "name": "ORACLE_GAS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "STATUS_ORACLE_ERROR",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "firstRoundAtOrAfter",
     "inputs": [
       {
@@ -3980,6 +4006,62 @@ export const schedulerLensAbi = [
         "name": "",
         "type": "uint80",
         "internalType": "uint80"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "oracleView",
+    "inputs": [
+      {
+        "name": "resolver",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "kind",
+        "type": "uint8",
+        "internalType": "enum SchedulerLens.ResolverKind"
+      },
+      {
+        "name": "assetId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "b",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "v",
+        "type": "tuple",
+        "internalType": "struct SchedulerLens.OracleView",
+        "components": [
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "proposalPending",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "finding",
+            "type": "uint8",
+            "internalType": "enum SchedulerLens.Finding"
+          },
+          {
+            "name": "roundId",
+            "type": "uint80",
+            "internalType": "uint80"
+          }
+        ]
       }
     ],
     "stateMutability": "view"
@@ -4032,6 +4114,11 @@ export const schedulerLensAbi = [
           },
           {
             "name": "lookback",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "missedLookback",
             "type": "uint64",
             "internalType": "uint64"
           },
@@ -4105,14 +4192,14 @@ export const schedulerLensAbi = [
             "internalType": "uint80"
           }
         ]
+      },
+      {
+        "name": "truncated",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
-  },
-  {
-    "type": "error",
-    "name": "TooManySlots",
-    "inputs": []
   }
 ] as const;
 

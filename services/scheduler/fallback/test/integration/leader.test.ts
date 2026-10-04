@@ -5,7 +5,13 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { marketFactoryAbi, schedulerReceiverAbi, assetIdOf } from "@converge/sdk";
 import pino from "pino";
-import { createPublicClient, createWalletClient, http, type PublicClient } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  type Address,
+  type PublicClient,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -27,6 +33,16 @@ const FWD = privateKeyToAccount(
 const SIGNER = privateKeyToAccount(
   "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
 );
+
+async function rpc(method: string, params: unknown[]) {
+  const res = await fetch(RPC, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+  });
+  const j = (await res.json()) as { error?: { message: string } };
+  if (j.error) throw new Error(j.error.message);
+}
 
 let anvil: ChildProcess;
 let pub: PublicClient;
@@ -101,5 +117,48 @@ describe("leader flag", () => {
     // Idempotent: the next tick has nothing left to do.
     const r3 = await scheduler.tick();
     expect(r3.planned).toBe(0);
+  }, 300_000);
+
+  it("keeps scheduling through the multi-call reader when the lens fails (review iteration 3 M-3)", async () => {
+    const alerts: string[] = [];
+    const alerter: Alerter = { alert: async (_k, m) => void alerts.push(m) };
+    const mk = (lens: Address) =>
+      new Scheduler({
+        publicClient: pub,
+        walletClient: createWalletClient({ account: SCHED, chain: foundry, transport: http(RPC) }),
+        factory: dev.factory,
+        lens,
+        receiver: dev.receiver,
+        config: devnetSeriesConfig(),
+        streams: null,
+        alerter,
+        log: pino({ level: "silent" }),
+        gasMultiplierPct: 120,
+        maxRetries: 0,
+      });
+    // CRE leads (passive), and a round passes so creates and opens are due. Both readers must
+    // plan the same work at the same chain state.
+    const sw = await createWalletClient({
+      account: ADMIN,
+      chain: foundry,
+      transport: http(RPC),
+    }).writeContract({
+      address: dev.receiver,
+      abi: schedulerReceiverAbi,
+      functionName: "setLeader",
+      args: [0],
+    });
+    await pub.waitForTransactionReceipt({ hash: sw });
+    await rpc("evm_increaseTime", [900]);
+    await rpc("evm_mine", []);
+    const broken = await mk(dev.factory).tick(); // no `snapshot` there: every lens call reverts
+    expect(alerts.some((a) => a.includes("SchedulerLens read failed"))).toBe(true);
+    expect(broken.consecutiveBad).toBe(1); // a degraded read counts toward /health 503
+    const healthy = await mk(dev.lens).tick();
+    expect(alerts.filter((a) => a.includes("SchedulerLens read failed"))).toHaveLength(1);
+    expect(healthy.now).toBe(broken.now);
+    expect(broken.planned).toBeGreaterThan(0);
+    expect(broken.planned).toBe(healthy.planned);
+    expect([...broken.missed].sort()).toEqual([...healthy.missed].sort());
   }, 300_000);
 });

@@ -52,6 +52,8 @@ type Config = {
   factory: Address;
   receiver: Address;
   lens: Address;
+  /** Scheduler go-live (unix seconds): rounds before it are ignored (bounds the lens response). */
+  epoch: number;
   gasLimit: string;
   maxActionsPerReport: number;
   /** Data Streams REST base URL; empty disables streams evidence (BLOCKED until access exists). */
@@ -121,11 +123,20 @@ const onCron = (runtime: Runtime<Config>): string => {
   );
   // One read: every actionable slot over the deep lookback (settled slots are omitted onchain).
   const snapshot = runSync(
-    readSnapshotViaLens({ lens: cfg.lens, factory: cfg.factory, config: series, now }),
+    readSnapshotViaLens({
+      lens: cfg.lens,
+      factory: cfg.factory,
+      config: series,
+      now,
+      epoch: BigInt(cfg.epoch),
+    }),
     exec,
   );
   const p = plan(snapshot);
   const late = lateItems(p, now, (label) => lateAfterFor(series, label));
+  for (const e of p.oracleErrors)
+    runtime.log(`ORACLE ERROR ${e.label} ${e.duration}s @${e.startTime}`);
+  if (p.truncated) runtime.log("WARNING: SchedulerLens snapshot truncated");
   if (leader !== 0) {
     // FALLBACK leads: stay passive, only surface lateness.
     for (const a of late) runtime.log(`LATE (fallback is leader): ${describe(a)}`);

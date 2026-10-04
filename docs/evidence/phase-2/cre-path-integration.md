@@ -24,6 +24,6 @@ The test uses the same SDK functions the CRE workflow (`services/scheduler/cre/s
   "lensVsMultiCallPlanChecks": 240,
   "cronSchedule": "5,35 * * * * *",
   "streamsFinalizationWindowSeconds": 20,
-  "maxResolveDelaySeconds": 37
+  "maxResolveDelaySeconds": 36
 }
 ```

@@ -22,7 +22,14 @@ The leader flag decides which scheduler acts:
 
 - **Fallback `/health`** (`HEALTH_HOST:HEALTH_PORT`, loopback by default because it is unauthenticated) returns 200 only if:
   - the last tick succeeded within 3 loop intervals; and
-  - fewer than `UNHEALTHY_AFTER_BAD_TICKS` (3) consecutive ticks had failed or pending actions, or late items while passive (i.e. CRE late).
+  - fewer than `UNHEALTHY_AFTER_BAD_TICKS` (3) consecutive ticks were **bad**. A tick is bad if any of these holds:
+    - an action failed or is pending;
+    - the fallback is passive and an item is late (i.e. CRE is late);
+    - the fallback is acting and an item is late beyond 3× its threshold (stuck);
+    - a resolver or feed call fails for any slot (oracle error);
+    - the lens read failed (the multi-call reader was used) or was truncated.
+
+  Oracle errors and degraded reads make `/health` go 503 **even while passive**, although the fallback cannot fix them. The 503 is a signal to investigate the oracle or the lens, not to restart the container.
 
   Otherwise it returns 503. The Docker `HEALTHCHECK` uses it. The JSON body includes `leader`, `lateCount`, `consecutiveBad` and `lastError` (redacted).
 - **Fallback logs** are pino JSON:
@@ -34,6 +41,9 @@ The leader flag decides which scheduler acts:
   - a Data Streams proposal still finalizing 6 minutes after the boundary;
   - a round that started without a market;
   - a failed tick;
+  - an oracle error on a slot (`resolver/feed call reverts for …`);
+  - a failed lens read (`SchedulerLens read failed, using multi-call reader`; recent window only until the lens recovers);
+  - a truncated lens snapshot (more than 256 actionable slots; upcoming creates are always kept, and past slots are served round-robin per series);
   - **any failed action, or a tx without a receipt within 60 s** (`pending`; it is never re-sent blindly).
 - **Onchain:** `SchedulerReceiver` emits `ReportProcessed(scheduledTime, actions, failed)` and `ActionExecuted(kind, asset, duration, start, ok, errorSelector)`; markets emit `Opened`, `Resolved` and `Invalidated`; resolvers emit `BoundaryProven`, `BoundaryUnresolvable` and `BoundarySettled`.
 
@@ -121,6 +131,29 @@ To switch back to CRE, flip the flag, then confirm `ReportProcessed` events resu
    - A proposal finalizes `finalizationWindow` after it is first made.
    - With no proposal by T + grace (30 min), the boundary becomes UNRESOLVABLE and both rounds touching it void (ADR-002).
 5. Nothing in this runbook can set a price. If a market is "wrong", that is an oracle incident (next section), not a scheduler fix.
+
+## Stuck or pending fallback transaction
+
+**Symptom:** a `pending` outcome or alert ("receipt not seen within 60 s"), `/health` turning 503, and later sends failing with `nonce too low` / `replacement transaction underpriced`.
+
+The fallback broadcasts each action once and waits at most 60 s for the receipt. It does not resend or fee-bump automatically (review M3), so that an ambiguous RPC error can never cause a double send.
+
+1. **Compare the account's nonces.** If `pending` is greater than `latest`, a transaction is still in the mempool:
+
+   ```bash
+   cast nonce $SCHEDULER_ADDRESS --block latest --rpc-url $RPC_URL
+   cast nonce $SCHEDULER_ADDRESS --block pending --rpc-url $RPC_URL
+   ```
+
+2. **Wait one or two minutes first.** On Monad, a transaction usually lands or is dropped quickly. If it lands, the next tick re-plans from chain state and nothing else is needed: every action is idempotent.
+3. **If it is still stuck, replace it** with a zero-value self-transfer at the stuck nonce and a higher fee (at least +10 %, above the 100 gwei floor):
+
+   ```bash
+   cast send $SCHEDULER_ADDRESS --value 0 --nonce <latest nonce> --gas-price <higher> --rpc-url $RPC_URL --private-key $SCHEDULER_PRIVATE_KEY
+   ```
+
+4. **Restart the fallback** (`docker compose restart scheduler`) so its nonce manager re-reads the chain nonce.
+5. **If the cause is "insufficient funds",** top up the scheduler EOA. Monad bills the gas *limit*, not the gas used (`docs/EXTERNAL.md`).
 
 ## Oracle outage
 

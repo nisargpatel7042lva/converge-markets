@@ -39,9 +39,16 @@ export type SlotState = {
   proposalPending: boolean;
   /** Round-proof only, when read through SchedulerLens: the onchain first-round search result. */
   roundFinding?: RoundFinding;
+  /** The resolver/feed call reverted for this slot (SchedulerLens isolates it). */
+  oracleError?: boolean;
 };
 
-export type Snapshot = { now: bigint; slots: SlotState[] };
+export type Snapshot = {
+  now: bigint;
+  slots: SlotState[];
+  /** SchedulerLens returned only its maximum number of slots (more are actionable). */
+  truncated?: boolean;
+};
 
 export type SnapshotOptions = {
   factory: Address;
@@ -105,25 +112,38 @@ export function* readSnapshot(opts: SnapshotOptions): Reader<Snapshot> {
                 : null;
           if (b !== null && now >= b) {
             slot.boundary = b;
-            const [status] = value<readonly [number, bigint]>(
-              yield {
-                to: info.resolver,
-                abi: dataStreamsResolverAbi, // priceAt has the same signature on both resolvers
-                functionName: "priceAt",
-                args: [assetId, b],
-              },
-            );
-            slot.boundaryStatus = Number(status) as BoundaryStatus;
+            // Resolver calls are isolated like in SchedulerLens: a revert (or undecodable return
+            // data) flags this slot as an oracle error instead of failing the whole snapshot.
+            const r = yield {
+              to: info.resolver,
+              abi: dataStreamsResolverAbi, // priceAt has the same signature on both resolvers
+              functionName: "priceAt",
+              args: [assetId, b],
+              allowRevert: true,
+            };
+            const status = r.ok ? Number((r.value as readonly [number, bigint])[0]) : -1;
+            if (status < BoundaryStatus.PENDING || status > BoundaryStatus.UNRESOLVABLE) {
+              slot.boundary = null;
+              slot.oracleError = true;
+            } else {
+              slot.boundaryStatus = status as BoundaryStatus;
+            }
             if (asset.resolver === "streams" && slot.boundaryStatus === BoundaryStatus.PENDING) {
-              const p = value<{ firstProposedAt: bigint }>(
-                yield {
-                  to: info.resolver,
-                  abi: dataStreamsResolverAbi,
-                  functionName: "proposal",
-                  args: [assetId, b],
-                },
-              );
-              slot.proposalPending = p.firstProposedAt !== 0n;
+              const pr = yield {
+                to: info.resolver,
+                abi: dataStreamsResolverAbi,
+                functionName: "proposal",
+                args: [assetId, b],
+                allowRevert: true,
+              };
+              if (pr.ok) {
+                slot.proposalPending =
+                  (pr.value as { firstProposedAt: bigint }).firstProposedAt !== 0n;
+              } else {
+                slot.boundary = null;
+                slot.boundaryStatus = null;
+                slot.oracleError = true;
+              }
             }
           }
         }

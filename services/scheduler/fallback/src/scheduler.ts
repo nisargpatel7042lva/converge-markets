@@ -15,6 +15,7 @@ import {
   marketFactoryAbi,
   plan,
   prioritize,
+  readSnapshot,
   readSnapshotViaLens,
   roundProofEvidence,
   runAsync,
@@ -104,21 +105,50 @@ export class Scheduler {
     const leader = await withRetry(() => this.leader(), { retries: this.d.maxRetries });
     const acting = leader !== "cre";
     // One call over the deep lookback: the lens omits settled slots, so long outages recover.
-    const snapshot = await withRetry(
-      () =>
-        runAsync(
-          readSnapshotViaLens({
-            lens: this.d.lens,
-            factory: this.d.factory,
-            config,
-            now,
-            ...(this.d.epoch === undefined ? {} : { epoch: this.d.epoch }),
-          }),
-          publicClient,
-          block.number,
-        ),
-      { retries: this.d.maxRetries },
-    );
+    // If the lens itself fails (e.g. not deployed / unexpected revert), fall back to the
+    // independent multi-call reader so scheduling never stops on a single dependency.
+    let snapshot: Snapshot;
+    let lensFailed = false;
+    try {
+      snapshot = await withRetry(
+        () =>
+          runAsync(
+            readSnapshotViaLens({
+              lens: this.d.lens,
+              factory: this.d.factory,
+              config,
+              now,
+              ...(this.d.epoch === undefined ? {} : { epoch: this.d.epoch }),
+            }),
+            publicClient,
+            block.number,
+          ),
+        { retries: this.d.maxRetries },
+      );
+    } catch (e) {
+      lensFailed = true;
+      await this.d.alerter.alert(
+        "lens-failed",
+        `SchedulerLens read failed, using multi-call reader: ${errorName(e)}`,
+      );
+      // Recent window only: the multi-call reader issues one sequential eth_call per read, so a
+      // deep sweep would take far longer than a tick. It also bounds "missed" reports to the
+      // same window the lens uses. Long-unsettled markets wait for the lens to recover.
+      snapshot = await withRetry(
+        () =>
+          runAsync(
+            readSnapshot({
+              factory: this.d.factory,
+              config,
+              now,
+              ...(this.d.epoch === undefined ? {} : { epoch: this.d.epoch }),
+            }),
+            publicClient,
+            block.number,
+          ),
+        { retries: this.d.maxRetries },
+      );
+    }
     const p = plan(snapshot);
     const result: TickResult = {
       now,
@@ -182,11 +212,34 @@ export class Scheduler {
     for (const m of result.missed) {
       await this.d.alerter.alert(`missed:${m}`, `round started without a market: ${m}`);
     }
+    for (const e of p.oracleErrors) {
+      const k = `${e.label} ${e.duration}s @${e.startTime}`;
+      await this.d.alerter.alert(
+        `oracle:${k}`,
+        `resolver/feed call reverts for ${k}: oracle broken?`,
+      );
+    }
+    if (p.truncated) {
+      await this.d.alerter.alert(
+        "truncated",
+        "SchedulerLens snapshot truncated: too many actionable slots",
+      );
+    }
     const failedOrPending = result.outcomes.some(
       (o) => o.outcome.status === "failed" || o.outcome.status === "pending",
     );
     const passiveAndLate = !acting && result.late.length > 0;
-    this.bad = failedOrPending || passiveAndLate ? this.bad + 1 : 0;
+    // Acting but stuck: something has been late for over 3x its threshold (e.g. evidence never
+    // arrives). Normal lateness while evidence settles does not count.
+    const actingAndStuck =
+      acting && lateItems(p, now, (label) => 3n * lateAfterFor(config, label)).length > 0;
+    const oracleBroken = p.oracleErrors.length > 0;
+    // Degraded reads: the lens failed, or it truncated (slots beyond its cap are invisible).
+    const degraded = lensFailed || p.truncated;
+    this.bad =
+      failedOrPending || passiveAndLate || actingAndStuck || oracleBroken || degraded
+        ? this.bad + 1
+        : 0;
     result.consecutiveBad = this.bad;
     log.info(
       {

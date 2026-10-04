@@ -44,6 +44,8 @@ const SIGNER = privateKeyToAccount(
 );
 const STEP = 10n;
 
+/** Fixed, hour-aligned start (+60 s) so runs are deterministic (review M-d). */
+const FIXED_START = 1_800_000_000n - (1_800_000_000n % 3600n) + 3600n + 60n;
 let anvil: ChildProcess;
 let pub: PublicClient;
 let dev: Devnet;
@@ -59,7 +61,11 @@ async function rpc(method: string, params: unknown[]) {
 }
 
 beforeAll(async () => {
-  anvil = spawn("anvil", ["--port", String(PORT), "--silent"], { stdio: "ignore" });
+  anvil = spawn(
+    "anvil",
+    ["--port", String(PORT), "--silent", "--timestamp", String(FIXED_START - 3600n)],
+    { stdio: "ignore" },
+  );
   pub = createPublicClient({ chain: foundry, transport: http(RPC), pollingInterval: 100 });
   for (let i = 0; i < 50; i++) {
     try {
@@ -69,8 +75,7 @@ beforeAll(async () => {
       await new Promise((r) => setTimeout(r, 200));
     }
   }
-  const now = (await pub.getBlock()).timestamp;
-  await rpc("evm_setNextBlockTimestamp", [Number(now - (now % 3600n) + 3600n + 60n)]);
+  await rpc("evm_setNextBlockTimestamp", [Number(FIXED_START)]);
   await rpc("evm_mine", []);
   const admin = createWalletClient({ account: ADMIN, chain: foundry, transport: http(RPC) });
   dev = await deployDevnet(pub, admin, SCHED.address, FWD.address, SIGNER.address);
@@ -114,6 +119,11 @@ describe("scheduler outage longer than the recent lookback", () => {
     const outageEnd = outageStart + 3n * 3600n;
     const end = outageEnd + 60n * 60n;
     for (let t = goLive; t <= end; t += STEP) {
+      {
+        // review L-a: never set a timestamp at or below the latest block
+        const latest = (await pub.getBlock()).timestamp;
+        if (t <= latest) t = latest + 1n;
+      }
       await rpc("evm_setNextBlockTimestamp", [Number(t)]);
       await rpc("evm_mine", []);
       if (t % 30n === 0n) {

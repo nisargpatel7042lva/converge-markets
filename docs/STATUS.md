@@ -4,8 +4,8 @@
 |---|---|---|---|
 | 0 | Foundation + Kuru feasibility spike | **COMPLETE WITH CAVEATS** (live-testnet spike blocked on testnet MON) | [PHASE-0-report](phases/PHASE-0-report.md) |
 | 1 | Outcome market contracts | **COMPLETE WITH CAVEATS** (testnet lifecycle blocked on testnet MON) | [PHASE-1-report](phases/PHASE-1-report.md) |
-| 2 | Scheduler + settlement (CRE) | **Next** (in progress) | |
-| 3 | Strategy library + backtest | not started | |
+| 2 | Scheduler + settlement (CRE) | **COMPLETE WITH CAVEATS** (testnet soak blocked on testnet MON; CRE simulation/deploy blocked on CRE account; CRE DON latency unmeasured) | [PHASE-2-report](phases/PHASE-2-report.md) |
+| 3 | Strategy library + backtest | **Next** (waiting for go-ahead) | |
 | 4 | Converge Vault contracts | not started | |
 | 5 | Keeper / market-maker | not started | |
 | 6 | Envio indexer | not started | |
@@ -17,14 +17,17 @@
 ## Decisions in force
 
 - ADR-001: every round trades against an oracle-anchored in-vault pool (pm-AMM depth schedule, keeper-written mids). 1h rounds are also listed on Kuru once Kuru grants mainnet creation rights; testnet leg regardless.
-- ADR-002: resolve with Chainlink Data Streams reports verified onchain (canonical = earliest report at or after T, finalization delay), delivered by CRE plus a fallback submitter, void = 0.5 USDC per token. Push feeds are a sanity bound only.
+- ADR-002: resolve with Chainlink Data Streams reports verified onchain (canonical = the report whose window contains T, 20 s finalization window), delivered by CRE plus a fallback submitter, void = 0.5 USDC per token. MON resolves via push-feed round proofs (current phase only), 1h only, SLA ≤ ~150 s.
+- Scheduler: onchain leader flag on `SchedulerReceiver` (CRE = 0, FALLBACK = 1); both paths read state through `SchedulerLens` in one call.
 - ADR-003: USDC (6 dp) collateral.
 
 ## Open blockers
 
-1. Testnet MON for deployer `0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1` (live Kuru spike).
-2. Data Streams account and stream IDs (BTC, ETH, MON).
-3. CRE account / early access (`cre workflow supported-chains`).
+1. Testnet MON for deployer `0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1` (live Kuru spike, testnet lifecycle, testnet soak, Monad gas measurement).
+2. Data Streams API key/secret and feed IDs (BTC, ETH, MON).
+3. CRE account (`cre login` / `CRE_API_KEY`) plus a funded `CRE_ETH_PRIVATE_KEY`: simulate, measure DON latency, deploy.
 4. Kuru: mainnet `deployProxy` is owner-gated. Need creation rights (question #1 in `docs/evidence/phase-0/kuru-spike.md`).
 5. Envio HyperSync API token.
-6. GitHub remote (CI has not run on GitHub yet).
+6. Alert webhook (Discord or Telegram) for the fallback scheduler.
+
+Repo: https://github.com/nisargpatel7042lva/converge-markets (CI green on `main`).

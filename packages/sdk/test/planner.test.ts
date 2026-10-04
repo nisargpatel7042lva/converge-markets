@@ -159,4 +159,33 @@ describe("prioritize (review H2)", () => {
       ActionKind.CREATE,
     ]);
   });
+
+  it("isolates oracle errors, never creates a round whose start has passed, and surfaces truncation", () => {
+    const p = plan({
+      now: 9_000n,
+      truncated: true,
+      slots: [
+        slot({ startTime: 9_000n }), // start == now: too late to create
+        slot({
+          market: M,
+          state: MarketState.OPEN,
+          boundary: 8_900n,
+          boundaryStatus: null,
+          oracleError: true,
+        }),
+        slot({
+          startTime: 8_100n,
+          market: M,
+          state: MarketState.OPEN,
+          boundary: 9_000n,
+          boundaryStatus: BoundaryStatus.FINAL,
+        }),
+      ],
+    });
+    expect(p.missed.map((s) => s.startTime)).toEqual([9_000n]);
+    expect(p.oracleErrors).toHaveLength(1);
+    expect(p.actions.map((a) => a.kind)).toEqual([ActionKind.RESOLVE]);
+    expect(p.truncated).toBe(true);
+    expect(plan({ now: 0n, slots: [] }).truncated).toBe(false);
+  });
 });

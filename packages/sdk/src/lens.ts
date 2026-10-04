@@ -36,6 +36,8 @@ type LensSlot = {
 };
 
 const FINDING = ["none", "found", "not-yet", "first-of-phase", "missing-round"] as const;
+/** SchedulerLens.STATUS_ORACLE_ERROR */
+export const LENS_ORACLE_ERROR = 254;
 
 export function durationsOf(config: SeriesConfig, label: string): number[] {
   return config.assets.find((a) => a.label === label)?.durations ?? config.durations;
@@ -47,7 +49,7 @@ export function* readSnapshotViaLens(o: LensOptions): Reader<Snapshot> {
     kind: a.resolver === "streams" ? 0 : 1,
     durations: durationsOf(o.config, a.label).map(BigInt),
   }));
-  const slots = value<readonly LensSlot[]>(
+  const [slots, truncated] = value<readonly [readonly LensSlot[], boolean]>(
     yield {
       to: o.lens,
       abi: schedulerLensAbi,
@@ -59,6 +61,7 @@ export function* readSnapshotViaLens(o: LensOptions): Reader<Snapshot> {
           now_: o.now,
           lookahead: o.config.lookaheadRounds,
           lookback: BigInt(o.lookbackSeconds ?? o.config.deepLookbackSeconds),
+          missedLookback: BigInt(o.config.recentLookbackSeconds),
           epoch: o.epoch ?? 0n,
         },
       ],
@@ -67,10 +70,12 @@ export function* readSnapshotViaLens(o: LensOptions): Reader<Snapshot> {
   const byId = new Map(o.config.assets.map((a) => [assetIdOf(a.label), a]));
   return {
     now: o.now,
+    truncated,
     slots: slots.map((s): SlotState => {
       const a = byId.get(s.assetId)!;
       const missing = s.market === zeroAddress;
       const due = s.boundary !== 0n;
+      const oracleError = s.boundaryStatus === LENS_ORACLE_ERROR;
       const slot: SlotState = {
         assetId: s.assetId,
         label: a.label,
@@ -81,9 +86,10 @@ export function* readSnapshotViaLens(o: LensOptions): Reader<Snapshot> {
         endTime: s.startTime + s.duration,
         market: missing ? null : s.market,
         state: missing ? null : (s.state as MarketState),
-        boundary: due ? s.boundary : null,
-        boundaryStatus: due ? (s.boundaryStatus as BoundaryStatus) : null,
+        boundary: due && !oracleError ? s.boundary : null,
+        boundaryStatus: due && !oracleError ? (s.boundaryStatus as BoundaryStatus) : null,
         proposalPending: s.proposalPending,
+        ...(oracleError ? { oracleError: true } : {}),
       };
       if (a.resolver === "round" && due && s.boundaryStatus === BoundaryStatus.PENDING) {
         slot.roundFinding = lensFinding(s.finding, s.roundId, s.boundary);

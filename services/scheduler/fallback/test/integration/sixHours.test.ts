@@ -51,6 +51,8 @@ const SIGNER = privateKeyToAccount(
 const HOURS = 6;
 const STEP = 10n; // scheduler loop interval (seconds of chain time)
 
+/** Fixed, hour-aligned start (+60 s) so runs are deterministic (review M-d). */
+const FIXED_START = 1_800_000_000n - (1_800_000_000n % 3600n) + 3600n + 60n;
 let anvil: ChildProcess;
 let pub: PublicClient;
 let dev: Devnet;
@@ -66,15 +68,32 @@ async function rpc(method: string, params: unknown[]): Promise<unknown> {
   return j.result;
 }
 
-async function setTime(t: bigint): Promise<void> {
-  await rpc("evm_setNextBlockTimestamp", [Number(t)]);
+/** Advances chain time to `t`, or just past the latest block if transactions in the previous
+ *  step already pushed block time beyond `t` (review L-a: avoids "timestamp lower than previous"). */
+async function setTime(t: bigint): Promise<bigint> {
+  const latest = (await pub.getBlock()).timestamp;
+  const next = t > latest ? t : latest + 1n;
+  await rpc("evm_setNextBlockTimestamp", [Number(next)]);
   await rpc("evm_mine", []);
+  return next;
 }
 
 beforeAll(async () => {
-  anvil = spawn("anvil", ["--port", String(PORT), "--silent", "--chain-id", "31337"], {
-    stdio: "ignore",
-  });
+  anvil = spawn(
+    "anvil",
+    [
+      "--port",
+      String(PORT),
+      "--silent",
+      "--chain-id",
+      "31337",
+      "--timestamp",
+      String(FIXED_START - 3600n),
+    ],
+    {
+      stdio: "ignore",
+    },
+  );
   pub = createPublicClient({ chain: foundry, transport: http(RPC), pollingInterval: 100 });
   for (let i = 0; i < 50; i++) {
     try {
@@ -85,8 +104,7 @@ beforeAll(async () => {
     }
   }
   // Start 1 minute after an hour boundary so both series start cleanly.
-  const now = (await pub.getBlock()).timestamp;
-  await setTime(now - (now % 3600n) + 3600n + 60n);
+  await setTime(FIXED_START);
   const admin = createWalletClient({ account: ADMIN, chain: foundry, transport: http(RPC) });
   dev = await deployDevnet(pub, admin, SCHED.address, FWD.address, SIGNER.address);
   await admin.writeContract({
