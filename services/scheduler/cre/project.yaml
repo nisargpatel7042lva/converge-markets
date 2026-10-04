@@ -1,0 +1,10 @@
+# Converge CRE project (docs: https://docs.chain.link/cre/reference/project-configuration-ts).
+# Chain names per https://docs.chain.link/cre/supported-networks-ts (monad-testnet / monad-mainnet).
+staging-settings:
+  rpcs:
+    - chain-name: monad-testnet
+      url: ${MONAD_TESTNET_RPC_URL}
+production-settings:
+  rpcs:
+    - chain-name: monad-mainnet
+      url: ${MONAD_MAINNET_RPC_URL}

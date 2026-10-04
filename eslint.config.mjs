@@ -3,7 +3,15 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/.next/**", "contracts/**", "**/generated/**"],
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.next/**",
+      "contracts/**",
+      "**/generated/**",
+      "**/.cre_build_tmp.js",
+      "services/scheduler/cre/**/node_modules/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

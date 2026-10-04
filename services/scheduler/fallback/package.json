@@ -1,0 +1,19 @@
+{
+  "name": "@converge/scheduler-fallback",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run test/unit",
+    "test:integration": "vitest run test/integration"
+  },
+  "dependencies": {
+    "@converge/sdk": "workspace:*",
+    "pino": "^9.5.0",
+    "tsx": "^4.19.0",
+    "viem": "^2.54.2",
+    "zod": "3.25.76"
+  }
+}

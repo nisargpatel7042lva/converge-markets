@@ -11,3 +11,8 @@ contracts/broadcast/
 .DS_Store
 coverage/
 generated/
+.soak/
+services/scheduler/fallback/.env
+services/scheduler/cre/scheduler/.cre_build_tmp.*
+services/scheduler/cre/scheduler/binary.wasm
+services/scheduler/cre/scheduler/node_modules/

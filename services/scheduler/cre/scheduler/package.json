@@ -1,0 +1,20 @@
+{
+  "name": "converge-cre-scheduler",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "main.ts",
+  "scripts": {
+    "postinstall": "bun x cre-setup"
+  },
+  "dependencies": {
+    "@chainlink/cre-sdk": "1.23.0",
+    "@noble/hashes": "2.2.0",
+    "viem": "2.57.2",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.9",
+    "typescript": "5.9.3"
+  }
+}

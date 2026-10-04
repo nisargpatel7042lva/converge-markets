@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -37,3 +37,15 @@ check-1: check-all
 	cd contracts && forge snapshot --no-match-contract MarketInvariants --no-match-test testFuzz --check
 	@test -f docs/security/phase-1-notes.md
 	@echo "check-1 OK"
+
+# Phase 2: everything in check-all, plus ABI freshness, the anvil integration suites (6 h simulated
+# fallback run, CRE path through SchedulerReceiver, leader switch) and the CRE workflow build.
+# Needs anvil, bun and the CRE CLI (~/.cre/bin) locally; `cre workflow build` needs no login.
+check-2: check-all
+	cd contracts && forge build
+	pnpm --filter @converge/sdk check:abi
+	cd services/scheduler/fallback && pnpm exec vitest run test/integration
+	cd services/scheduler/cre/scheduler && bun install --frozen-lockfile && bun x tsc -p tsconfig.json
+	cd services/scheduler/cre && MONAD_TESTNET_RPC_URL=https://testnet-rpc.monad.xyz cre workflow build scheduler -T staging-settings
+	@test -f docs/ops/scheduler-runbook.md
+	@echo "check-2 OK"

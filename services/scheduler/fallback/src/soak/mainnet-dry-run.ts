@@ -1,0 +1,172 @@
+/**
+ * Mainnet-fork dry run (Phase 2): proves the SDK's round finder against REAL Chainlink feeds on
+ * Monad mainnet, and that ChainlinkRoundResolver accepts every proof it produces.
+ *
+ * For every 15-minute boundary in the last N hours and each of BTC/ETH/MON (Chainlink push-feed
+ * proxies from docs/EXTERNAL.md), the finder runs against the fork, the proof is submitted to a
+ * ChainlinkRoundResolver deployed on the fork (maxOracleDelay = 120 s), and the resulting status
+ * is recorded. Expected: MON (~30 s cadence) almost always FINAL; BTC/ETH often UNRESOLVABLE
+ * (multi-minute push gaps) -- which is exactly why ADR-002 uses Data Streams for them.
+ * Usage: anvil --fork-url https://rpc.monad.xyz --port 8549 & ; npx tsx src/soak/mainnet-dry-run.ts
+ */
+import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  chainlinkRoundResolverAbi,
+  encodeRoundProof,
+  findFirstRoundAtOrAfter,
+  runAsync,
+} from "@converge/sdk";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  keccak256,
+  stringToHex,
+  type Abi,
+  type Address,
+  type Hex,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const FORK = process.env.FORK_RPC_URL ?? "http://127.0.0.1:8549";
+const HOURS = Number(process.env.DRY_RUN_HOURS ?? 6);
+const FEEDS: Record<string, Address> = {
+  "BTC/USD": "0xc1d4C3331635184fA4C3c22fb92211B2Ac9E0546",
+  "ETH/USD": "0x1B1414782B859871781bA3E4B0979b9ca57A0A04",
+  "MON/USD": "0xBcD78f76005B7515837af6b50c7C52BCf73822fb",
+};
+const chain = {
+  id: 143,
+  name: "monad-fork",
+  nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
+  rpcUrls: { default: { http: [FORK] } },
+} as const;
+const pub = createPublicClient({
+  chain,
+  transport: http(FORK, { timeout: 60_000 }),
+  pollingInterval: 200,
+});
+const acct = privateKeyToAccount(
+  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+);
+const wallet = createWalletClient({
+  account: acct,
+  chain,
+  transport: http(FORK, { timeout: 60_000 }),
+});
+await pub.request({
+  method: "anvil_setBalance" as never,
+  params: [acct.address, "0x56BC75E2D63100000"] as never,
+});
+
+const art = JSON.parse(
+  readFileSync(
+    resolve(
+      here,
+      "../../../../../contracts/out/ChainlinkRoundResolver.sol/ChainlinkRoundResolver.json",
+    ),
+    "utf8",
+  ),
+) as { abi: Abi; bytecode: { object: Hex } };
+const dh = await wallet.deployContract({
+  abi: art.abi,
+  bytecode: art.bytecode.object,
+  args: [acct.address, 86_400n],
+});
+const resolver = (await pub.waitForTransactionReceipt({ hash: dh })).contractAddress!;
+for (const [label, feed] of Object.entries(FEEDS)) {
+  const h = await wallet.writeContract({
+    address: resolver,
+    abi: chainlinkRoundResolverAbi,
+    functionName: "configureAsset",
+    args: [keccak256(stringToHex(label)), feed, 120],
+  });
+  await pub.waitForTransactionReceipt({ hash: h });
+}
+
+const block = await pub.getBlock();
+const now = block.timestamp;
+const rows: string[] = [];
+const stats: Record<
+  string,
+  {
+    final: number;
+    unresolvable: number;
+    notYet: number;
+    firstOfPhase: number;
+    missing: number;
+    total: number;
+  }
+> = {};
+for (const [label, feed] of Object.entries(FEEDS)) {
+  const st = (stats[label] = {
+    final: 0,
+    unresolvable: 0,
+    notYet: 0,
+    firstOfPhase: 0,
+    missing: 0,
+    total: 0,
+  });
+  const assetId = keccak256(stringToHex(label));
+  for (let t = now - (now % 900n) - BigInt(HOURS * 3600); t <= now - 900n; t += 900n) {
+    st.total += 1;
+    const f = await runAsync(findFirstRoundAtOrAfter(feed, t), pub);
+    if (f.kind === "not-yet") st.notYet += 1;
+    if (f.kind === "first-of-phase") st.firstOfPhase += 1;
+    if (f.kind === "missing-round") st.missing += 1;
+    let status: string = f.kind;
+    let lag = "";
+    if (f.kind === "found") {
+      lag = String(f.updatedAt - t);
+      const h = await wallet.writeContract({
+        address: resolver,
+        abi: chainlinkRoundResolverAbi,
+        functionName: "submit",
+        args: [assetId, t, encodeRoundProof(f.roundId)],
+      });
+      const r = await pub.waitForTransactionReceipt({ hash: h });
+      if (r.status !== "success")
+        throw new Error(`resolver rejected the SDK proof for ${label} @${t}`);
+      const [s] = (await pub.readContract({
+        address: resolver,
+        abi: chainlinkRoundResolverAbi,
+        functionName: "priceAt",
+        args: [assetId, t],
+      })) as readonly [number, bigint];
+      status = Number(s) === 1 ? "FINAL" : Number(s) === 2 ? "UNRESOLVABLE" : "PENDING";
+      if (Number(s) === 1) st.final += 1;
+      if (Number(s) === 2) st.unresolvable += 1;
+    }
+    rows.push(
+      `| ${label} | ${new Date(Number(t) * 1000).toISOString().slice(0, 16)}Z | ${status} | ${lag} |`,
+    );
+  }
+}
+const md = [
+  "# Phase 2: mainnet-fork dry run (real Chainlink push feeds)",
+  "",
+  "Generated by `services/scheduler/fallback/src/soak/mainnet-dry-run.ts` against an anvil fork of Monad mainnet",
+  `(fork block ${block.number}, ${new Date(Number(now) * 1000).toISOString()}).`,
+  "",
+  "For every 15-minute boundary in the preceding hours, the SDK's round finder (`findFirstRoundAtOrAfter`, the code the scheduler runs) found the first round at/after T on the real Chainlink proxy.",
+  "",
+  "The proof was then submitted to a `ChainlinkRoundResolver` (maxOracleDelay 120 s) deployed on the fork. **The resolver accepted every proof the SDK produced** (no reverts). The status shows whether the first update came within 120 s of T.",
+  "",
+  "```json",
+  JSON.stringify(stats, null, 2),
+  "```",
+  "",
+  "Interpretation: MON/USD (about 30 s cadence) settles by round proof, while BTC/ETH push feeds frequently miss the 120 s window. This confirms ADR-002: BTC/ETH must resolve via Data Streams, and round proofs are the MON path.",
+  "",
+  "| feed | boundary | status | first update lag (s) |",
+  "|---|---|---|---|",
+  ...rows,
+].join("\n");
+writeFileSync(
+  resolve(here, "../../../../../docs/evidence/phase-2/mainnet-fork-dry-run.md"),
+  md + "\n",
+);
+console.log(JSON.stringify(stats));

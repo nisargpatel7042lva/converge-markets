@@ -3,8 +3,20 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
+    "gen:abi": "node scripts/gen-abi.mjs",
+    "check:abi": "node scripts/gen-abi.mjs --check",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.2.0",
+    "viem": "^2.54.2",
+    "zod": "3.25.76",
+    "@noble/curves": "1.9.1"
   }
 }

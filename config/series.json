@@ -1,0 +1,26 @@
+{
+  "lookaheadRounds": 3,
+  "recentLookbackSeconds": 7200,
+  "deepLookbackSeconds": 93600,
+  "lateAfterSeconds": 60,
+  "durations": [900, 3600],
+  "assets": [
+    {
+      "label": "BTC/USD",
+      "symbol": "BTC",
+      "resolver": "streams",
+      "streamsFeedId": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "label": "ETH/USD",
+      "symbol": "ETH",
+      "resolver": "streams",
+      "streamsFeedId": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    { "label": "MON/USD", "symbol": "MON", "resolver": "round" }
+  ],
+  "kuru": {
+    "enabled": false,
+    "reason": "ADR-001: Kuru mainnet market creation is owner-gated (pending Kuru answer); the venue adapter and vault quoting land in Phase 4/5. No per-round Kuru setup in Phase 2."
+  }
+}

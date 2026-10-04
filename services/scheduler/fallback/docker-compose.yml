@@ -1,0 +1,15 @@
+# Fallback scheduler. Secrets come from an env file that is never committed:
+#   cp services/scheduler/fallback/.env.example services/scheduler/fallback/.env  (fill it)
+#   docker compose -f services/scheduler/fallback/docker-compose.yml up -d --build
+services:
+  scheduler:
+    build:
+      context: ../../..
+      dockerfile: services/scheduler/fallback/Dockerfile
+    image: converge-scheduler:local
+    env_file: ${SCHEDULER_ENV_FILE:-.env}
+    restart: unless-stopped
+    network_mode: host # reaches a local devnet RPC in soaks; use an RPC URL in production
+    logging:
+      driver: json-file
+      options: { max-size: "50m", max-file: "5" }

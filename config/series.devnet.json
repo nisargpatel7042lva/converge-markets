@@ -1,0 +1,30 @@
+{
+  "lookaheadRounds": 3,
+  "recentLookbackSeconds": 7200,
+  "deepLookbackSeconds": 93600,
+  "lateAfterSeconds": 60,
+  "durations": [900, 3600],
+  "assets": [
+    {
+      "label": "BTC/USD",
+      "symbol": "BTC",
+      "resolver": "streams",
+      "streamsFeedId": "0x0003000000000000000000000000000000000000000000000000000000000b7c"
+    },
+    {
+      "label": "ETH/USD",
+      "symbol": "ETH",
+      "resolver": "streams",
+      "streamsFeedId": "0x0003000000000000000000000000000000000000000000000000000000000e7e"
+    },
+    {
+      "label": "MON/USD",
+      "symbol": "MON",
+      "resolver": "round"
+    }
+  ],
+  "kuru": {
+    "enabled": false,
+    "reason": "devnet"
+  }
+}

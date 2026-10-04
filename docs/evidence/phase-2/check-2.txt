@@ -1,0 +1,489 @@
+pnpm lint
+$ eslint .
+pnpm format:check
+$ prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+pnpm typecheck
+$ pnpm -r --if-present typecheck
+Scope: 8 of 9 workspace projects
+apps/web typecheck$ tsc -p tsconfig.json
+backtest typecheck$ tsc -p tsconfig.json
+indexer typecheck$ tsc -p tsconfig.json
+packages/sdk typecheck$ tsc -p tsconfig.json
+apps/web typecheck: Done
+backtest typecheck: Done
+packages/strategy typecheck$ tsc -p tsconfig.json
+scripts/spike typecheck$ tsc -p tsconfig.json
+indexer typecheck: Done
+services/keeper typecheck$ tsc -p tsconfig.json
+packages/strategy typecheck: Done
+services/keeper typecheck: Done
+packages/sdk typecheck: Done
+scripts/spike typecheck: Done
+services/scheduler/fallback typecheck$ tsc -p tsconfig.json
+services/scheduler/fallback typecheck: Done
+pnpm test
+$ pnpm -r --if-present test
+Scope: 8 of 9 workspace projects
+apps/web test$ vitest run
+backtest test$ vitest run
+indexer test$ vitest run
+packages/sdk test$ vitest run
+backtest test:  RUN  v2.1.9 /home/mysterioxplorer/converge/backtest
+indexer test:  RUN  v2.1.9 /home/mysterioxplorer/converge/indexer
+packages/sdk test:  RUN  v2.1.9 /home/mysterioxplorer/converge/packages/sdk
+apps/web test:  RUN  v2.1.9 /home/mysterioxplorer/converge/apps/web
+backtest test:  ✓ src/index.test.ts (1 test) 3ms
+apps/web test:  ✓ src/index.test.ts (1 test) 2ms
+indexer test:  ✓ src/index.test.ts (1 test) 3ms
+backtest test:  Test Files  1 passed (1)
+backtest test:       Tests  1 passed (1)
+backtest test:    Start at  11:50:40
+backtest test:    Duration  1.42s (transform 428ms, setup 0ms, collect 193ms, tests 3ms, environment 0ms, prepare 463ms)
+apps/web test:  Test Files  1 passed (1)
+apps/web test:       Tests  1 passed (1)
+apps/web test:    Start at  11:50:40
+apps/web test:    Duration  1.42s (transform 283ms, setup 0ms, collect 170ms, tests 2ms, environment 0ms, prepare 309ms)
+indexer test:  Test Files  1 passed (1)
+indexer test:       Tests  1 passed (1)
+indexer test:    Start at  11:50:40
+indexer test:    Duration  1.43s (transform 407ms, setup 0ms, collect 206ms, tests 3ms, environment 0ms, prepare 496ms)
+packages/sdk test:  ✓ test/time.test.ts (5 tests) 10ms
+apps/web test: Done
+backtest test: Done
+indexer test: Done
+packages/strategy test$ vitest run
+scripts/spike test$ vitest run
+services/keeper test$ vitest run
+packages/strategy test:  RUN  v2.1.9 /home/mysterioxplorer/converge/packages/strategy
+services/keeper test:  RUN  v2.1.9 /home/mysterioxplorer/converge/services/keeper
+scripts/spike test:  RUN  v2.1.9 /home/mysterioxplorer/converge/scripts/spike
+services/keeper test:  ✓ src/index.test.ts (1 test) 4ms
+scripts/spike test:  ✓ src/cost-model.test.ts (3 tests) 7ms
+services/keeper test:  Test Files  1 passed (1)
+services/keeper test:       Tests  1 passed (1)
+services/keeper test:    Start at  11:50:42
+services/keeper test:    Duration  1.08s (transform 125ms, setup 0ms, collect 83ms, tests 4ms, environment 0ms, prepare 160ms)
+packages/strategy test:  ✓ src/index.test.ts (1 test) 2ms
+packages/sdk test:  ✓ test/rounds.test.ts (8 tests) 37ms
+scripts/spike test:  Test Files  1 passed (1)
+scripts/spike test:       Tests  3 passed (3)
+scripts/spike test:    Start at  11:50:42
+scripts/spike test:    Duration  1.12s (transform 115ms, setup 0ms, collect 91ms, tests 7ms, environment 0ms, prepare 120ms)
+packages/strategy test:  Test Files  1 passed (1)
+packages/strategy test:       Tests  1 passed (1)
+packages/strategy test:    Start at  11:50:42
+packages/strategy test:    Duration  1.17s (transform 110ms, setup 0ms, collect 91ms, tests 2ms, environment 0ms, prepare 201ms)
+packages/sdk test:  ✓ test/planner.test.ts (5 tests) 14ms
+packages/sdk test:  ✓ test/report.test.ts (1 test) 8ms
+services/keeper test: Done
+scripts/spike test: Done
+packages/strategy test: Done
+packages/sdk test:  ✓ test/evidence.test.ts (5 tests) 225ms
+packages/sdk test:  Test Files  5 passed (5)
+packages/sdk test:       Tests  24 passed (24)
+packages/sdk test:    Start at  11:50:40
+packages/sdk test:    Duration  3.30s (transform 2.08s, setup 0ms, collect 7.46s, tests 293ms, environment 3ms, prepare 1.71s)
+packages/sdk test: Done
+services/scheduler/fallback test$ vitest run test/unit
+services/scheduler/fallback test:  RUN  v2.1.9 /home/mysterioxplorer/converge/services/scheduler/fallback
+services/scheduler/fallback test:  ✓ test/unit/service.test.ts (5 tests) 113ms
+services/scheduler/fallback test:  ✓ test/unit/errors.test.ts (1 test) 5ms
+services/scheduler/fallback test:  Test Files  2 passed (2)
+services/scheduler/fallback test:       Tests  6 passed (6)
+services/scheduler/fallback test:    Start at  11:50:44
+services/scheduler/fallback test:    Duration  1.57s (transform 287ms, setup 0ms, collect 802ms, tests 118ms, environment 1ms, prepare 682ms)
+services/scheduler/fallback test: Done
+cd contracts && forge fmt --check && forge build && forge lint --deny warnings && forge test
+No files changed, compilation skipped
+No files changed, compilation skipped
+
+Ran 5 tests for test/unit/Libraries.t.sol:LibrariesTest
+[PASS] testFuzz_series_roundStartProperties(uint64,bool) (runs: 256, μ: 19130, ~: 19125)
+[PASS] test_dateTime_vectors() (gas: 21344)
+[PASS] test_names() (gas: 28461)
+[PASS] test_series_boundaries() (gas: 36273)
+[PASS] test_series_rejectsUnsupported() (gas: 18739)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 17.55ms (6.04ms CPU time)
+
+Ran 56 tests for test/unit/Market.t.sol:MarketTest
+[PASS] test_18DecimalCollateral_fullLifecycle() (gas: 2322436)
+[PASS] test_adjacentRoundsAgreeAcrossPhaseMigration() (gas: 1160651)
+[PASS] test_claimFees_revertsWithoutRecipient_redeemNeverBlocked() (gas: 2016158)
+[PASS] test_claimable_zeroBeforeOutcome() (gas: 338896)
+[PASS] test_initialize_implementationLocked() (gas: 36901)
+[PASS] test_initialize_onlyFactoryParam() (gas: 132276)
+[PASS] test_initialize_revertsTwice() (gas: 38948)
+[PASS] test_initialize_setsParams() (gas: 110589)
+[PASS] test_invalidate_createdAfterLiveness() (gas: 108088)
+[PASS] test_invalidate_openWhenEndUnresolvable() (gas: 356227)
+[PASS] test_invalidate_revertsIfFinal() (gas: 271751)
+[PASS] test_invalidate_revertsWhenResolved() (gas: 535981)
+[PASS] test_invalidate_revertsWhilePending() (gas: 76686)
+[PASS] test_merge_returnsCollateral() (gas: 469285)
+[PASS] test_merge_revertsWithoutBothSides() (gas: 452654)
+[PASS] test_merge_revertsZero() (gas: 54584)
+[PASS] test_merge_worksAfterResolution() (gas: 899884)
+[PASS] test_merge_worksWhenInvalid() (gas: 498920)
+[PASS] test_merge_worksWhilePaused() (gas: 475815)
+[PASS] test_open_afterGraceWithEvidence_invalidatesInsteadOfReverting() (gas: 692266)
+[PASS] test_open_afterSomeoneElseProved() (gas: 304367)
+[PASS] test_open_keepsSubmissionWhilePending() (gas: 821205)
+[PASS] test_open_rejectsValueWithoutSubmission() (gas: 282183)
+[PASS] test_open_revertsBeforeStart() (gas: 59657)
+[PASS] test_open_revertsTwice() (gas: 300163)
+[PASS] test_open_revertsWhilePending() (gas: 77632)
+[PASS] test_open_setsStrike() (gas: 284319)
+[PASS] test_open_unresolvableInvalidates() (gas: 120947)
+[PASS] test_redeem_feeSkippedWithoutRecipient() (gas: 1534201)
+[PASS] test_redeem_feeSnapshotAtCreation() (gas: 1004062)
+[PASS] test_redeem_invalidBothSidesFull() (gas: 505748)
+[PASS] test_redeem_invalidPaysHalf() (gas: 708590)
+[PASS] test_redeem_revertsBeforeResolution() (gas: 639067)
+[PASS] test_redeem_revertsWithNothing() (gas: 555947)
+[PASS] test_redeem_winnerDown() (gas: 946188)
+[PASS] test_redeem_winnerUp() (gas: 1116442)
+[PASS] test_redeem_withFee() (gas: 1735339)
+[PASS] test_redeem_worksWhilePaused() (gas: 958605)
+[PASS] test_resolve_down() (gas: 509087)
+[PASS] test_resolve_revertsBeforeEnd() (gas: 300350)
+[PASS] test_resolve_revertsIfNotOpen() (gas: 58225)
+[PASS] test_resolve_revertsTwice() (gas: 536549)
+[PASS] test_resolve_revertsWhilePending() (gas: 318201)
+[PASS] test_resolve_tieGoesUp() (gas: 508998)
+[PASS] test_resolve_unresolvableInvalidates() (gas: 467811)
+[PASS] test_resolve_up() (gas: 521257)
+[PASS] test_split_allowedWhenOpen() (gas: 580312)
+[PASS] test_split_mintsBothSides() (gas: 364984)
+[PASS] test_split_rejectsFeeOnTransferCollateral() (gas: 1576489)
+[PASS] test_split_revertsAfterResolution() (gas: 667358)
+[PASS] test_split_revertsWhenPaused() (gas: 240106)
+[PASS] test_split_revertsWithoutApproval() (gas: 153191)
+[PASS] test_split_revertsZero() (gas: 54582)
+[PASS] test_streamsMarket_feeModeForwardsValue() (gas: 1219284)
+[PASS] test_streamsMarket_lifecycle() (gas: 1534132)
+[PASS] test_streamsMarket_noReportInvalidates() (gas: 681838)
+Suite result: ok. 56 passed; 0 failed; 0 skipped; finished in 49.02ms (42.56ms CPU time)
+
+Ran 3 tests for test/unit/MarketFactory.t.sol:OutcomeTokenTest
+[PASS] test_implementationLocked() (gas: 37094)
+[PASS] test_initialize_rejectsZeroMarket() (gas: 266002)
+[PASS] test_onlyMarketMintBurn_andReinitBlocked() (gas: 692960)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 49.13ms (946.68µs CPU time)
+
+Ran 15 tests for test/unit/SchedulerReceiver.t.sol:SchedulerReceiverTest
+[PASS] test_admin_roles() (gas: 200004)
+[PASS] test_constructor_rejectsZero() (gas: 8270)
+[PASS] test_createWhilePausedFailsGracefully() (gas: 124429)
+[PASS] test_createWithoutRoleFailsGracefully() (gas: 110090)
+[PASS] test_failuresAreIsolatedAndReported() (gas: 1200443)
+[PASS] test_fullLifecycleThroughReports() (gas: 1236717)
+[PASS] test_invalidateAction() (gas: 766019)
+[PASS] test_onReport_anyWorkflowIdWhenUnset_and62ByteMetadata() (gas: 79823)
+[PASS] test_onReport_checksMetadata() (gas: 101831)
+[PASS] test_onReport_ignoredWhenFallbackLeads() (gas: 98130)
+[PASS] test_onReport_onlyForwarder() (gas: 41303)
+[PASS] test_onReport_rejectsWrongChainAndStale() (gas: 117849)
+[PASS] test_onReport_requiresConfiguredWorkflow() (gas: 43764)
+[PASS] test_openTooEarlyAndResolveFailuresReportSelector() (gas: 895358)
+[PASS] test_supportsInterface() (gas: 17010)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 49.17ms (13.67ms CPU time)
+
+Ran 17 tests for test/unit/MarketFactory.t.sol:MarketFactoryTest
+[PASS] test_constructor_rejectsZero() (gas: 6045)
+[PASS] test_constructor_state() (gas: 41238)
+[PASS] test_createMarket_atCurrentBoundary() (gas: 596204)
+[PASS] test_createMarket_oneHour() (gas: 622560)
+[PASS] test_createMarket_onlyCreator() (gas: 41320)
+[PASS] test_createMarket_registersAndNames() (gas: 696005)
+[PASS] test_createMarket_revertsBadDuration() (gas: 45371)
+[PASS] test_createMarket_revertsDuplicate() (gas: 635055)
+[PASS] test_createMarket_revertsInPast() (gas: 46262)
+[PASS] test_createMarket_revertsNotAligned() (gas: 83472)
+[PASS] test_createMarket_revertsUnknownOrDisabledAsset() (gas: 126072)
+[PASS] test_createMarket_sameStartDifferentDurations() (gas: 1166708)
+[PASS] test_pause_blocksCreation_onlyGuardian_unpauseOnlyAdmin() (gas: 783688)
+[PASS] test_redeemFee_capAndEvents() (gas: 723074)
+[PASS] test_redeemFee_onlyAdmin() (gas: 66434)
+[PASS] test_setAsset_onlyAdmin() (gas: 44267)
+[PASS] test_setAsset_validations() (gas: 188288)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 53.43ms (6.39ms CPU time)
+
+Ran 29 tests for test/unit/ChainlinkRoundResolver.t.sol:ChainlinkRoundResolverTest
+[PASS] test_adjacentRoundsShareBoundary() (gas: 209315)
+[PASS] test_badProofLength_reverts() (gas: 35938)
+[PASS] test_checkpoint_makesUnresolvablePermanent() (gas: 224401)
+[PASS] test_checkpoint_pendingAndFinalPassThrough() (gas: 263742)
+[PASS] test_configure_onlyOwner() (gas: 38031)
+[PASS] test_configure_rejectsBadParams() (gas: 96261)
+[PASS] test_configure_setOnce() (gas: 40085)
+[PASS] test_constructor_rejectsZeroGrace() (gas: 6142)
+[PASS] test_crossPhase_onlyCurrentPhaseAccepted() (gas: 393372)
+[PASS] test_missingRound_reverts() (gas: 60392)
+[PASS] test_nonPositiveAnswer_reverts() (gas: 111909)
+[PASS] test_pendingBeforeDelay() (gas: 18502)
+[PASS] test_proofAtMaxDelayIsFinal() (gas: 209036)
+[PASS] test_proofBeyondMaxDelayIsUnresolvable() (gas: 189051)
+[PASS] test_proofExactlyAtBoundary() (gas: 208960)
+[PASS] test_proofRejectedAfterLiveness() (gas: 114080)
+[PASS] test_rejectsValue() (gas: 118546)
+[PASS] test_roundExistsButUnproven_pendingUntilLiveness() (gas: 123607)
+[PASS] test_roundFromAnotherPhase_firstOfPhaseRejected() (gas: 125946)
+[PASS] test_roundFromAnotherPhase_noPredecessorInPhase() (gas: 131242)
+[PASS] test_roundFromAnotherPhase_validWithinPhase() (gas: 281333)
+[PASS] test_staleFeed_unresolvableAfterDelay() (gas: 28552)
+[PASS] test_submitIsNoopOnceDecided() (gas: 236974)
+[PASS] test_supportsAsset() (gas: 15357)
+[PASS] test_unknownAsset_reverts() (gas: 46075)
+[PASS] test_validProof_final() (gas: 225129)
+[PASS] test_wrongRound_beforeBoundary() (gas: 57228)
+[PASS] test_wrongRound_notFirst() (gas: 204303)
+[PASS] test_zeroedRound_reverts() (gas: 262403)
+Suite result: ok. 29 passed; 0 failed; 0 skipped; finished in 53.54ms (13.26ms CPU time)
+
+Ran 21 tests for test/unit/DataStreamsResolver.t.sol:DataStreamsResolverTest
+[PASS] test_adminFunctions() (gas: 254091)
+[PASS] test_approveFeeToken() (gas: 125110)
+[PASS] test_badSignature_reverts() (gas: 68283)
+[PASS] test_checkpoint_emitsSettledOnce() (gas: 260285)
+[PASS] test_checkpoint_unresolvable() (gas: 67217)
+[PASS] test_configure_onlyOwner_setOnce_nonZero() (gas: 104570)
+[PASS] test_constructor_rejectsBadConfig() (gas: 6229)
+[PASS] test_noProposal_unresolvableAfterGrace_andRejectsLate() (gas: 85946)
+[PASS] test_nonPositivePrice_reverts() (gas: 67456)
+[PASS] test_proposalBeforeGraceStillFinalizesAfterGrace() (gas: 143630)
+[PASS] test_proposal_thenFinalAfterWindow() (gas: 179031)
+[PASS] test_replacement_onlyByLowerHash() (gas: 324658)
+[PASS] test_reportNotContainingBoundary_reverts() (gas: 126516)
+[PASS] test_shortReport_reverts() (gas: 43990)
+[PASS] test_submitNoopAfterFinal() (gas: 174053)
+[PASS] test_unknownAsset_reverts() (gas: 50356)
+[PASS] test_valueRejectedWhenFinal() (gas: 180829)
+[PASS] test_valueWithoutFeeMode_reverts() (gas: 63698)
+[PASS] test_windowBoundsInclusive() (gas: 255590)
+[PASS] test_wrongFeed_reverts() (gas: 67564)
+[PASS] test_wrongVersion_reverts() (gas: 52019)
+Suite result: ok. 21 passed; 0 failed; 0 skipped; finished in 53.58ms (85.78ms CPU time)
+
+Ran 3 tests for test/unit/MarketFuzz.t.sol:MarketFuzzTest
+[PASS] testFuzz_pairAlwaysWorthOne(uint256,int256,bool) (runs: 256, μ: 697834, ~: 507107)
+[PASS] testFuzz_splitMergeConserves(address,uint256,uint256) (runs: 256, μ: 537022, ~: 542216)
+[PASS] testFuzz_splitThenFullMerge(address,uint256) (runs: 256, μ: 470541, ~: 470386)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 54.19ms (82.27ms CPU time)
+
+Ran 1 test for test/invariant/MarketInvariants.t.sol:MarketInvariants
+[PASS]
+MarketInvariants invariants:
+[PASS] invariant_exitsAlwaysWorkAndPayExactly
+[PASS] invariant_fullyCollateralizedBeforeResolution
+[PASS] invariant_marketBalanceMatchesGhosts
+[PASS] invariant_noActorExtractsMoreThanEntitled
+[PASS] invariant_solventAfterResolution
+ MarketInvariants invariants (runs: 256, calls: 25600, reverts: 0)
+
+╭---------------+---------------+-------+---------+----------╮
+| Contract      | Selector      | Calls | Reverts | Discards |
++============================================================+
+| MarketHandler | advance       | 2569  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | claimFees     | 2538  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | invalidate    | 2548  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | merge         | 2602  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | pushRound     | 2612  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | redeem        | 2549  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | split         | 2525  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | togglePause   | 2508  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | transferToken | 2595  | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| MarketHandler | warp          | 2554  | 0       | 0        |
+╰---------------+---------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 20.12s (20.08s CPU time)
+
+Ran 9 test suites in 20.13s (20.50s CPU time): 150 tests passed, 0 failed, 0 skipped (150 total tests)
+cd contracts && slither . --config-file slither.config.json
+'forge clean' running (wd: /home/mysterioxplorer/converge/contracts)
+'forge config --json' running
+'forge build --build-info --deny never --skip ./test/** ./script/** --force' running (wd: /home/mysterioxplorer/converge/contracts)
+INFO:Detectors:
+Detector: events-maths
+Market.initialize(Market.Params) (src/Market.sol#101-113) should emit an event for: 
+	- startTime = p.startTime (src/Market.sol#110) 
+	- endTime = p.endTime (src/Market.sol#111) 
+	- redeemFeeBps = p.redeemFeeBps (src/Market.sol#112) 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-events-arithmetic
+INFO:Detectors:
+Detector: missing-zero-check
+MarketFactory.setFeeRecipient(address).recipient (src/MarketFactory.sol#112) lacks a zero-check on :
+		- feeRecipient = recipient (src/MarketFactory.sol#113)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
+INFO:Detectors:
+Detector: calls-loop
+SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#171-206) has external calls inside a loop: factory.createMarket(a.assetId,a.duration,a.startTime) (src/scheduler/SchedulerReceiver.sol#174-178)
+	Calls stack containing the loop:
+		SchedulerReceiver.onReport(bytes,bytes)
+SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#171-206) has external calls inside a loop: m = factory.getMarket(a.assetId,a.duration,a.startTime) (src/scheduler/SchedulerReceiver.sol#180)
+	Calls stack containing the loop:
+		SchedulerReceiver.onReport(bytes,bytes)
+SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#171-206) has external calls inside a loop: Market(m).open(a.evidence) (src/scheduler/SchedulerReceiver.sol#184-188)
+	Calls stack containing the loop:
+		SchedulerReceiver.onReport(bytes,bytes)
+SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#171-206) has external calls inside a loop: Market(m).resolve(a.evidence) (src/scheduler/SchedulerReceiver.sol#190-194)
+	Calls stack containing the loop:
+		SchedulerReceiver.onReport(bytes,bytes)
+SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#171-206) has external calls inside a loop: Market(m).invalidate() (src/scheduler/SchedulerReceiver.sol#196-200)
+	Calls stack containing the loop:
+		SchedulerReceiver.onReport(bytes,bytes)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation/#calls-inside-a-loop
+INFO:Detectors:
+Detector: reentrancy-benign
+Reentrancy in Market.open(bytes) (src/Market.sol#162-177):
+	External calls:
+	- (s,price) = _boundaryPrice(startTime,data) (src/Market.sol#166)
+		- (s,price) = resolver.checkpoint(assetId,boundary) (src/Market.sol#282)
+		- resolver.submit{value: msg.value}(assetId,boundary,data) (src/Market.sol#285)
+		- (s,price) = resolver.checkpoint(assetId,boundary) (src/Market.sol#287)
+	External calls sending eth:
+	- (s,price) = _boundaryPrice(startTime,data) (src/Market.sol#166)
+		- resolver.submit{value: msg.value}(assetId,boundary,data) (src/Market.sol#285)
+	State variables written after the call(s):
+	- strike = price (src/Market.sol#168)
+Reentrancy in Market.resolve(bytes) (src/Market.sol#183-199):
+	External calls:
+	- (s,price) = _boundaryPrice(endTime,data) (src/Market.sol#187)
+		- (s,price) = resolver.checkpoint(assetId,boundary) (src/Market.sol#282)
+		- resolver.submit{value: msg.value}(assetId,boundary,data) (src/Market.sol#285)
+		- (s,price) = resolver.checkpoint(assetId,boundary) (src/Market.sol#287)
+	External calls sending eth:
+	- (s,price) = _boundaryPrice(endTime,data) (src/Market.sol#187)
+		- resolver.submit{value: msg.value}(assetId,boundary,data) (src/Market.sol#285)
+	State variables written after the call(s):
+	- endPrice = price (src/Market.sol#189)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#171-206):
+	External calls:
+	- factory.createMarket(a.assetId,a.duration,a.startTime) (src/scheduler/SchedulerReceiver.sol#174-178)
+	- Market(m).open(a.evidence) (src/scheduler/SchedulerReceiver.sol#184-188)
+	- Market(m).resolve(a.evidence) (src/scheduler/SchedulerReceiver.sol#190-194)
+	- Market(m).invalidate() (src/scheduler/SchedulerReceiver.sol#196-200)
+	Event emitted after the call(s):
+	- ActionExecuted(a.kind,a.assetId,a.duration,a.startTime,ok,sel) (src/scheduler/SchedulerReceiver.sol#205)
+Reentrancy in MarketFactory._initialize(address,uint64,Market.Params) (src/MarketFactory.sol#165-170):
+	External calls:
+	- Market(market).initialize(p) (src/MarketFactory.sol#166)
+	Event emitted after the call(s):
+	- MarketCreated(market,p.assetId,p.startTime,duration,p) (src/MarketFactory.sol#169)
+Reentrancy in MarketFactory.createMarket(bytes32,uint64,uint64) (src/MarketFactory.sol#132-163):
+	External calls:
+	- p.up = _deployToken(market,a.label,true,startTime) (src/MarketFactory.sol#160)
+		- token.initialize(market,MarketNaming.tokenName(label,isUp,startTime),MarketNaming.tokenSymbol(label,isUp,startTime),collateralDecimals) (src/MarketFactory.sol#177-182)
+	- p.down = _deployToken(market,a.label,false,startTime) (src/MarketFactory.sol#161)
+		- token.initialize(market,MarketNaming.tokenName(label,isUp,startTime),MarketNaming.tokenSymbol(label,isUp,startTime),collateralDecimals) (src/MarketFactory.sol#177-182)
+	- _initialize(market,duration,p) (src/MarketFactory.sol#162)
+		- Market(market).initialize(p) (src/MarketFactory.sol#166)
+	Event emitted after the call(s):
+	- MarketCreated(market,p.assetId,p.startTime,duration,p) (src/MarketFactory.sol#169)
+		- _initialize(market,duration,p) (src/MarketFactory.sol#162)
+Reentrancy in SchedulerReceiver.onReport(bytes,bytes) (src/scheduler/SchedulerReceiver.sol#122-151):
+	External calls:
+	- ! _execute(actions[i]) (src/scheduler/SchedulerReceiver.sol#147)
+		- factory.createMarket(a.assetId,a.duration,a.startTime) (src/scheduler/SchedulerReceiver.sol#174-178)
+		- Market(m).open(a.evidence) (src/scheduler/SchedulerReceiver.sol#184-188)
+		- Market(m).resolve(a.evidence) (src/scheduler/SchedulerReceiver.sol#190-194)
+		- Market(m).invalidate() (src/scheduler/SchedulerReceiver.sol#196-200)
+	Event emitted after the call(s):
+	- ReportProcessed(scheduledTime,actions.length,failed) (src/scheduler/SchedulerReceiver.sol#150)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Detectors:
+Detector: timestamp
+Market.open(bytes) (src/Market.sol#162-177) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp < startTime (src/Market.sol#164)
+Market.resolve(bytes) (src/Market.sol#183-199) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp < endTime (src/Market.sol#185)
+MarketFactory.createMarket(bytes32,uint64,uint64) (src/MarketFactory.sol#132-163) uses timestamp for comparisons
+	Dangerous comparisons:
+	- startTime < block.timestamp (src/MarketFactory.sol#142)
+ChainlinkRoundResolver.submit(bytes32,uint64,bytes) (src/resolvers/ChainlinkRoundResolver.sol#108-139) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp > uint256(timestamp) + livenessGrace (src/resolvers/ChainlinkRoundResolver.sol#113)
+ChainlinkRoundResolver.priceAt(bytes32,uint64) (src/resolvers/ChainlinkRoundResolver.sol#156-174) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp > uint256(timestamp) + livenessGrace (src/resolvers/ChainlinkRoundResolver.sol#164)
+	- block.timestamp > uint256(timestamp) + cfg.maxOracleDelay (src/resolvers/ChainlinkRoundResolver.sol#167)
+DataStreamsResolver.submit(bytes32,uint64,bytes) (src/resolvers/DataStreamsResolver.sol#113-168) uses timestamp for comparisons
+	Dangerous comparisons:
+	- exists && block.timestamp >= uint256(p.firstProposedAt) + finalizationWindow (src/resolvers/DataStreamsResolver.sol#121)
+	- ! exists && block.timestamp > uint256(timestamp) + grace (src/resolvers/DataStreamsResolver.sol#125)
+DataStreamsResolver.priceAt(bytes32,uint64) (src/resolvers/DataStreamsResolver.sol#210-225) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp >= uint256(p.firstProposedAt) + finalizationWindow (src/resolvers/DataStreamsResolver.sol#218)
+	- block.timestamp > uint256(timestamp) + grace (src/resolvers/DataStreamsResolver.sol#223)
+SchedulerReceiver.onReport(bytes,bytes) (src/scheduler/SchedulerReceiver.sol#122-151) uses timestamp for comparisons
+	Dangerous comparisons:
+	- uint256(scheduledTime) + maxReportAge < block.timestamp (src/scheduler/SchedulerReceiver.sol#138)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+INFO:Detectors:
+Detector: assembly
+SchedulerReceiver._selector(bytes) (src/scheduler/SchedulerReceiver.sol#209-215) uses assembly
+	- INLINE ASM (src/scheduler/SchedulerReceiver.sol#211-213)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage
+INFO:Detectors:
+Detector: cyclomatic-complexity
+SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#171-206) has a high cyclomatic complexity (13).
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#cyclomatic-complexity
+INFO:Detectors:
+Detector: unindexed-event-address
+Event MarketFactory.FeeRecipientSet(address) (src/MarketFactory.sol#49) has address parameters but no indexed parameters
+Event SchedulerReceiver.WorkflowSet(address,bytes32) (src/scheduler/SchedulerReceiver.sol#65) has address parameters but no indexed parameters
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-event-address-parameters
+INFO:Slither:. analyzed (38 contracts with 102 detectors), 25 result(s) found
+cd contracts && forge build
+Compiling 73 files with Solc 0.8.28
+Solc 0.8.28 finished in 5.21s
+Compiler run successful!
+pnpm --filter @converge/sdk check:abi
+$ node scripts/gen-abi.mjs --check
+abi up to date
+cd services/scheduler/fallback && pnpm exec vitest run test/integration
+
+ RUN  v2.1.9 /home/mysterioxplorer/converge/services/scheduler/fallback
+
+ ✓ test/integration/leader.test.ts (1 test) 6458ms
+   ✓ leader flag > passive fallback alerts on late actions; acts after the switch 4696ms
+ ✓ test/integration/crePath.test.ts (1 test) 15944ms
+   ✓ CRE path through SchedulerReceiver > creates, opens and resolves every round from forwarder-delivered reports 13723ms
+ ✓ test/integration/sixHours.test.ts (1 test) 246150ms
+   ✓ scheduler: 6 hours simulated on anvil > creates every round ahead, opens and resolves all of them (0 missed) 244297ms
+
+ Test Files  3 passed (3)
+      Tests  3 passed (3)
+   Start at  11:51:18
+   Duration  247.89s (transform 353ms, setup 0ms, collect 3.33s, tests 268.55s, environment 1ms, prepare 376ms)
+
+cd services/scheduler/cre/scheduler && bun install --frozen-lockfile && bun x tsc -p tsconfig.json
+bun install v1.3.9 (cf6cdbbb)
+
+$ bun x cre-setup
+[cre-sdk-javy-plugin] Detected platform: linux, arch: x64
+[cre-sdk-javy-plugin] Using cached binary: /home/mysterioxplorer/snap/bun-js/87/.cache/javy/v8.1.0/linux-x64/javy
+✅ CRE TS SDK is ready to use.
+
+Checked 47 installs across 44 packages (no changes) [550.00ms]
+cd services/scheduler/cre && MONAD_TESTNET_RPC_URL=https://testnet-rpc.monad.xyz cre workflow build scheduler -T staging-settings
+  Compiling workflow...
+✓ Workflow compiled successfully
+  Binary hash: 8e4ad9611d6c120b419b487396aea54cdc971dbc8ece212af8b5cfb7dfd6ad25
+✓ Build output written to /home/mysterioxplorer/converge/services/scheduler/cre/scheduler/binary.wasm
+check-2 OK

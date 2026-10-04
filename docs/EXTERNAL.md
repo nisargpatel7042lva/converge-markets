@@ -125,3 +125,19 @@ Price feeds come from the official directory JSON https://reference-data-directo
 | Item | Value | Status |
 |---|---|---|
 | Paper | https://www.paradigm.xyz/2024/11/pm-amm. The exact liquidity schedule must be checked against the paper in Phase 3 before use | Not needed in Phase 0 |
+
+## Phase 2 additions (scheduler)
+
+| Item | Value | Source | Verified | Status |
+|---|---|---|---|---|
+| CRE CLI | v1.36.0, installed via `curl -sSL https://app.chain.link/cre/install.sh \| bash` to `~/.cre/bin`. `init`, `simulate`, `deploy` and `supported-chains` need `cre login` / `CRE_API_KEY`. `workflow build` works without login | https://docs.chain.link/cre/getting-started/cli-installation, local run | 2026-10-04 | VERIFIED. Simulation **BLOCKED** (no CRE account) |
+| CRE TS SDK | `@chainlink/cre-sdk@1.23.0` (depends on viem ^2.54.2, zod 3.25.76, @noble/hashes 2.2.0, javy plugin 1.7.0). Requires Bun ≥ 1.2.21; local 1.3.9 (snap: use `bun x`, not `bunx`) | npm, https://docs.chain.link/cre/reference/sdk/overview-ts | 2026-10-04 | VERIFIED (workflow typechecks and compiles) |
+| CRE cron | Minimum interval 30 s; payload carries `scheduledExecutionTime` | SDK Reference: Cron Trigger | 2026-10-04 | VERIFIED (doc) |
+| CRE quotas | 5 min execution timeout, 30 concurrent capability calls, 100 KB response, 1,000 log events per execution, 3 workflows per org (private registry) | https://docs.chain.link/cre/service-quotas | 2026-10-04 | VERIFIED (doc) |
+| CRE consumer contract | `IReceiver.onReport(bytes metadata, bytes report)` + ERC165. Metadata = `abi.encodePacked(bytes32 workflowId, bytes10 workflowName, address owner)`; production forwarders deliver 64 bytes (an extra 2-byte reportId). Replay guidance: embed chain + scheduled time | https://docs.chain.link/cre/guides/workflow/using-evm-client/onchain-write/building-consumer-contracts | 2026-10-04 | VERIFIED (doc); implemented in `SchedulerReceiver` |
+| CRE runtime limits | Javy/QuickJS: no `fetch`/`node:*`; the compiler rejects them statically | `cre workflow build` error output | 2026-10-04 | VERIFIED |
+| Data Streams REST | Mainnet `https://api.dataengine.chain.link`, testnet `https://api.testnet-dataengine.chain.link`. `GET /api/v1/reports?feedID=&timestamp=` → `{report:{feedID, validFromTimestamp, observationsTimestamp, fullReport}}` | https://docs.chain.link/data-streams/reference/data-streams-api/interface-api | 2026-10-04 | VERIFIED (doc); live calls **BLOCKED** (no API key) |
+| Data Streams auth | Headers `Authorization` (API key), `X-Authorization-Timestamp` (ms, within 5 s of server), `X-Authorization-Signature-SHA256` = hex HMAC-SHA256(secret, `"METHOD PATH BODY_HASH API_KEY TIMESTAMP"`) | https://docs.chain.link/data-streams/reference/data-streams-api/authentication | 2026-10-04 | VERIFIED (doc); matched against node:crypto in tests |
+| Data Streams feed IDs for BTC/ETH (Monad) | Unknown | needs Chainlink account | — | **BLOCKED** (`config/series.json` holds zero IDs) |
+| Chainlink push-feed behaviour at 15m boundaries (real data, last 6 h) | First round at or after T within 120 s: MON 24/24, BTC 9/24, ETH 7/24 | `docs/evidence/phase-2/mainnet-fork-dry-run.md` | 2026-10-04 | VERIFIED (mainnet fork) |
+| `@noble/curves` | 1.9.1 (already a viem dependency), used for the TEST-ONLY sync signer | lockfile | 2026-10-04 | VERIFIED |
