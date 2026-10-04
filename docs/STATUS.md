@@ -3,8 +3,8 @@
 | Phase | Name | State | Report |
 |---|---|---|---|
 | 0 | Foundation + Kuru feasibility spike | **COMPLETE WITH CAVEATS** (live-testnet spike blocked on testnet MON) | [PHASE-0-report](phases/PHASE-0-report.md) |
-| 1 | Outcome market contracts | **Next**. Waiting on Nisarg's answers in the Phase 0 report | |
-| 2 | Scheduler + settlement (CRE) | not started | |
+| 1 | Outcome market contracts | **COMPLETE WITH CAVEATS** (testnet lifecycle blocked on testnet MON) | [PHASE-1-report](phases/PHASE-1-report.md) |
+| 2 | Scheduler + settlement (CRE) | **Next** (in progress) | |
 | 3 | Strategy library + backtest | not started | |
 | 4 | Converge Vault contracts | not started | |
 | 5 | Keeper / market-maker | not started | |

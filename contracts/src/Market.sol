@@ -207,7 +207,6 @@ contract Market is ReentrancyGuard {
         uint64 boundary = s0 == State.CREATED ? startTime : endTime;
         // checkpoint makes UNRESOLVABLE permanent in the resolver, so the adjacent round sees
         // the same outcome forever. The price is irrelevant here.
-        // forge-lint: disable-next-line(unused-return)
         // forge-lint: disable-next-line(reentrancy-no-eth, unused-return)
         (IPriceResolver.Status s,) = resolver.checkpoint(assetId, boundary);
         if (s != IPriceResolver.Status.UNRESOLVABLE) revert NotUnresolvable();

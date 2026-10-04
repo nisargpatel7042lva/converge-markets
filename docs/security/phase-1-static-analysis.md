@@ -16,7 +16,7 @@ Each was either fixed or suppressed inline with a written reason.
 | incorrect-equality | `Market.redeem` zero checks | False positive. These are intended exact-zero checks on our own balances. |
 | uninitialized-local | `MarketFactory.createMarket` `p` | False positive. Every field is assigned. |
 | unused-return | resolver `priceAt` / `_round` / `submit`; `Market.invalidate` | False positive. Only the needed fields are used. |
-| reentrancy-eth (**HIGH**), added after the fee-forwarding fix | `Market.open` / `resolve`, `DataStreamsResolver.submit` | False positive. All are `nonReentrant` (slither does not model the guard); `msg.value` goes only to the market's immutable resolver and from it to Chainlink's verifier; no other function can be re-entered. |
+| reentrancy-eth (**HIGH**), added after the fee-forwarding fix | `Market.open` / `resolve`, `DataStreamsResolver.submit` | False positive **as long as resolvers remain admin-registered, trusted code** (asset→resolver is set once by the Safe). All are `nonReentrant` (slither does not model the guard); `msg.value` goes only to the market's immutable resolver and from it to Chainlink's verifier; no other function can be re-entered. |
 | locked-ether | `ChainlinkRoundResolver` | False positive. `submit` is payable only to match the interface and reverts on any value (`NoValueAccepted`, tested). |
 | arbitrary-send-eth / low-level-calls (forge lint + slither informational) | `DataStreamsResolver.withdrawNative`, `Market._boundaryPrice` | Owner-only refund recovery; value forwarded only to the fixed resolver. |
 

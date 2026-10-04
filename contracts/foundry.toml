@@ -27,7 +27,8 @@ seed = "0xc0ffee"
 [invariant]
 runs = 256
 depth = 100
-fail_on_revert = false
+# Every handler call must succeed: exits use try/catch + violation ghosts, other actions guard.
+fail_on_revert = true
 
 [lint]
 # block-timestamp: rounds are defined by wall-clock boundaries; every comparison is against

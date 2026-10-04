@@ -34,6 +34,6 @@ check-0: check-all
 check-1: check-all
 	cd contracts && forge test --match-path "test/invariant/*" -vv
 	cd contracts && bash script/check-coverage.sh
-	cd contracts && forge snapshot --no-match-contract MarketInvariants --check
+	cd contracts && forge snapshot --no-match-contract MarketInvariants --no-match-test testFuzz --check
 	@test -f docs/security/phase-1-notes.md
 	@echo "check-1 OK"

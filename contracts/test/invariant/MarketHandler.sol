@@ -14,8 +14,8 @@ import {MockAggregator} from "../mocks/MockAggregator.sol";
 /// @notice Drives random sequences of user + oracle + admin actions against several markets
 ///         (round-proof and Data Streams resolvers, with and without a redeem fee).
 ///         Ghost variables track every collateral unit entering or leaving each market.
-///         Exit failures and wrong payouts are recorded as `violations` (asserting inside the
-///         handler would be swallowed because fail_on_revert = false); an invariant requires 0.
+///         Exit failures and wrong payouts are recorded as `violations` (with a readable reason);
+///         an invariant requires 0. fail_on_revert = true makes any other handler revert fail.
 contract MarketHandler is Test {
     bytes32 internal constant STREAMS_ASSET = keccak256("ETH/USD");
 
@@ -165,7 +165,7 @@ contract MarketHandler is Test {
         uint256 upBal;
         uint256 downBal;
         for (uint256 k; k < markets.length; ++k) {
-            Market c = _m(mi + k);
+            Market c = _m((mi % markets.length) + k);
             Market.State cs = c.state();
             if (cs == Market.State.CREATED || cs == Market.State.OPEN) continue;
             uint256 u = c.up().balanceOf(a);
@@ -242,7 +242,7 @@ contract MarketHandler is Test {
         Market.State s;
         uint64 boundary;
         for (uint256 k; k < markets.length; ++k) {
-            Market c = _m(mi + k);
+            Market c = _m((mi % markets.length) + k);
             Market.State cs = c.state();
             uint64 bd;
             if (cs == Market.State.CREATED) bd = c.startTime();

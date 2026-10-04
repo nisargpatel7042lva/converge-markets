@@ -215,6 +215,28 @@ contract DataStreamsResolverTest is Base {
         vm.stopPrank();
     }
 
+    function test_valueWithoutFeeMode_reverts() public {
+        vm.warp(T0 + 2);
+        vm.deal(alice, 1 ether);
+        vm.prank(alice);
+        vm.expectRevert(D.FeeModeNotEnabled.selector);
+        streamsResolver.submit{value: 1 ether}(
+            ETH, T0, _report(ETH_FEED, uint32(T0), uint32(T0), 1e18)
+        );
+    }
+
+    function test_approveFeeToken() public {
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
+        streamsResolver.approveFeeToken(usdc, bob, 1);
+        vm.startPrank(admin);
+        vm.expectRevert(D.ZeroAddress.selector);
+        streamsResolver.approveFeeToken(usdc, address(0), 1);
+        streamsResolver.approveFeeToken(usdc, bob, 7);
+        vm.stopPrank();
+        assertEq(usdc.allowance(address(streamsResolver), bob), 7);
+    }
+
     function _data(bytes memory payload) internal pure returns (bytes memory d) {
         (, d,) = abi.decode(payload, (bytes32[3], bytes, bytes));
     }

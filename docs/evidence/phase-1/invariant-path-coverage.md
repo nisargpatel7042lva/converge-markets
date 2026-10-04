@@ -6,12 +6,14 @@ Reproduce with `bash contracts/script/invariant-path-coverage.sh`. It sets `INVA
 
 Run on 2026-10-04 with 256 runs at depth 100 (258 runs were logged). The handler covers 6 markets: BTC round-proof (15m ×2, 1h ×1, one with a 1% fee) and ETH Data Streams (15m ×2).
 
-| Lifecycle path | runs with >= 1 (of 258) | mean per run |
+| Lifecycle path | runs with >= 1 (of 257) | mean per run |
 |---|---|---|
-| open | 255 | 2.96 |
-| resolve (UP/DOWN) | 183 | 1.20 |
-| invalidate | 102 | 0.67 |
-| redeem | 102 | 0.57 |
+| open | 255 | 3.05 |
+| resolve (UP/DOWN) | 172 | 1.14 |
+| invalidate | 87 | 0.57 |
+| redeem | 95 | 0.55 |
+
+(Re-measured after the iteration-2 fixes, with `fail_on_revert = true`.)
 
 ## Mutation checks
 

@@ -3,6 +3,8 @@ pragma solidity ^0.8.24;
 
 import {Ownable, Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPriceResolver} from "../interfaces/IPriceResolver.sol";
 import {IVerifierProxy, ReportV3} from "../interfaces/IVerifierProxy.sol";
 
@@ -20,6 +22,8 @@ import {IVerifierProxy, ReportV3} from "../interfaces/IVerifierProxy.sol";
 ///      No proposal by T + grace => UNRESOLVABLE (and later submissions are rejected, so the
 ///      status can never flip). No push-feed sanity bound (ADR-002 §5).
 contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     struct Proposal {
         int192 price;
         uint64 firstProposedAt;
@@ -70,6 +74,7 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
     error InvalidPrice(int192 price);
     error SubmissionWindowClosed(uint64 timestamp);
     error ValueNotUsed();
+    error FeeModeNotEnabled();
     error ZeroAddress();
     error NativeTransferFailed();
 
@@ -127,6 +132,8 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
         if (version != 3) revert UnsupportedReportVersion(version);
 
         // Trusted call: the immutable Chainlink VerifierProxy; submit is also nonReentrant.
+        // Without fee metadata the verifier charges nothing; value sent anyway would be lost.
+        if (msg.value != 0 && parameterPayload.length == 0) revert FeeModeNotEnabled();
         // forge-lint: disable-next-line(reentrancy-no-eth)
         bytes memory verified = verifier.verify{value: msg.value}(data, parameterPayload);
         ReportV3 memory r = abi.decode(verified, (ReportV3));
@@ -187,6 +194,13 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
         // forge-lint: disable-next-line(arbitrary-send-eth)
         (bool ok,) = to.call{value: amount}("");
         if (!ok) revert NativeTransferFailed();
+    }
+
+    /// @notice Lets the verifier's fee manager pull a fee token (e.g. LINK) held by this
+    ///         resolver, for fee modes that charge via transferFrom instead of msg.value.
+    function approveFeeToken(IERC20 token, address spender, uint256 amount) external onlyOwner {
+        if (address(token) == address(0) || spender == address(0)) revert ZeroAddress();
+        token.forceApprove(spender, amount);
     }
 
     /// @dev Accepts native refunds from the verifier's fee manager.
