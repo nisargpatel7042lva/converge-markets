@@ -3,7 +3,7 @@
 ## Orient: assumptions and inputs
 
 - **ADR-002 overrides the prompt's round-proof default.** Resolution goes through `IPriceResolver`, which has two implementations:
-  - `DataStreamsResolver`, primary. The verified v3 report whose window `[validFromTimestamp, observationsTimestamp]` contains T is canonical. There is a fixed finalization window from the first proposal, with a `keccak256(reportData)` tie-break.
+  - `DataStreamsResolver`, primary. The verified v3 report whose window `[validFromTimestamp, observationsTimestamp]` contains T is canonical, with a fixed finalization window from the first proposal and a `keccak256(reportData)` tie-break.
   - `ChainlinkRoundResolver`, alternative and MON fallback. The first round with `updatedAt ≥ T` is proven by roundId: the previous round must be in the same phase with `updatedAt < T`.
 - **`Market.open(bytes)` / `resolve(bytes)` replace `open(roundId)` / `resolve(roundId)`.** The bytes are forwarded to the resolver (an abi-encoded roundId or a signed report), and the resolver is permissionless. This is a deviation the prompt itself allows ("behind the same interface").
 - **ADR-003:** USDC, 6 dp. Tests also cover 18 dp. Outcome-token decimals equal collateral decimals.
@@ -20,7 +20,7 @@
 | 2 | `OutcomeToken` (clone, market-only mint/burn, collateral decimals, human name/symbol) | 1, 2 |
 | 3 | `Series` lib (aligned 15m/1h UTC boundaries) + `DateTimeLib` for names | 1, 2 |
 | 4 | `ChainlinkRoundResolver` (first-round proof, phase check, maxOracleDelay, liveness fallback) | 1, 2, 6 |
-| 5 | `DataStreamsResolver` (verify via proxy, window containment, fixed finalization window, tie-break, optional fresh push sanity bound, grace → UNRESOLVABLE) | 1, 2, 6 |
+| 5 | `DataStreamsResolver` (verify via proxy, window containment, fixed finalization window, hash tie-break, grace → UNRESOLVABLE; no push sanity bound per ADR-002 §5) | 1, 2, 6 |
 | 6 | `Market` (split, merge, open, resolve, invalidate, redeem, events, reentrancy guard, FoT rejection) | 1, 2 |
 | 7 | `MarketFactory` (roles, registry, clones, pause, redeem fee ≤ 1%) | 1, 2 |
 | 8 | Mocks: aggregator with phases/gaps/stale data, verifier proxy, 6/18 dp ERC-20 | 1 |

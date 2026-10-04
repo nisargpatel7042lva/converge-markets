@@ -1,0 +1,80 @@
+'forge clean' running (wd: /home/mysterioxplorer/converge/contracts)
+'forge config --json' running
+'forge build --build-info --deny never --skip ./test/** ./script/** --force' running (wd: /home/mysterioxplorer/converge/contracts)
+INFO:Detectors:
+Detector: events-maths
+Market.initialize(Market.Params) (src/Market.sol#95-107) should emit an event for: 
+	- startTime = p.startTime (src/Market.sol#104) 
+	- endTime = p.endTime (src/Market.sol#105) 
+	- redeemFeeBps = p.redeemFeeBps (src/Market.sol#106) 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-events-arithmetic
+INFO:Detectors:
+Detector: missing-zero-check
+MarketFactory.setFeeRecipient(address).recipient (src/MarketFactory.sol#112) lacks a zero-check on :
+		- feeRecipient = recipient (src/MarketFactory.sol#113)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
+INFO:Detectors:
+Detector: reentrancy-benign
+Reentrancy in Market.open(bytes) (src/Market.sol#152-172):
+	External calls:
+	- resolver.submit(assetId,startTime,data) (src/Market.sol#158)
+	State variables written after the call(s):
+	- strike = price (src/Market.sol#161)
+Reentrancy in Market.resolve(bytes) (src/Market.sol#178-197):
+	External calls:
+	- resolver.submit(assetId,endTime,data) (src/Market.sol#183)
+	State variables written after the call(s):
+	- endPrice = price (src/Market.sol#186)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in MarketFactory._initialize(address,uint64,Market.Params) (src/MarketFactory.sol#165-170):
+	External calls:
+	- Market(market).initialize(p) (src/MarketFactory.sol#166)
+	Event emitted after the call(s):
+	- MarketCreated(market,p.assetId,p.startTime,duration,p) (src/MarketFactory.sol#169)
+Reentrancy in MarketFactory.createMarket(bytes32,uint64,uint64) (src/MarketFactory.sol#132-163):
+	External calls:
+	- p.up = _deployToken(market,a.label,true,startTime) (src/MarketFactory.sol#160)
+		- token.initialize(market,MarketNaming.tokenName(label,isUp,startTime),MarketNaming.tokenSymbol(label,isUp,startTime),collateralDecimals) (src/MarketFactory.sol#177-182)
+	- p.down = _deployToken(market,a.label,false,startTime) (src/MarketFactory.sol#161)
+		- token.initialize(market,MarketNaming.tokenName(label,isUp,startTime),MarketNaming.tokenSymbol(label,isUp,startTime),collateralDecimals) (src/MarketFactory.sol#177-182)
+	- _initialize(market,duration,p) (src/MarketFactory.sol#162)
+		- Market(market).initialize(p) (src/MarketFactory.sol#166)
+	Event emitted after the call(s):
+	- MarketCreated(market,p.assetId,p.startTime,duration,p) (src/MarketFactory.sol#169)
+		- _initialize(market,duration,p) (src/MarketFactory.sol#162)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Detectors:
+Detector: timestamp
+Market.open(bytes) (src/Market.sol#152-172) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp < startTime (src/Market.sol#154)
+Market.resolve(bytes) (src/Market.sol#178-197) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp < endTime (src/Market.sol#180)
+MarketFactory.createMarket(bytes32,uint64,uint64) (src/MarketFactory.sol#132-163) uses timestamp for comparisons
+	Dangerous comparisons:
+	- startTime < block.timestamp (src/MarketFactory.sol#142)
+ChainlinkRoundResolver.submit(bytes32,uint64,bytes) (src/resolvers/ChainlinkRoundResolver.sol#95-122) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp > uint256(timestamp) + livenessGrace (src/resolvers/ChainlinkRoundResolver.sol#99)
+ChainlinkRoundResolver.priceAt(bytes32,uint64) (src/resolvers/ChainlinkRoundResolver.sol#126-144) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp > uint256(timestamp) + livenessGrace (src/resolvers/ChainlinkRoundResolver.sol#134)
+	- block.timestamp > uint256(timestamp) + cfg.maxOracleDelay (src/resolvers/ChainlinkRoundResolver.sol#137)
+DataStreamsResolver.submit(bytes32,uint64,bytes) (src/resolvers/DataStreamsResolver.sol#91-137) uses timestamp for comparisons
+	Dangerous comparisons:
+	- exists && block.timestamp >= uint256(p.firstProposedAt) + finalizationWindow (src/resolvers/DataStreamsResolver.sol#95)
+	- ! exists && block.timestamp > uint256(timestamp) + grace (src/resolvers/DataStreamsResolver.sol#96)
+DataStreamsResolver.priceAt(bytes32,uint64) (src/resolvers/DataStreamsResolver.sol#140-155) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp >= uint256(p.firstProposedAt) + finalizationWindow (src/resolvers/DataStreamsResolver.sol#148)
+	- block.timestamp > uint256(timestamp) + grace (src/resolvers/DataStreamsResolver.sol#153)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+INFO:Detectors:
+Detector: unindexed-event-address
+Event MarketFactory.FeeRecipientSet(address) (src/MarketFactory.sol#49) has address parameters but no indexed parameters
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-event-address-parameters
+INFO:Slither:. analyzed (36 contracts with 102 detectors), 14 result(s) found
+exit=0

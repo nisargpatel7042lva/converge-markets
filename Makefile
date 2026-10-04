@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 ts-check sol-check
+.PHONY: install check-all check-0 check-1 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -9,11 +9,15 @@ ts-check:
 	pnpm typecheck
 	pnpm test
 
-# Static analysis: forge lint (warnings are errors). Slither is added in Phase 9 hardening.
+# Static analysis: forge lint (warnings are errors) + slither (fails on medium/high; config in
+# contracts/slither.config.json; reviewed false positives are annotated inline with a reason).
 sol-check:
 	cd contracts && forge fmt --check && forge build && forge lint --deny warnings && forge test
 
-check-all: ts-check sol-check
+sol-static:
+	cd contracts && slither . --config-file slither.config.json
+
+check-all: ts-check sol-check sol-static
 
 # Phase 0: scaffold + docs present
 check-0: check-all
@@ -24,3 +28,12 @@ check-0: check-all
 	@grep -q "^## PHASE PROTOCOL" CLAUDE.md
 	@pnpm --filter @converge/spike report > /dev/null
 	@echo "check-0 OK"
+
+# Phase 1: build, unit + fuzz + invariant tests, coverage >= 95% on core contracts, slither,
+# gas snapshot unchanged.
+check-1: check-all
+	cd contracts && forge test --match-path "test/invariant/*" -vv
+	cd contracts && bash script/check-coverage.sh
+	cd contracts && forge snapshot --no-match-contract MarketInvariants --check
+	@test -f docs/security/phase-1-notes.md
+	@echo "check-1 OK"

@@ -6,6 +6,8 @@ solc_version = "0.8.28"
 evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200
+# Deploy script writes deployments/<network>.json
+fs_permissions = [{ access = "read-write", path = "../deployments" }]
 remappings = [
   "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
   "forge-std/=lib/forge-std/src/",
@@ -16,3 +18,15 @@ line_length = 100
 
 [fuzz]
 runs = 256
+# Fixed seed: reproducible fuzz/invariant runs and a stable .gas-snapshot.
+seed = "0xc0ffee"
+
+[invariant]
+runs = 256
+depth = 100
+fail_on_revert = false
+
+[lint]
+# block-timestamp: rounds are defined by wall-clock boundaries; every comparison is against
+# minute-scale windows, far above any validator timestamp skew. See docs/security/phase-1-static-analysis.md.
+exclude_lints = ["block-timestamp"]

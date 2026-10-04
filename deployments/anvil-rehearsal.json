@@ -1,0 +1,86 @@
+{
+  "assetBTC": "0xee62665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d6489",
+  "assetTEST": "0xc51c6f5008d2b2e7b962147b42b36b492f1c5ae672da3a5f4b6662e2a33e705d",
+  "btcFeed": "0x12C0F44368a02081ce58a936d1C1F606BB301715",
+  "chainId": 10143,
+  "chainlinkRoundResolver": "0xFc8A878B5C306E48E7E923dCA5E7219470A0A812",
+  "collateral_tUSDC": "0x9dedC1B054a0e53777df49722D1Aa20354edB100",
+  "dataStreamsResolver": "0x0B1122271A5103193E17A31543De274474a4f10D",
+  "deployBlock": 68014558,
+  "deployer": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
+  "finalizationWindow": 30,
+  "marketFactory": "0x6d3C829CbE58c53625b714d19E49cE1D41e66639",
+  "marketImplementation": "0x905ED74F9e9C183A69f3d899efb4BF81681Af739",
+  "mockStreamsVerifierProxy_TESTONLY": "0x1a1d91c243D6c9580694f0A5C444Ca730C6E93CA",
+  "outcomeTokenImplementation": "0xD93A8Af3801b2FC095865D78529AcC1f348d49f5",
+  "streamsTestSigner": "0x26F6BC36b8e028A0e9F1018C272cDaBc84D1B149",
+  "testFeedId": "0x0003000000000000000000000000000000000000000000000000000000000001",
+  "transactions": [
+    {
+      "hash": "0x8ca0f1a0f6c6beab56a5fe15562b5596724fd59b88ff031c530d15c26c0ed460",
+      "contractName": "MockERC20",
+      "function": null,
+      "contractAddress": "0x9dedc1b054a0e53777df49722d1aa20354edb100"
+    },
+    {
+      "hash": "0x4c79200cd905936b20202b230f9431790fbd97c758bee8f85eb427f58ea3457d",
+      "contractName": "MarketFactory",
+      "function": null,
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0xe5ab1eab74533065e491a26cf83e8c5d15b8a35094485ba804b8c93791986a41",
+      "contractName": "ChainlinkRoundResolver",
+      "function": null,
+      "contractAddress": "0xfc8a878b5c306e48e7e923dca5e7219470a0a812"
+    },
+    {
+      "hash": "0xcbaa1d574e6727a5a114e8bd4fc0bad3b4bb1e39b9fcfc429dd5e9cad00b163f",
+      "contractName": "ChainlinkRoundResolver",
+      "function": "configureAsset(bytes32,address,uint32)",
+      "contractAddress": "0xfc8a878b5c306e48e7e923dca5e7219470a0a812"
+    },
+    {
+      "hash": "0x16e5450e66330f0effd001d9752a877fdf5fdd6592866c918bdf896c258492f2",
+      "contractName": "MockStreamsVerifierProxy",
+      "function": null,
+      "contractAddress": "0x1a1d91c243d6c9580694f0a5c444ca730c6e93ca"
+    },
+    {
+      "hash": "0xc87ae0fa174b3cb67c4b86b621f90ad776996ac403c65cd87511bb2cf1a8390a",
+      "contractName": "DataStreamsResolver",
+      "function": null,
+      "contractAddress": "0x0b1122271a5103193e17a31543de274474a4f10d"
+    },
+    {
+      "hash": "0xfc142cb5bce70e7d41a6c1eab92f9fe51bdf33d03cfac7a39f6011cbb7833b02",
+      "contractName": "DataStreamsResolver",
+      "function": "configureAsset(bytes32,bytes32)",
+      "contractAddress": "0x0b1122271a5103193e17a31543de274474a4f10d"
+    },
+    {
+      "hash": "0x0e4bb8d67e44a0eeb4faca78b697c7724f0ca225c2529a3e897fc3485670c5de",
+      "contractName": "MarketFactory",
+      "function": "grantRole(bytes32,address)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0x78b357525c412435141fbeba58e6375d71ada9c25ddd2725dd680c7c76688f1c",
+      "contractName": "MarketFactory",
+      "function": "grantRole(bytes32,address)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0xe7ed678d08ece9f27dc4c943e65a06f3c4c809008b05e78d8670322ea86bcdfc",
+      "contractName": "MarketFactory",
+      "function": "setAsset(bytes32,address,string,bool)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0x8d50c4db182b9e8e107b18b1ed80b305b39ac41f0a3938c944ee64f2fd448d32",
+      "contractName": "MarketFactory",
+      "function": "setAsset(bytes32,address,string,bool)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    }
+  ]
+}
