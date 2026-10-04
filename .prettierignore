@@ -1,0 +1,5 @@
+contracts/
+node_modules/
+pnpm-lock.yaml
+*.md
+.github/

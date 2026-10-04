@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+  - services/*
+  - indexer
+  - apps/*
+  - backtest
+allowBuilds:
+  esbuild: true

@@ -1,0 +1,91 @@
+pnpm lint
+$ eslint .
+pnpm format:check
+$ prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+pnpm typecheck
+$ pnpm -r --if-present typecheck
+Scope: 7 of 8 workspace projects
+apps/web typecheck$ tsc -p tsconfig.json
+backtest typecheck$ tsc -p tsconfig.json
+indexer typecheck$ tsc -p tsconfig.json
+packages/sdk typecheck$ tsc -p tsconfig.json
+backtest typecheck: Done
+packages/strategy typecheck$ tsc -p tsconfig.json
+indexer typecheck: Done
+apps/web typecheck: Done
+services/keeper typecheck$ tsc -p tsconfig.json
+services/scheduler typecheck$ tsc -p tsconfig.json
+packages/sdk typecheck: Done
+packages/strategy typecheck: Done
+services/scheduler typecheck: Done
+services/keeper typecheck: Done
+pnpm test
+$ pnpm -r --if-present test
+Scope: 7 of 8 workspace projects
+apps/web test$ vitest run
+backtest test$ vitest run
+indexer test$ vitest run
+packages/sdk test$ vitest run
+indexer test:  RUN  v2.1.9 /home/mysterioxplorer/converge/indexer
+backtest test:  RUN  v2.1.9 /home/mysterioxplorer/converge/backtest
+packages/sdk test:  RUN  v2.1.9 /home/mysterioxplorer/converge/packages/sdk
+apps/web test:  RUN  v2.1.9 /home/mysterioxplorer/converge/apps/web
+indexer test:  ✓ src/index.test.ts (1 test) 3ms
+packages/sdk test:  ✓ src/index.test.ts (1 test) 3ms
+indexer test:  Test Files  1 passed (1)
+indexer test:       Tests  1 passed (1)
+indexer test:    Start at  05:34:22
+indexer test:    Duration  1.18s (transform 179ms, setup 0ms, collect 117ms, tests 3ms, environment 2ms, prepare 309ms)
+packages/sdk test:  Test Files  1 passed (1)
+packages/sdk test:       Tests  1 passed (1)
+packages/sdk test:    Start at  05:34:22
+packages/sdk test:    Duration  1.20s (transform 115ms, setup 0ms, collect 78ms, tests 3ms, environment 0ms, prepare 411ms)
+apps/web test:  ✓ src/index.test.ts (1 test) 3ms
+backtest test:  ✓ src/index.test.ts (1 test) 2ms
+backtest test:  Test Files  1 passed (1)
+backtest test:       Tests  1 passed (1)
+apps/web test:  Test Files  1 passed (1)
+apps/web test:       Tests  1 passed (1)
+apps/web test:    Start at  05:34:22
+apps/web test:    Duration  1.24s (transform 102ms, setup 0ms, collect 59ms, tests 3ms, environment 0ms, prepare 398ms)
+backtest test:    Start at  05:34:22
+backtest test:    Duration  1.24s (transform 76ms, setup 0ms, collect 59ms, tests 2ms, environment 0ms, prepare 159ms)
+indexer test: Done
+packages/strategy test$ vitest run
+packages/sdk test: Done
+services/keeper test$ vitest run
+backtest test: Done
+apps/web test: Done
+services/scheduler test$ vitest run
+services/keeper test:  RUN  v2.1.9 /home/mysterioxplorer/converge/services/keeper
+packages/strategy test:  RUN  v2.1.9 /home/mysterioxplorer/converge/packages/strategy
+services/scheduler test:  RUN  v2.1.9 /home/mysterioxplorer/converge/services/scheduler
+services/keeper test:  ✓ src/index.test.ts (1 test) 2ms
+services/keeper test:  Test Files  1 passed (1)
+services/keeper test:       Tests  1 passed (1)
+services/keeper test:    Start at  05:34:23
+services/keeper test:    Duration  789ms (transform 183ms, setup 0ms, collect 88ms, tests 2ms, environment 0ms, prepare 210ms)
+services/scheduler test:  ✓ src/index.test.ts (1 test) 2ms
+packages/strategy test:  ✓ src/index.test.ts (1 test) 2ms
+services/keeper test: Done
+services/scheduler test:  Test Files  1 passed (1)
+services/scheduler test:       Tests  1 passed (1)
+services/scheduler test:    Start at  05:34:24
+services/scheduler test:    Duration  802ms (transform 66ms, setup 0ms, collect 51ms, tests 2ms, environment 0ms, prepare 105ms)
+packages/strategy test:  Test Files  1 passed (1)
+packages/strategy test:       Tests  1 passed (1)
+packages/strategy test:    Start at  05:34:23
+packages/strategy test:    Duration  843ms (transform 90ms, setup 0ms, collect 43ms, tests 2ms, environment 0ms, prepare 192ms)
+services/scheduler test: Done
+packages/strategy test: Done
+cd contracts && forge fmt --check && forge build && forge test
+No files changed, compilation skipped
+No files changed, compilation skipped
+
+Ran 1 test for test/Version.t.sol:VersionTest
+[PASS] test_version() (gas: 7467)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 1.16ms (455.26µs CPU time)
+
+Ran 1 test suite in 17.60ms (1.16ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
