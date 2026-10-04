@@ -304,7 +304,11 @@ export class Scheduler {
     } catch (e) {
       const name = errorName(e);
       if (NOOP_ERRORS.has(name)) return { status: "noop", reason: name };
-      if (name === "PriceNotFinal") return { status: "waiting", reason: name };
+      // Boundary still settling (e.g. a late feed round just arrived, so the derived
+      // UNRESOLVABLE view flipped back to PENDING): benign, re-planned next tick.
+      if (name === "PriceNotFinal" || name === "NotUnresolvable") {
+        return { status: "waiting", reason: name };
+      }
       return { status: "failed", error: name };
     }
     // Monad bills the gas limit: estimate + small headroom instead of a blanket limit.

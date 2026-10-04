@@ -261,7 +261,7 @@ describe("scheduler: 6 hours simulated on anvil", () => {
         "```",
         "",
         "Delays are measured from onchain event block timestamps: open = Opened - start, resolve =",
-        "Resolved - end. For Data Streams markets this includes the 30 s finalization window.",
+        "Resolved - end. For Data Streams markets this includes the 20 s finalization window.",
         "",
         "| asset | series | start | created seconds ahead | final state (2=UP,3=DOWN) |",
         "|---|---|---|---|---|",

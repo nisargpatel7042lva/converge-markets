@@ -19,10 +19,15 @@ const dev = JSON.parse(readFileSync(resolve(ROOT, ".soak/devnet.json"), "utf8"))
   epoch: number;
 };
 const out = process.argv[2] ?? resolve(ROOT, "docs/evidence/phase-2/soak-local.md");
+const chainHead = (
+  await createPublicClient({ chain: foundry, transport: http(dev.rpc) }).getBlock()
+).timestamp;
 const pub = createPublicClient({ chain: foundry, transport: http(dev.rpc) });
 const config = devnetSeriesConfig();
 const head = await pub.getBlock();
-const now = head.timestamp;
+// SOAK_UNTIL (unix seconds) restricts the analysis to a continuous window (e.g. before a host
+// suspend); default: chain head.
+const now = process.env.SOAK_UNTIL ? BigInt(process.env.SOAK_UNTIL) : head.timestamp;
 const epoch = BigInt(dev.epoch);
 const ts = new Map<bigint, bigint>();
 const tsOf = async (bn: bigint) => {
@@ -56,7 +61,7 @@ type Row = {
 };
 const rows: Row[] = [];
 for (const a of config.assets) {
-  for (const d of config.durations) {
+  for (const d of a.durations ?? config.durations) {
     const dur = BigInt(d);
     for (let s = epoch - (epoch % dur) + dur; s + dur + 120n <= now; s += dur) {
       const m = (await pub.readContract({
@@ -151,7 +156,7 @@ const md = [
   "**Feeds (LABELLED MOCK FEEDS):**",
   "",
   "- MON/USD: the local MockAggregator is fed by `mon-mirror.ts` with every new Chainlink MON/USD round from Monad mainnet (real prices, real ~30 s cadence).",
-  "- BTC/ETH: Data Streams-shaped reports signed by the TEST signer (MockStreamsVerifierProxy, 30 s finalization window), priced from Chainlink BTC/USD and ETH/USD on Monad mainnet.",
+  "- BTC/ETH: Data Streams-shaped reports signed by the TEST signer (MockStreamsVerifierProxy, 20 s finalization window), priced from Chainlink BTC/USD and ETH/USD on Monad mainnet.",
   "",
   "**Delay definitions:**",
   "",
