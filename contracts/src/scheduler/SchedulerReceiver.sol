@@ -27,6 +27,12 @@ interface IReceiver is IERC165 {
 contract SchedulerReceiver is IReceiver, AccessControl {
     /// @notice Can switch the leader (ops runbook: leader switch).
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
+    /// @notice An action is only started with at least this much gas left (a market creation
+    ///         costs ~540k), so an oversized batch degrades (remaining actions skipped and retried
+    ///         next run) instead of reverting the whole report.
+    uint256 public constant ACTION_GAS_RESERVE = 750_000;
+    /// @notice Reports may be timestamped at most this far ahead of the block (clock skew).
+    uint64 public constant MAX_FUTURE_SKEW = 60;
 
     enum Leader {
         CRE,
@@ -66,6 +72,8 @@ contract SchedulerReceiver is IReceiver, AccessControl {
     event MaxReportAgeSet(uint64 maxAge);
     event ReportIgnored(uint64 scheduledTime, Leader leader);
     event ReportProcessed(uint64 scheduledTime, uint256 actions, uint256 failed);
+    /// @notice Gas ran low: `skipped` trailing actions were not attempted (retried next run).
+    event ActionsSkipped(uint64 scheduledTime, uint256 skipped);
     event ActionExecuted(
         Kind indexed kind,
         bytes32 indexed assetId,
@@ -84,6 +92,8 @@ contract SchedulerReceiver is IReceiver, AccessControl {
     error StaleReport(uint64 scheduledTime);
     error ZeroAddress();
     error MarketNotFound(bytes32 assetId, uint64 duration, uint64 startTime);
+    error FutureReport(uint64 scheduledTime);
+    error InvalidMaxReportAge();
 
     constructor(address forwarder_, MarketFactory factory_, address admin) {
         if (forwarder_ == address(0) || address(factory_) == address(0) || admin == address(0)) {
@@ -105,6 +115,7 @@ contract SchedulerReceiver is IReceiver, AccessControl {
     }
 
     function setMaxReportAge(uint64 maxAge) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (maxAge == 0) revert InvalidMaxReportAge();
         maxReportAge = maxAge;
         emit MaxReportAgeSet(maxAge);
     }
@@ -138,16 +149,23 @@ contract SchedulerReceiver is IReceiver, AccessControl {
         if (uint256(scheduledTime) + maxReportAge < block.timestamp) {
             revert StaleReport(scheduledTime);
         }
+        if (scheduledTime > block.timestamp + MAX_FUTURE_SKEW) revert FutureReport(scheduledTime);
         if (leader != Leader.CRE) {
             emit ReportIgnored(scheduledTime, leader);
             return;
         }
         uint256 failed = 0;
-        for (uint256 i; i < actions.length; ++i) {
+        uint256 i = 0;
+        for (; i < actions.length; ++i) {
+            if (gasleft() < ACTION_GAS_RESERVE) break;
             if (!_execute(actions[i])) failed += 1;
         }
+        if (i < actions.length) {
+            // forge-lint: disable-next-line(reentrancy-events)
+            emit ActionsSkipped(scheduledTime, actions.length - i);
+        }
         // forge-lint: disable-next-line(reentrancy-events)
-        emit ReportProcessed(scheduledTime, actions.length, failed);
+        emit ReportProcessed(scheduledTime, i, failed);
     }
 
     /// @inheritdoc IERC165

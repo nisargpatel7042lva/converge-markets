@@ -6,9 +6,10 @@ The scheduler keeps markets created 3 rounds ahead, opens them at start and reso
 
 | Component | Where | Role |
 |---|---|---|
-| **CRE workflow** | `services/scheduler/cre/scheduler` | Primary orchestrator. Runs every 30 s (the CRE cron minimum) and delivers one DON-signed report per run to `SchedulerReceiver` through the Chainlink KeystoneForwarder. |
+| **CRE workflow** | `services/scheduler/cre/scheduler` | Primary orchestrator. Runs at second :05 and :35 of every minute (the CRE cron minimum is 30 s; the 5 s offset lands just after each boundary). Reads state with 2 EVM reads (leader + `SchedulerLens`; the CRE quota is 15) and delivers one DON-signed report per run (settlement first, ≤ 4 creates, 9M gas) to `SchedulerReceiver` through the Chainlink KeystoneForwarder. |
 | **Fallback service** | `services/scheduler/fallback` | The same planner in a long-lived Node process (Docker). It sends transactions from an EOA that holds `CREATOR_ROLE`. |
-| **`SchedulerReceiver`** | `contracts/src/scheduler/SchedulerReceiver.sol` | Onchain end of the CRE path. Holds `CREATOR_ROLE` and the **leader flag** (`leader()`: 0 = CRE, 1 = FALLBACK). |
+| **`SchedulerReceiver`** | `contracts/src/scheduler/SchedulerReceiver.sol` | Onchain end of the CRE path. Holds `CREATOR_ROLE` and the **leader flag** (`leader()`: 0 = CRE, 1 = FALLBACK). It skips (never reverts) trailing actions when gas runs low (`ActionsSkipped`); they are retried on the next run. |
+| **`SchedulerLens`** | `contracts/src/scheduler/SchedulerLens.sol` | View-only. Returns every actionable slot, including MON round proofs, in one `eth_call`. Used by both schedulers. |
 
 The leader flag decides which scheduler acts:
 
@@ -19,7 +20,11 @@ The leader flag decides which scheduler acts:
 
 ## Health signals
 
-- **Fallback `/health`** (port `HEALTH_PORT`) returns 200 if the last tick succeeded within 3 loop intervals, else 503. The Docker `HEALTHCHECK` uses it. The JSON body includes `leader`, `lateCount` and `lastError`.
+- **Fallback `/health`** (`HEALTH_HOST:HEALTH_PORT`, loopback by default because it is unauthenticated) returns 200 only if:
+  - the last tick succeeded within 3 loop intervals; and
+  - fewer than `UNHEALTHY_AFTER_BAD_TICKS` (3) consecutive ticks had failed or pending actions, or late items while passive (i.e. CRE late).
+
+  Otherwise it returns 503. The Docker `HEALTHCHECK` uses it. The JSON body includes `leader`, `lateCount`, `consecutiveBad` and `lastError` (redacted).
 - **Fallback logs** are pino JSON:
   - `event: "tick"` once per loop, with planned, waiting, late and missed counts;
   - `event: "action"` for each action, with `status`, `delaySeconds` and `tx`.
@@ -28,7 +33,8 @@ The leader flag decides which scheduler acts:
   - a create less than one round before start;
   - a Data Streams proposal still finalizing 6 minutes after the boundary;
   - a round that started without a market;
-  - a failed tick.
+  - a failed tick;
+  - **any failed action, or a tx without a receipt within 60 s** (`pending`; it is never re-sent blindly).
 - **Onchain:** `SchedulerReceiver` emits `ReportProcessed(scheduledTime, actions, failed)` and `ActionExecuted(kind, asset, duration, start, ok, errorSelector)`; markets emit `Opened`, `Resolved` and `Invalidated`; resolvers emit `BoundaryProven`, `BoundaryUnresolvable` and `BoundarySettled`.
 
 ## Start and stop
@@ -42,7 +48,8 @@ docker compose -f services/scheduler/fallback/docker-compose.yml logs -f --tail 
 docker compose -f services/scheduler/fallback/docker-compose.yml down
 ```
 
-- Set `EPOCH` to the go-live unix time, so rounds from before go-live aren't reported as missed.
+- Required env: `RPC_URL`, `FACTORY`, `LENS`, `RECEIVER` (startup fails without it unless `STANDALONE=true`, which is for local tests only) and `SCHEDULER_PRIVATE_KEY`. Set `EPOCH` to the go-live unix time, so rounds from before go-live aren't reported as missed.
+- Secrets in `.env`: the scheduler key, the Data Streams API key and secret (`STREAMS_SOURCE=rest`), and the alert webhook URL (it embeds a token). The repo `.dockerignore` keeps `.env` out of images.
 - **WSL:** if `docker compose build` fails with `docker-credential-desktop.exe: not found`, run it with `DOCKER_CONFIG` pointing at a directory containing `{}` as `config.json`. That skips the Windows credential helper for public image pulls.
 
 ### CRE workflow
@@ -100,9 +107,9 @@ To switch back to CRE, flip the flag, then confirm `ReportProcessed` events resu
 2. **If FINAL or UNRESOLVABLE:** anyone can push it through. This needs no role:
 
    ```bash
-   cast send $MARKET "open(bytes)" 0x --private-key <any funded key>
-   cast send $MARKET "resolve(bytes)" 0x --private-key <any funded key>
-   cast send $MARKET "invalidate()" --private-key <any funded key>
+   cast send $MARKET "open(bytes)" 0x --rpc-url $RPC_URL --private-key <any funded key>
+   cast send $MARKET "resolve(bytes)" 0x --rpc-url $RPC_URL --private-key <any funded key>
+   cast send $MARKET "invalidate()" --rpc-url $RPC_URL --private-key <any funded key>
    ```
 
 3. **If PENDING with a round-proof resolver (MON):** the fallback logs the finder result in the `reason` field:
@@ -123,7 +130,7 @@ To switch back to CRE, flip the flag, then confirm `ReportProcessed` events resu
   - **Pause new creation** if the outage persists, so new markets aren't created only to be voided. The guardian runs this:
 
     ```bash
-    cast send $FACTORY "pause()" --private-key <guardian>
+    cast send $FACTORY "pause()" --rpc-url $RPC_URL --private-key <guardian>
     ```
 
   - Pause never blocks merge, redeem or settlement. Unpause (admin) when the feed recovers.
@@ -142,4 +149,4 @@ To switch back to CRE, flip the flag, then confirm `ReportProcessed` events resu
 | `MarketFactory` `CREATOR_ROLE` | `SchedulerReceiver` (CRE path) and the fallback EOA | Revoke the fallback EOA if it is compromised; it can only create markets, never settle them wrongly. |
 | `SchedulerReceiver` `OPERATOR_ROLE` | Ops | Leader switch only. |
 | `SchedulerReceiver` `DEFAULT_ADMIN_ROLE` | Safe | `setWorkflow`, `setMaxReportAge`. |
-| Fallback EOA | Ops | Keep it funded with MON for gas. It is the one secret in the fallback `.env`. |
+| Fallback EOA | Ops | Keep it funded with MON for gas. Its key is in the fallback `.env`, alongside the Data Streams credentials and the webhook URL. |

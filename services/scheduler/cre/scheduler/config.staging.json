@@ -1,6 +1,6 @@
 {
-  "schedule": "*/30 * * * * *",
-  "gasLimit": "5000000",
+  "schedule": "5,35 * * * * *",
+  "gasLimit": "9000000",
   "maxActionsPerReport": 12,
   "series": {
     "lookaheadRounds": 3,
@@ -24,17 +24,21 @@
       {
         "label": "MON/USD",
         "symbol": "MON",
-        "resolver": "round"
+        "resolver": "round",
+        "durations": [3600],
+        "lateAfterSeconds": 150
       }
     ],
     "kuru": {
       "enabled": false,
       "reason": "ADR-001: Kuru mainnet market creation is owner-gated (pending Kuru answer); the venue adapter and vault quoting land in Phase 4/5. No per-round Kuru setup in Phase 2."
-    }
+    },
+    "maxCreatesPerReport": 4
   },
   "chainSelectorName": "monad-testnet",
   "chainId": 10143,
   "factory": "0x0000000000000000000000000000000000000000",
   "receiver": "0x0000000000000000000000000000000000000000",
-  "dataStreamsApiUrl": ""
+  "dataStreamsApiUrl": "",
+  "lens": "0x0000000000000000000000000000000000000000"
 }

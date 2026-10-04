@@ -128,3 +128,35 @@ describe("planner", () => {
     expect(lateItems(p, 9_050n, 60n).map((a) => a.kind)).toEqual([ActionKind.CREATE]);
   });
 });
+
+describe("planner edge (review L3)", () => {
+  it("a round starting exactly now is missed, not created (the factory would revert StartInPast)", () => {
+    const p = plan({ now: 9_000n, slots: [slot({ startTime: 9_000n })] });
+    expect(p.actions).toEqual([]);
+    expect(p.missed).toHaveLength(1);
+  });
+});
+
+describe("prioritize (review H2)", () => {
+  it("puts settlement before creation and caps creates per report", async () => {
+    const { prioritize } = await import("../src/report");
+    const p = plan({
+      now: 10_000n,
+      slots: [
+        slot({ startTime: 10_800n }),
+        slot({ startTime: 11_700n }),
+        slot({
+          market: M,
+          state: MarketState.OPEN,
+          boundary: 9_900n,
+          boundaryStatus: BoundaryStatus.FINAL,
+        }),
+      ],
+    });
+    expect(prioritize(p.actions).map((a) => a.kind)).toEqual([
+      ActionKind.RESOLVE,
+      ActionKind.CREATE,
+      ActionKind.CREATE,
+    ]);
+  });
+});

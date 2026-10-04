@@ -59,7 +59,7 @@ export function plan(snapshot: Snapshot): Plan {
     };
     if (s.market === null) {
       // Only future rounds can be created (the factory rejects past starts).
-      if (s.startTime >= now) {
+      if (s.startTime > now) {
         actions.push({
           ...base,
           kind: ActionKind.CREATE,
@@ -102,9 +102,14 @@ export function plan(snapshot: Snapshot): Plan {
 /** Late = an open/resolve/invalidate still outstanding `lateAfter` seconds after it was due, or
  *  a market not yet created less than one round before it starts. (Rounds that started without a
  *  market are reported separately as `missed`.) */
-export function lateItems(p: Plan, now: bigint, lateAfter: bigint): PlannedAction[] {
+export function lateItems(
+  p: Plan,
+  now: bigint,
+  lateAfter: bigint | ((label: string) => bigint),
+): PlannedAction[] {
+  const th = typeof lateAfter === "bigint" ? () => lateAfter : lateAfter;
   return p.actions.filter((a) =>
-    a.kind === ActionKind.CREATE ? now > a.startTime - a.duration : now - a.dueAt > lateAfter,
+    a.kind === ActionKind.CREATE ? now > a.startTime - a.duration : now - a.dueAt > th(a.label),
   );
 }
 

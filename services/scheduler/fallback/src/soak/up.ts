@@ -64,6 +64,8 @@ writeFileSync(
     `RPC_URL=${RPC}`,
     `FACTORY=${dev.factory}`,
     `RECEIVER=${dev.receiver}`,
+    `LENS=${dev.lens}`,
+    `HEALTH_HOST=127.0.0.1`,
     `SCHEDULER_PRIVATE_KEY=${keys.scheduler}`,
     `SERIES_CONFIG=/app/config/series.devnet.json`,
     `LOOP_INTERVAL_MS=10000`,

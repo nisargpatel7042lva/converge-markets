@@ -3292,6 +3292,19 @@ export const schedulerReceiverAbi = [
   },
   {
     "type": "function",
+    "name": "ACTION_GAS_RESERVE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "DEFAULT_ADMIN_ROLE",
     "inputs": [],
     "outputs": [
@@ -3299,6 +3312,19 @@ export const schedulerReceiverAbi = [
         "name": "",
         "type": "bytes32",
         "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_FUTURE_SKEW",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
       }
     ],
     "stateMutability": "view"
@@ -3617,6 +3643,25 @@ export const schedulerReceiverAbi = [
   },
   {
     "type": "event",
+    "name": "ActionsSkipped",
+    "inputs": [
+      {
+        "name": "scheduledTime",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "skipped",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "LeaderSet",
     "inputs": [
       {
@@ -3807,6 +3852,22 @@ export const schedulerReceiverAbi = [
   },
   {
     "type": "error",
+    "name": "FutureReport",
+    "inputs": [
+      {
+        "name": "scheduledTime",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidMaxReportAge",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidSender",
     "inputs": [
       {
@@ -3889,6 +3950,168 @@ export const schedulerReceiverAbi = [
   {
     "type": "error",
     "name": "ZeroAddress",
+    "inputs": []
+  }
+] as const;
+
+export const schedulerLensAbi = [
+  {
+    "type": "function",
+    "name": "firstRoundAtOrAfter",
+    "inputs": [
+      {
+        "name": "feed",
+        "type": "address",
+        "internalType": "contract IAggregatorV3"
+      },
+      {
+        "name": "t",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum SchedulerLens.Finding"
+      },
+      {
+        "name": "",
+        "type": "uint80",
+        "internalType": "uint80"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "snapshot",
+    "inputs": [
+      {
+        "name": "q",
+        "type": "tuple",
+        "internalType": "struct SchedulerLens.Query",
+        "components": [
+          {
+            "name": "factory",
+            "type": "address",
+            "internalType": "contract MarketFactory"
+          },
+          {
+            "name": "assets",
+            "type": "tuple[]",
+            "internalType": "struct SchedulerLens.AssetQuery[]",
+            "components": [
+              {
+                "name": "assetId",
+                "type": "bytes32",
+                "internalType": "bytes32"
+              },
+              {
+                "name": "kind",
+                "type": "uint8",
+                "internalType": "enum SchedulerLens.ResolverKind"
+              },
+              {
+                "name": "durations",
+                "type": "uint64[]",
+                "internalType": "uint64[]"
+              }
+            ]
+          },
+          {
+            "name": "now_",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "lookahead",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "lookback",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "epoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "out",
+        "type": "tuple[]",
+        "internalType": "struct SchedulerLens.Slot[]",
+        "components": [
+          {
+            "name": "assetId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "duration",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "startTime",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "market",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "state",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "resolver",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "boundary",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "boundaryStatus",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "proposalPending",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "finding",
+            "type": "uint8",
+            "internalType": "enum SchedulerLens.Finding"
+          },
+          {
+            "name": "roundId",
+            "type": "uint80",
+            "internalType": "uint80"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "error",
+    "name": "TooManySlots",
     "inputs": []
   }
 ] as const;

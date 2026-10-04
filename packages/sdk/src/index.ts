@@ -9,3 +9,4 @@ export * from "./rounds";
 export * from "./snapshot";
 export * from "./time";
 export * from "./report";
+export * from "./lens";

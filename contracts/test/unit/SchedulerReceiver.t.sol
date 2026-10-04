@@ -149,7 +149,44 @@ contract SchedulerReceiverTest is Base {
         vm.expectRevert(abi.encodeWithSelector(S.StaleReport.selector, old));
         rx.onReport(_meta(wfId, wfOwner), _report(old, none));
         rx.onReport(_meta(wfId, wfOwner), _report(uint64(block.timestamp - 5 minutes), none));
+        uint64 future = uint64(block.timestamp + 61);
+        vm.expectRevert(abi.encodeWithSelector(S.FutureReport.selector, future));
+        rx.onReport(_meta(wfId, wfOwner), _report(future, none));
+        rx.onReport(_meta(wfId, wfOwner), _report(uint64(block.timestamp + 60), none));
         vm.stopPrank();
+    }
+
+    function test_setMaxReportAge_rejectsZero() public {
+        vm.prank(admin);
+        vm.expectRevert(S.InvalidMaxReportAge.selector);
+        rx.setMaxReportAge(0);
+    }
+
+    /// Phase 2 review H2: an oversized batch must degrade, not revert, at the CRE gas limit.
+    function test_oversizedBatchDegradesWithinGasLimit() public {
+        S.Action[] memory a = new S.Action[](20);
+        for (uint256 i; i < 20; ++i) {
+            a[i] = S.Action(S.Kind.CREATE, BTC, M15, T0 + uint64(i) * M15, "");
+        }
+        bytes memory meta = _meta(wfId, wfOwner);
+        bytes memory rep = _report(uint64(vm.getBlockTimestamp()), a);
+        vm.recordLogs();
+        vm.prank(fwd);
+        rx.onReport{gas: 9_000_000}(meta, rep); // workflow gasLimit (CRE cap is 10M)
+        uint256 created;
+        for (uint256 i; i < 20; ++i) {
+            if (factory.getMarket(BTC, M15, T0 + uint64(i) * M15) != address(0)) created += 1;
+        }
+        assertGt(created, 0);
+        assertLt(created, 20); // some skipped, none reverted
+        // a second report picks up the rest
+        vm.prank(fwd);
+        rx.onReport{gas: 9_000_000}(meta, rep);
+        uint256 created2;
+        for (uint256 i; i < 20; ++i) {
+            if (factory.getMarket(BTC, M15, T0 + uint64(i) * M15) != address(0)) created2 += 1;
+        }
+        assertGt(created2, created);
     }
 
     function test_onReport_ignoredWhenFallbackLeads() public {
@@ -201,7 +238,7 @@ contract SchedulerReceiverTest is Base {
         vm.expectEmit(address(rx));
         emit S.ActionExecuted(S.Kind.CREATE, BTC, H1, T0 + 45 minutes, true, bytes4(0));
         vm.expectEmit(address(rx));
-        emit S.ReportProcessed(uint64(block.timestamp), 4, 2);
+        emit S.ReportProcessed(uint64(block.timestamp), 4, 2); // attempted, failed
         _deliver(a);
         assertTrue(factory.getMarket(BTC, H1, T0 + 45 minutes) != address(0));
     }

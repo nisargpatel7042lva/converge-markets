@@ -45,7 +45,9 @@ Rules for P(T):
   - The first valid proposal starts a finalization window of fixed length (e.g. 2 minutes), **anchored to the first proposal and never restarted**.
   - If a *different* report that also contains T appears (violating Chainlink's no-overlap guarantee), the one with the lower `keccak256(reportData)` wins. The hash covers report data, not signatures, so it can't be ground.
   - Replacement spam can't delay finality.
-- **Finality.** P(T) is final at first-proposal + window. Trading in the round that starts at T opens only then. With the 60 s no-quote window, a 15m round trades for about **12 of its 15 minutes**.
+- **Finality.** P(T) is final at first-proposal + window. Trading in the round that starts at T opens only then.
+- **Window length (Phase 2):** **20 s**. Under the containment rule the window is defense in depth only (no submitter choice exists), and the scheduler's ≤ 60 s resolve target needs report (about T+5) + window + next run ≤ 60 s. Earlier drafts said about 2 minutes, which is incompatible with the SLA.
+- With the 60 s no-quote window, a 15m round trades for about 14 of its 15 minutes.
 
 Single-source fallback rule (round-proof mode, used where Data Streams is unavailable):
 

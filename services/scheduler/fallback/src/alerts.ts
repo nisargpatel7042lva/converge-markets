@@ -24,6 +24,9 @@ export class WebhookAlerter implements Alerter {
 
   async alert(key: string, message: string): Promise<void> {
     const t = this.now();
+    if (this.lastSent.size > 1000) {
+      for (const [k, v] of this.lastSent) if (t - v >= this.cooldownMs) this.lastSent.delete(k);
+    }
     const last = this.lastSent.get(key);
     if (last !== undefined && t - last < this.cooldownMs) return;
     this.lastSent.set(key, t);

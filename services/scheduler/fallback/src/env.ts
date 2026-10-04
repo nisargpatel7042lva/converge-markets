@@ -7,17 +7,26 @@ export const EnvSchema = z.object({
   RPC_URL: z.string().url(),
   /** MarketFactory address. */
   FACTORY: address,
-  /** SchedulerReceiver address (leader flag). Empty = standalone mode (always act). */
+  /** SchedulerLens (one-call snapshot). */
+  LENS: address,
+  /** SchedulerReceiver address (leader flag). Required unless STANDALONE=true. */
   RECEIVER: address.optional(),
+  /** Act without a leader flag (local tests only; never in production). */
+  STANDALONE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
   /** Scheduler key: must hold CREATOR_ROLE on the factory. Never logged. */
   SCHEDULER_PRIVATE_KEY: hex32,
   SERIES_CONFIG: z.string().default("config/series.json"),
   LOOP_INTERVAL_MS: z.coerce.number().int().min(1000).default(10_000),
-  /** Run the deep lookback sweep every N loops. */
-  DEEP_SWEEP_EVERY: z.coerce.number().int().min(1).default(60),
   /** Ignore rounds starting before this unix time (scheduler go-live). */
   EPOCH: z.coerce.bigint().optional(),
   HEALTH_PORT: z.coerce.number().int().default(8080),
+  /** Bind address for /health (default loopback; the endpoint is unauthenticated). */
+  HEALTH_HOST: z.string().default("127.0.0.1"),
+  /** /health turns 503 after this many consecutive bad ticks (failed/pending actions or late items). */
+  UNHEALTHY_AFTER_BAD_TICKS: z.coerce.number().int().min(1).default(3),
   LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error"]).default("info"),
   /** Alerts: Discord webhook URL or Telegram bot sendMessage URL. */
   ALERT_KIND: z.enum(["none", "discord", "telegram"]).default("none"),
@@ -42,6 +51,9 @@ export type Env = z.infer<typeof EnvSchema>;
 
 export function loadEnv(src: NodeJS.ProcessEnv = process.env): Env {
   const env = EnvSchema.parse(src);
+  if (!env.RECEIVER && !env.STANDALONE) {
+    throw new Error("RECEIVER is required (or STANDALONE=true for local tests)");
+  }
   if (env.ALERT_KIND !== "none" && !env.ALERT_WEBHOOK_URL) {
     throw new Error("ALERT_WEBHOOK_URL required when ALERT_KIND is set");
   }

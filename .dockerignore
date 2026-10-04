@@ -1,0 +1,13 @@
+# Never bake secrets or host artifacts into images.
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+.soak
+.git
+contracts/out
+contracts/cache
+contracts/lib
+contracts/broadcast
+services/scheduler/cre
+docs

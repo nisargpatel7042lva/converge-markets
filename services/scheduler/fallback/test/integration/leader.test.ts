@@ -58,6 +58,7 @@ describe("leader flag", () => {
       publicClient: pub,
       walletClient: createWalletClient({ account: SCHED, chain: foundry, transport: http(RPC) }),
       factory: dev.factory,
+      lens: dev.lens,
       receiver: dev.receiver,
       config: devnetSeriesConfig(),
       streams: null,

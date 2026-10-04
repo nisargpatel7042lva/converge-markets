@@ -6,13 +6,20 @@ import {
   type StreamsReportSource,
 } from "@converge/sdk";
 import pino from "pino";
-import { createPublicClient, createWalletClient, http, type Address, type Hex } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  nonceManager,
+  type Address,
+  type Hex,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { WebhookAlerter } from "./alerts";
 import { loadEnv } from "./env";
 import { startHealthServer, type HealthState } from "./health";
 import { chainlinkMirror } from "./prices";
-import { Scheduler } from "./scheduler";
+import { errorName, Scheduler } from "./scheduler";
 
 async function main(): Promise<void> {
   const env = loadEnv();
@@ -27,7 +34,7 @@ async function main(): Promise<void> {
     nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
     rpcUrls: { default: { http: [env.RPC_URL] } },
   } as const;
-  const account = privateKeyToAccount(env.SCHEDULER_PRIVATE_KEY as Hex);
+  const account = privateKeyToAccount(env.SCHEDULER_PRIVATE_KEY as Hex, { nonceManager });
   const walletClient = createWalletClient({ account, chain, transport });
 
   let streams: StreamsReportSource | null = null;
@@ -61,6 +68,7 @@ async function main(): Promise<void> {
     publicClient,
     walletClient,
     factory: env.FACTORY as Address,
+    lens: env.LENS as Address,
     ...(env.RECEIVER ? { receiver: env.RECEIVER as Address } : {}),
     config,
     streams,
@@ -79,9 +87,11 @@ async function main(): Promise<void> {
     ticks: 0,
     leader: null,
     lateCount: 0,
+    consecutiveBad: 0,
+    unhealthyAfterBad: env.UNHEALTHY_AFTER_BAD_TICKS,
     intervalMs: env.LOOP_INTERVAL_MS,
   };
-  const server = startHealthServer(env.HEALTH_PORT, () => health);
+  const server = startHealthServer(env.HEALTH_PORT, () => health, env.HEALTH_HOST);
   log.info(
     { chainId, scheduler: account.address, factory: env.FACTORY, receiver: env.RECEIVER ?? null },
     "started",
@@ -99,14 +109,15 @@ async function main(): Promise<void> {
   while (!stopping) {
     const t0 = Date.now();
     try {
-      const r = await scheduler.tick({ deep: health.ticks % env.DEEP_SWEEP_EVERY === 0 });
+      const r = await scheduler.tick();
       health.lastTickOk = true;
       health.lastError = null;
       health.leader = r.leader;
       health.lateCount = r.late.length;
+      health.consecutiveBad = r.consecutiveBad;
     } catch (e) {
       health.lastTickOk = false;
-      health.lastError = e instanceof Error ? e.message : String(e);
+      health.lastError = errorName(e);
       log.error({ err: health.lastError }, "tick failed");
       await alerter.alert("tick-failed", `tick failed: ${health.lastError}`);
     }

@@ -5,6 +5,7 @@ import { zeroAddress, type Address, type Hex } from "viem";
 import { dataStreamsResolverAbi, marketAbi, marketFactoryAbi } from "./abi/generated";
 import { value, type Reader } from "./calls";
 import { assetIdOf, type SeriesConfig } from "./config";
+import type { RoundFinding } from "./rounds";
 import { recentStarts, upcomingStarts } from "./time";
 
 export enum MarketState {
@@ -36,6 +37,8 @@ export type SlotState = {
   boundaryStatus: BoundaryStatus | null;
   /** Data Streams only: a proposal for `boundary` already exists (finalization window running). */
   proposalPending: boolean;
+  /** Round-proof only, when read through SchedulerLens: the onchain first-round search result. */
+  roundFinding?: RoundFinding;
 };
 
 export type Snapshot = { now: bigint; slots: SlotState[] };
@@ -60,7 +63,7 @@ export function* readSnapshot(opts: SnapshotOptions): Reader<Snapshot> {
     const info = value<{ resolver: Address; enabled: boolean }>(
       yield { to: factory, abi: marketFactoryAbi, functionName: "asset", args: [assetId] },
     );
-    for (const d of config.durations) {
+    for (const d of asset.durations ?? config.durations) {
       const duration = BigInt(d);
       const starts = [
         ...upcomingStarts(now, duration, config.lookaheadRounds),

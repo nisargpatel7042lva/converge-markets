@@ -10,6 +10,8 @@ const KEY = `0x${"ab".repeat(32)}`;
 const base = {
   RPC_URL: "http://127.0.0.1:8545",
   FACTORY: `0x${"11".repeat(20)}`,
+  LENS: `0x${"22".repeat(20)}`,
+  RECEIVER: `0x${"33".repeat(20)}`,
   SCHEDULER_PRIVATE_KEY: KEY,
 };
 
@@ -28,6 +30,11 @@ describe("env", () => {
     );
     expect(() => loadEnv({ ...base, SCHEDULER_PRIVATE_KEY: "0x12" })).toThrow();
     expect(loadEnv({ ...base, EPOCH: "1790864100" }).EPOCH).toBe(1_790_864_100n);
+    const { RECEIVER: _r, ...noReceiver } = base;
+    void _r;
+    expect(() => loadEnv(noReceiver)).toThrow("RECEIVER is required");
+    expect(loadEnv({ ...noReceiver, STANDALONE: "true" }).STANDALONE).toBe(true);
+    expect(loadEnv(base).HEALTH_HOST).toBe("127.0.0.1");
   });
 });
 
@@ -126,6 +133,8 @@ describe("health", () => {
       ticks: 0,
       leader: null,
       lateCount: 0,
+      consecutiveBad: 0,
+      unhealthyAfterBad: 3,
       intervalMs: 1000,
     };
     const port = 18_000 + Math.floor(Math.random() * 1000);
@@ -136,6 +145,9 @@ describe("health", () => {
     state.lastTickAt = Date.now();
     state.lastTickOk = true;
     expect(await get()).toBe(200);
+    state.consecutiveBad = 3; // e.g. every action failing, or CRE late while we are passive
+    expect(await get()).toBe(503);
+    state.consecutiveBad = 0;
     state.lastTickAt = Date.now() - 10_000;
     expect(await get()).toBe(503);
     expect(await get("/other")).toBe(404);

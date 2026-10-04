@@ -64,8 +64,17 @@ export function devnetSeriesConfig(): SeriesConfig {
         resolver: "streams",
         streamsFeedId: DEVNET_FEEDS["ETH/USD"],
       },
-      { label: "MON/USD", symbol: "MON", resolver: "round" },
+      // ADR-002: MON on round proofs is 1h only; lateness bounded by feed cadence (gaps up to ~90 s,
+      // maxOracleDelay 120 s), not by the scheduler.
+      {
+        label: "MON/USD",
+        symbol: "MON",
+        resolver: "round",
+        durations: [3600],
+        lateAfterSeconds: 150,
+      },
     ],
+    maxCreatesPerReport: 4,
     kuru: { enabled: false, reason: "devnet" },
   };
 }
@@ -78,6 +87,7 @@ export type Devnet = {
   roundResolver: Address;
   monFeed: Address;
   verifier: Address;
+  lens: Address;
 };
 
 type W = WalletClient<Transport, Chain, Account>;
@@ -127,7 +137,7 @@ export async function deployDevnet(
   const streamsResolver = await deploy(pub, admin, "DataStreamsResolver", [
     me,
     verifier,
-    opts.finalizationWindow ?? 30n,
+    opts.finalizationWindow ?? 20n,
     opts.streamsGrace ?? 1800n,
   ]);
   const monFeed = await deploy(pub, admin, "MockAggregator", [8]);
@@ -136,6 +146,7 @@ export async function deployDevnet(
     opts.livenessGrace ?? 86_400n,
   ]);
   const receiver = await deploy(pub, admin, "SchedulerReceiver", [forwarder, factory, me]);
+  const lens = await deploy(pub, admin, "SchedulerLens");
 
   for (const label of ["BTC/USD", "ETH/USD"] as const) {
     await tx(pub, admin, {
@@ -194,5 +205,5 @@ export async function deployDevnet(
     functionName: "setRound",
     args: [1, 1n, 3_431_197n, blk.timestamp - 30n],
   });
-  return { usdc, factory, receiver, streamsResolver, roundResolver, monFeed, verifier };
+  return { usdc, factory, receiver, streamsResolver, roundResolver, monFeed, verifier, lens };
 }

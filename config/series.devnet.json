@@ -20,9 +20,11 @@
     {
       "label": "MON/USD",
       "symbol": "MON",
-      "resolver": "round"
+      "resolver": "round",
+      "durations": [3600]
     }
   ],
+  "maxCreatesPerReport": 4,
   "kuru": {
     "enabled": false,
     "reason": "devnet"

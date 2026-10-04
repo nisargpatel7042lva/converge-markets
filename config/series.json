@@ -17,10 +17,17 @@
       "resolver": "streams",
       "streamsFeedId": "0x0000000000000000000000000000000000000000000000000000000000000000"
     },
-    { "label": "MON/USD", "symbol": "MON", "resolver": "round" }
+    {
+      "label": "MON/USD",
+      "symbol": "MON",
+      "resolver": "round",
+      "durations": [3600],
+      "lateAfterSeconds": 150
+    }
   ],
   "kuru": {
     "enabled": false,
     "reason": "ADR-001: Kuru mainnet market creation is owner-gated (pending Kuru answer); the venue adapter and vault quoting land in Phase 4/5. No per-round Kuru setup in Phase 2."
-  }
+  },
+  "maxCreatesPerReport": 4
 }

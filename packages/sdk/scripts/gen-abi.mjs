@@ -16,6 +16,7 @@ const contracts = [
   ["DataStreamsResolver", "dataStreamsResolverAbi"],
   ["IAggregatorV3", "aggregatorV3Abi"],
   ["SchedulerReceiver", "schedulerReceiverAbi"],
+  ["SchedulerLens", "schedulerLensAbi"],
   ["MockAggregator", "mockAggregatorAbi"],
   ["MockERC20", "mockErc20Abi"],
 ];

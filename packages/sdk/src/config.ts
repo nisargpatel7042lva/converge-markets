@@ -20,6 +20,14 @@ export const SeriesConfigSchema = z.object({
         /** Short name used in token names (MarketFactory asset label). */
         symbol: z.string().min(1),
         resolver: z.enum(["streams", "round"]),
+        /** Per-asset lateness threshold (default: top-level). Round-proof assets are bounded by the
+         *  feed's update cadence (up to maxOracleDelay, then void), not by the scheduler. */
+        lateAfterSeconds: z.number().int().positive().optional(),
+        /** Per-asset durations (default: top-level `durations`). ADR-002: MON on round proofs is 1h only. */
+        durations: z
+          .array(z.union([z.literal(900), z.literal(3600)]))
+          .min(1)
+          .optional(),
         /** Data Streams feed id (streams assets only). */
         streamsFeedId: z
           .string()
@@ -28,6 +36,8 @@ export const SeriesConfigSchema = z.object({
       }),
     )
     .min(1),
+  /** Max CREATE actions per CRE report (receiver gas budget; time-critical actions go first). */
+  maxCreatesPerReport: z.number().int().min(1).max(12).default(4),
   kuru: z.object({
     enabled: z.boolean(),
     reason: z.string(),
@@ -49,4 +59,19 @@ export function parseSeriesConfig(json: unknown): SeriesConfig {
     }
   }
   return cfg;
+}
+
+const ZERO32 = `0x${"00".repeat(32)}`;
+
+/** A Data Streams feed id that is configured (non-zero). Zero means "not available yet". */
+export function liveFeedId(cfg: SeriesConfig, label: string): Hex | undefined {
+  const id = cfg.assets.find((a) => a.label === label)?.streamsFeedId;
+  return id && id !== ZERO32 ? (id as Hex) : undefined;
+}
+
+/** Lateness threshold for an asset (per-asset override, else the global one). */
+export function lateAfterFor(cfg: SeriesConfig, label: string): bigint {
+  return BigInt(
+    cfg.assets.find((a) => a.label === label)?.lateAfterSeconds ?? cfg.lateAfterSeconds,
+  );
 }

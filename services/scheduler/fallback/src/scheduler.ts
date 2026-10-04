@@ -6,22 +6,28 @@
 import {
   ActionKind,
   describe,
+  encodeRoundProof,
+  lateAfterFor,
   lateItems,
   lateWaiting,
+  liveFeedId,
   marketAbi,
   marketFactoryAbi,
   plan,
-  readSnapshot,
+  prioritize,
+  readSnapshotViaLens,
   roundProofEvidence,
   runAsync,
   schedulerReceiverAbi,
   type PlannedAction,
   type SeriesConfig,
+  type Snapshot,
   type StreamsReportSource,
 } from "@converge/sdk";
 import {
   BaseError,
   ContractFunctionRevertedError,
+  WaitForTransactionReceiptTimeoutError,
   zeroAddress,
   type Account,
   type Address,
@@ -39,6 +45,7 @@ export type ActionOutcome =
   | { status: "sent"; hash: Hex; blockTimestamp: bigint }
   | { status: "noop"; reason: string } // someone else already did it (idempotent re-run)
   | { status: "waiting"; reason: string } // evidence not available yet
+  | { status: "pending"; hash: Hex } // broadcast, no receipt within the timeout
   | { status: "failed"; error: string };
 
 export type TickResult = {
@@ -49,12 +56,16 @@ export type TickResult = {
   outcomes: { action: string; kind: ActionKind; outcome: ActionOutcome; delay: bigint }[];
   late: string[];
   missed: string[];
+  /** Consecutive "bad" ticks (failed/pending actions, or late items while passive). */
+  consecutiveBad: number;
 };
 
 export type SchedulerDeps = {
   publicClient: PublicClient;
   walletClient: WalletClient<Transport, Chain, Account>;
   factory: Address;
+  /** SchedulerLens: one eth_call snapshot (same data path as the CRE workflow). */
+  lens: Address;
   receiver?: Address;
   config: SeriesConfig;
   streams: StreamsReportSource | null;
@@ -63,13 +74,16 @@ export type SchedulerDeps = {
   gasMultiplierPct: number;
   maxRetries: number;
   epoch?: bigint;
+  /** Max wait for a receipt before reporting the tx as pending (never re-sent blindly). */
+  receiptTimeoutMs?: number;
 };
 
 /** Revert reasons that mean "already done / not needed" when racing another scheduler. */
-const NOOP_ERRORS = new Set(["MarketExists", "WrongState", "StartInPast"]);
+const NOOP_ERRORS = new Set(["MarketExists", "WrongState"]);
 
 export class Scheduler {
   private ticks = 0;
+  private bad = 0;
   constructor(private readonly d: SchedulerDeps) {}
 
   async leader(): Promise<"cre" | "fallback" | "standalone"> {
@@ -82,21 +96,22 @@ export class Scheduler {
     return Number(l) === 1 ? "fallback" : "cre";
   }
 
-  async tick(opts: { deep?: boolean } = {}): Promise<TickResult> {
+  async tick(): Promise<TickResult> {
     const { publicClient, config, log } = this.d;
     this.ticks += 1;
     const block = await withRetry(() => publicClient.getBlock(), { retries: this.d.maxRetries });
     const now = block.timestamp; // chain time, not wall clock
     const leader = await withRetry(() => this.leader(), { retries: this.d.maxRetries });
     const acting = leader !== "cre";
+    // One call over the deep lookback: the lens omits settled slots, so long outages recover.
     const snapshot = await withRetry(
       () =>
         runAsync(
-          readSnapshot({
+          readSnapshotViaLens({
+            lens: this.d.lens,
             factory: this.d.factory,
             config,
             now,
-            deep: opts.deep ?? false,
             ...(this.d.epoch === undefined ? {} : { epoch: this.d.epoch }),
           }),
           publicClient,
@@ -113,11 +128,12 @@ export class Scheduler {
       outcomes: [],
       late: [],
       missed: p.missed.map((s) => `${s.label} ${s.duration}s @${s.startTime}`),
+      consecutiveBad: 0,
     };
 
     if (acting) {
-      for (const a of p.actions) {
-        const outcome = await this.execute(a);
+      for (const a of prioritize(p.actions)) {
+        const outcome = await this.execute(a, snapshot);
         const delay = (outcome.status === "sent" ? outcome.blockTimestamp : now) - a.dueAt;
         result.outcomes.push({ action: describe(a), kind: a.kind, outcome, delay });
         log.info(
@@ -130,15 +146,18 @@ export class Scheduler {
             boundary: a.boundary === null ? null : Number(a.boundary),
             status: outcome.status,
             delaySeconds: Number(delay),
-            ...(outcome.status === "sent" ? { tx: outcome.hash } : {}),
-            ...(outcome.status === "failed" ||
-            outcome.status === "noop" ||
-            outcome.status === "waiting"
-              ? { reason: outcome.status === "failed" ? outcome.error : outcome.reason }
-              : {}),
+            ...("hash" in outcome ? { tx: outcome.hash } : {}),
+            ...("reason" in outcome ? { reason: outcome.reason } : {}),
+            ...("error" in outcome ? { reason: outcome.error } : {}),
           },
           "action",
         );
+        if (outcome.status === "failed" || outcome.status === "pending") {
+          await this.d.alerter.alert(
+            `${outcome.status}:${describe(a)}`,
+            `${describe(a)} ${outcome.status}: ${"error" in outcome ? outcome.error : outcome.hash}`,
+          );
+        }
       }
     }
 
@@ -146,8 +165,8 @@ export class Scheduler {
     const sentKeys = new Set(
       result.outcomes.filter((o) => o.outcome.status === "sent").map((o) => o.action),
     );
-    const lateAfter = BigInt(config.lateAfterSeconds);
-    for (const a of lateItems(p, now, lateAfter)) {
+    const lateAfter = BigInt(config.lateAfterSeconds); // global; per-asset via lateAfterFor
+    for (const a of lateItems(p, now, (label) => lateAfterFor(config, label))) {
       if (sentKeys.has(describe(a))) continue;
       result.late.push(describe(a));
       await this.d.alerter.alert(
@@ -163,6 +182,12 @@ export class Scheduler {
     for (const m of result.missed) {
       await this.d.alerter.alert(`missed:${m}`, `round started without a market: ${m}`);
     }
+    const failedOrPending = result.outcomes.some(
+      (o) => o.outcome.status === "failed" || o.outcome.status === "pending",
+    );
+    const passiveAndLate = !acting && result.late.length > 0;
+    this.bad = failedOrPending || passiveAndLate ? this.bad + 1 : 0;
+    result.consecutiveBad = this.bad;
     log.info(
       {
         event: "tick",
@@ -174,6 +199,7 @@ export class Scheduler {
         waiting: p.waiting.length,
         late: result.late.length,
         missed: result.missed.length,
+        consecutiveBad: this.bad,
       },
       "tick",
     );
@@ -183,23 +209,30 @@ export class Scheduler {
   /** Gets evidence (or null if not available yet) for an action that needs it. */
   private async evidence(
     a: PlannedAction,
+    snapshot: Snapshot,
     resolver: Address,
   ): Promise<{ data: Hex | null; why: string }> {
     if (a.boundary === null) return { data: "0x", why: "" };
     if (a.resolverKind === "round") {
-      const ev = await runAsync(
-        roundProofEvidence(resolver, a.assetId, a.boundary),
-        this.d.publicClient,
+      const slot = snapshot.slots.find(
+        (s) => s.assetId === a.assetId && s.startTime === a.startTime && s.duration === a.duration,
       );
-      return { data: ev.evidence, why: ev.finding.kind };
+      const finding =
+        slot?.roundFinding ??
+        (await runAsync(roundProofEvidence(resolver, a.assetId, a.boundary), this.d.publicClient))
+          .finding;
+      return finding.kind === "found"
+        ? { data: encodeRoundProof(finding.roundId), why: "found" }
+        : { data: null, why: finding.kind };
     }
     if (!this.d.streams) return { data: null, why: "no streams source configured" };
-    const feedId = this.d.config.assets.find((x) => x.label === a.label)?.streamsFeedId as Hex;
+    const feedId = liveFeedId(this.d.config, a.label);
+    if (!feedId) return { data: null, why: "no Data Streams feed id configured" };
     const data = await this.d.streams.reportAt(feedId, a.boundary);
     return { data, why: data ? "report" : "report not available yet" };
   }
 
-  async execute(a: PlannedAction): Promise<ActionOutcome> {
+  async execute(a: PlannedAction, snapshot: Snapshot): Promise<ActionOutcome> {
     const { publicClient, factory } = this.d;
     try {
       let address: Address = factory;
@@ -232,7 +265,7 @@ export class Scheduler {
               abi: marketAbi,
               functionName: "resolver",
             });
-            const ev = await this.evidence(a, resolver);
+            const ev = await this.evidence(a, snapshot, resolver);
             if (ev.data === null) return { status: "waiting", reason: ev.why };
             evidence = ev.data;
           }
@@ -279,29 +312,44 @@ export class Scheduler {
       retries: this.d.maxRetries,
     });
     const gas = (est * BigInt(this.d.gasMultiplierPct)) / 100n;
-    const hash = await withRetry(
-      () =>
-        walletClient.writeContract({
-          ...(params as object),
-          gas,
-          chain: walletClient.chain,
-        } as never),
-      { retries: this.d.maxRetries },
-    );
-    const receipt = await publicClient.waitForTransactionReceipt({ hash, pollingInterval: 250 });
-    if (receipt.status !== "success") return { status: "failed", error: `reverted ${hash}` };
-    const blk = await publicClient.getBlock({ blockNumber: receipt.blockNumber });
-    return { status: "sent", hash, blockTimestamp: blk.timestamp };
+    // Broadcast exactly once (no blind retry: an ambiguous RPC error could double-send). Nonces
+    // come from the account's nonce manager; idempotent contracts make a duplicate harmless anyway.
+    const hash = await walletClient.writeContract({
+      ...(params as object),
+      gas,
+      chain: walletClient.chain,
+    } as never);
+    try {
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+        pollingInterval: 250,
+        timeout: this.d.receiptTimeoutMs ?? 60_000,
+      });
+      if (receipt.status !== "success") return { status: "failed", error: `reverted ${hash}` };
+      const blk = await publicClient.getBlock({ blockNumber: receipt.blockNumber });
+      return { status: "sent", hash, blockTimestamp: blk.timestamp };
+    } catch (e) {
+      if (e instanceof WaitForTransactionReceiptTimeoutError) return { status: "pending", hash };
+      throw e;
+    }
   }
 }
 
+/** Short, secret-free error label: custom revert name, or viem's shortMessage with URLs redacted. */
 export function errorName(e: unknown): string {
   if (e instanceof BaseError) {
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
     if (revert instanceof ContractFunctionRevertedError) {
-      return revert.data?.errorName ?? revert.shortMessage;
+      return revert.data?.errorName ?? redact(revert.shortMessage);
     }
-    return e.shortMessage;
+    return redact(e.shortMessage);
   }
-  return e instanceof Error ? e.message : String(e);
+  return redact(e instanceof Error ? e.message : String(e));
+}
+
+/** Strips URL paths/queries (RPC keys often live there) and hex private-key-sized strings. */
+export function redact(s: string): string {
+  return s
+    .replace(/(https?|wss?):\/\/([^/\s?#]+)[^\s]*/g, "$1://$2/<redacted>")
+    .replace(/0x[0-9a-fA-F]{64}(?![0-9a-fA-F])/g, (m) => `${m.slice(0, 10)}…`);
 }
