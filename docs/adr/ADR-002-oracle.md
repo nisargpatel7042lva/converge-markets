@@ -49,7 +49,7 @@ Rules for P(T):
 
 Single-source fallback rule (round-proof mode, used where Data Streams is unavailable):
 
-- P(T) = the answer of the **first** push-feed round with `updatedAt ≥ T`, proven by supplying that roundId. The contract checks that the previous round in the same phase has `updatedAt < T`.
+- P(T) = the answer of the **first** push-feed round with `updatedAt ≥ T` **in the proxy's current phase**, proven by supplying that roundId. The contract checks that the previous round in the same phase has `updatedAt < T`. Old-phase rounds are rejected, because during an aggregator migration the old phase may keep transmitting and would otherwise offer a second valid first round. Terminal statuses are stored by `checkpoint`, so a boundary voided for one round can never be priced for the adjacent round.
 - If none arrives within `maxOracleDelay`, P(T) is unresolvable.
 - This is deterministic (no cherry-picking), but inherits the push-feed staleness above. It is acceptable only for MON (about 30 s cadence).
 - **Phase boundary:** if the first qualifying round is round 1 of a new aggregator phase, there is no same-phase predecessor to prove against, so the proof is rejected. P(T) then becomes unresolvable via the liveness fallback (no proof by T + grace), which voids the rounds touching T. Phase changes are rare, aggregator upgrades.

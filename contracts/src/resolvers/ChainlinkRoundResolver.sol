@@ -19,8 +19,16 @@ import {IAggregatorV3} from "../interfaces/IAggregatorV3.sol";
 ///        (c) block.timestamp > T + livenessGrace with no proof (proofs are rejected after this,
 ///            so the status can never flip back). Covers a first round that opens a new
 ///            aggregator phase, which has no same-phase predecessor and cannot be proven.
+///      Phases: only rounds of the proxy's CURRENT phase are accepted. During an aggregator
+///      migration the old phase can keep transmitting, which would otherwise allow two different
+///      "first rounds" for the same boundary (one per phase).
+///      Permanence: (b) and (c) are derived from time and feed state; `checkpoint` stores them so
+///      a boundary seen as UNRESOLVABLE by any market can never later become FINAL.
 ///      Asset configuration is set once and can never change, so markets that snapshot this
 ///      resolver keep a fixed oracle.
+// `submit` is payable only to match IPriceResolver; it rejects any value, so no ETH can be locked.
+// forge-lint: disable-start(locked-ether)
+// slither-disable-next-line locked-ether
 contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
     /// @notice Per-asset feed configuration (immutable once set).
     struct AssetConfig {
@@ -41,6 +49,8 @@ contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
     mapping(bytes32 assetId => mapping(uint64 timestamp => Boundary)) private _boundaries;
 
     event AssetConfigured(bytes32 indexed assetId, address feed, uint32 maxOracleDelay);
+    /// @notice A boundary became UNRESOLVABLE without a proof (stale feed or liveness timeout).
+    event BoundaryUnresolvable(bytes32 indexed assetId, uint64 indexed timestamp);
     event BoundaryProven(
         bytes32 indexed assetId,
         uint64 indexed timestamp,
@@ -60,6 +70,8 @@ contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
     error FirstRoundOfPhase(uint80 roundId);
     error InvalidAnswer(int256 answer);
     error ProofWindowClosed(uint64 timestamp);
+    error NotCurrentPhase(uint80 roundId, uint80 latestRoundId);
+    error NoValueAccepted();
 
     /// @param owner_ Admin that configures assets (Safe multisig on mainnet).
     /// @param livenessGrace_ Seconds after T before an unproven boundary becomes UNRESOLVABLE.
@@ -92,7 +104,9 @@ contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
     /// @dev `data` = abi.encode(uint80 roundId) of the first round with updatedAt >= timestamp.
     ///      No-op if the boundary is already decided, so a market's open/resolve never fails
     ///      because someone else proved the boundary first.
-    function submit(bytes32 assetId, uint64 timestamp, bytes calldata data) external {
+    // slither-disable-next-line unused-return
+    function submit(bytes32 assetId, uint64 timestamp, bytes calldata data) external payable {
+        if (msg.value != 0) revert NoValueAccepted();
         AssetConfig memory cfg = _config(assetId);
         Boundary storage b = _boundaries[assetId][timestamp];
         if (b.status != Status.PENDING) return;
@@ -102,6 +116,9 @@ contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
         if (data.length != 32) revert BadProofLength();
         uint80 roundId = abi.decode(data, (uint80));
 
+        // forge-lint: disable-next-line(unused-return)
+        (uint80 latestId,,,,) = cfg.feed.latestRoundData();
+        if (roundId >> 64 != latestId >> 64) revert NotCurrentPhase(roundId, latestId);
         (int256 answer, uint256 updatedAt) = _round(cfg.feed, roundId);
         if (updatedAt < timestamp) revert RoundBeforeBoundary(roundId, updatedAt);
         // Intentional truncation: the low 64 bits of a proxy roundId are the aggregator round id.
@@ -122,9 +139,22 @@ contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
     }
 
     /// @inheritdoc IPriceResolver
+    function checkpoint(bytes32 assetId, uint64 timestamp)
+        external
+        returns (Status status, int256 price)
+    {
+        (status, price) = priceAt(assetId, timestamp);
+        Boundary storage b = _boundaries[assetId][timestamp];
+        if (status == Status.UNRESOLVABLE && b.status == Status.PENDING) {
+            b.status = Status.UNRESOLVABLE;
+            emit BoundaryUnresolvable(assetId, timestamp);
+        }
+    }
+
+    /// @inheritdoc IPriceResolver
     // slither-disable-next-line unused-return
     function priceAt(bytes32 assetId, uint64 timestamp)
-        external
+        public
         view
         returns (Status status, int256 price)
     {
@@ -168,3 +198,4 @@ contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
         }
     }
 }
+// forge-lint: disable-end(locked-ether)

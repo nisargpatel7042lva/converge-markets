@@ -1,17 +1,23 @@
-# Invariant run path coverage
+# Invariant run path coverage and mutation checks
 
-Measured on 2026-10-04 by temporarily logging the handler's counters in `afterInvariant` to a file. The logging was reverted afterwards because it needs `fs_permissions`. One line per run, 256 runs, depth 100.
+## Path coverage
 
-| Lifecycle path reached | runs with ≥1 occurrence (of 258 logged) | mean per run |
+Reproduce with `bash contracts/script/invariant-path-coverage.sh`. It sets `INVARIANT_PATH_LOG=true` so `afterInvariant` logs each run's counters, then summarizes them.
+
+Run on 2026-10-04 with 256 runs at depth 100 (258 runs were logged). The handler covers 6 markets: BTC round-proof (15m ×2, 1h ×1, one with a 1% fee) and ETH Data Streams (15m ×2).
+
+| Lifecycle path | runs with >= 1 (of 258) | mean per run |
 |---|---|---|
-| open (strike set) | 250 | 2.07 |
-| resolve (UP/DOWN) | 191 | 0.99 |
-| invalidate (INVALID) | 71 | 0.40 |
-| redeem | 101 | 0.55 |
+| open | 255 | 2.96 |
+| resolve (UP/DOWN) | 183 | 1.20 |
+| invalidate | 102 | 0.67 |
+| redeem | 102 | 0.57 |
 
-The post-resolution invariants (`invariant_solventAfterResolution` and the per-actor extraction bound) are therefore exercised in most runs, not vacuously true.
+## Mutation checks
 
-Handler design notes:
+The invariants must catch real bugs, not pass vacuously. Each mutation was applied to `src/Market.sol`, the suite was run, and the source was restored.
 
-- Only action selectors are targeted.
-- `warp` publishes a feed round 0–59 s after each crossed 15-minute boundary and skips about 1 in 7 boundaries (stale feed), which drives INVALID.
+| Mutation | Caught by | Result |
+|---|---|---|
+| Winners short-paid by 1 unit (`payout = upBal - 1` when UP wins) | `invariant_exitsAlwaysWorkAndPayExactly` | FAIL: `redeem paid wrong amount` |
+| `merge` reverts when the market is INVALID | `invariant_exitsAlwaysWorkAndPayExactly` | FAIL: `merge reverted for a holder` |

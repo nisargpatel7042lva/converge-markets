@@ -65,12 +65,15 @@ contract Market is ReentrancyGuard {
     int256 public strike;
     /// @notice P(asset, endTime); set when resolved.
     int256 public endPrice;
+    /// @notice Redeem fees held for the fee recipient (pulled via claimFees).
+    uint256 public feesAccrued;
 
     event Split(address indexed account, uint256 amount);
     event Merged(address indexed account, uint256 amount);
     event Opened(int256 strike);
     event Resolved(State indexed outcome, int256 strike, int256 endPrice);
     event Invalidated(uint64 indexed boundary);
+    event FeesClaimed(address indexed recipient, uint256 amount);
     event Redeemed(
         address indexed account, uint256 upBurned, uint256 downBurned, uint256 payout, uint256 fee
     );
@@ -85,6 +88,9 @@ contract Market is ReentrancyGuard {
     error NotUnresolvable();
     error FeeOnTransferNotSupported(uint256 expected, uint256 received);
     error NothingToRedeem();
+    error NothingToClaim();
+    error NoFeeRecipient();
+    error UnexpectedValue();
 
     /// @dev Locks the implementation.
     constructor() {
@@ -143,20 +149,21 @@ contract Market is ReentrancyGuard {
     // ------------------------------------------------------------------ lifecycle
 
     /// @notice Sets the strike from P(asset, startTime). Anyone may call after startTime.
-    /// @param data Optional resolver evidence (round proof or signed report) submitted first;
-    ///        pass empty bytes if the boundary was already submitted.
+    /// @param data Optional resolver evidence (round proof or signed report). It is submitted
+    ///        only while the boundary is still PENDING; msg.value is forwarded with it (oracle
+    ///        verification fee, if any) and must be zero otherwise.
     /// @dev If the boundary is UNRESOLVABLE the market becomes INVALID instead. If it is still
     ///      PENDING: reverts PriceNotFinal when no evidence was passed; returns without a state
-    ///      change when evidence was passed (so the submission is kept).
-    // slither-disable-next-line reentrancy-no-eth
-    function open(bytes calldata data) external nonReentrant {
+    ///      change when evidence was passed (so the submission is kept, e.g. a Data Streams
+    ///      finalization window just started).
+    // Reentrancy: every external entry point is nonReentrant, and the only external calls
+    // here go to the market's immutable resolver (and from it to Chainlink's verifier).
+    // slither-disable-next-line reentrancy-eth,reentrancy-no-eth
+    function open(bytes calldata data) external payable nonReentrant {
         if (state != State.CREATED) revert WrongState(state);
         if (block.timestamp < startTime) revert TooEarly(startTime);
-        // Trusted call: resolver is fixed at creation by the admin-registered asset config;
-        // state is re-checked from the resolver after the call; function is nonReentrant.
         // forge-lint: disable-next-line(reentrancy-no-eth)
-        if (data.length != 0) resolver.submit(assetId, startTime, data);
-        (IPriceResolver.Status s, int256 price) = resolver.priceAt(assetId, startTime);
+        (IPriceResolver.Status s, int256 price) = _boundaryPrice(startTime, data);
         if (s == IPriceResolver.Status.FINAL) {
             strike = price;
             state = State.OPEN;
@@ -167,21 +174,17 @@ contract Market is ReentrancyGuard {
         } else if (data.length == 0) {
             revert PriceNotFinal();
         }
-        // PENDING after a submission: keep the submission (e.g. a Data Streams finalization
-        // window just started) and return; call again once FINAL.
     }
 
     /// @notice Settles from P(asset, endTime). UP if endPrice >= strike (ties go UP).
     /// @param data Optional resolver evidence, as in `open`.
     /// @dev If the boundary is UNRESOLVABLE the market becomes INVALID instead.
-    // slither-disable-next-line reentrancy-no-eth
-    function resolve(bytes calldata data) external nonReentrant {
+    // slither-disable-next-line reentrancy-eth,reentrancy-no-eth
+    function resolve(bytes calldata data) external payable nonReentrant {
         if (state != State.OPEN) revert WrongState(state);
         if (block.timestamp < endTime) revert TooEarly(endTime);
-        // Trusted call (see open).
         // forge-lint: disable-next-line(reentrancy-no-eth)
-        if (data.length != 0) resolver.submit(assetId, endTime, data);
-        (IPriceResolver.Status s, int256 price) = resolver.priceAt(assetId, endTime);
+        (IPriceResolver.Status s, int256 price) = _boundaryPrice(endTime, data);
         if (s == IPriceResolver.Status.FINAL) {
             endPrice = price;
             State outcome = price >= strike ? State.RESOLVED_UP : State.RESOLVED_DOWN;
@@ -193,19 +196,20 @@ contract Market is ReentrancyGuard {
         } else if (data.length == 0) {
             revert PriceNotFinal();
         }
-        // PENDING after a submission: see `open`.
     }
 
     /// @notice Marks the market INVALID when the boundary it is waiting on (startTime if not
     ///         open, endTime if open) can never be determined. Anyone may call.
-    // slither-disable-next-line unused-return
+    // slither-disable-next-line unused-return,reentrancy-no-eth
     function invalidate() external nonReentrant {
         State s0 = state;
         if (s0 != State.CREATED && s0 != State.OPEN) revert WrongState(s0);
         uint64 boundary = s0 == State.CREATED ? startTime : endTime;
-        // The price is irrelevant here; only the status matters.
+        // checkpoint makes UNRESOLVABLE permanent in the resolver, so the adjacent round sees
+        // the same outcome forever. The price is irrelevant here.
         // forge-lint: disable-next-line(unused-return)
-        (IPriceResolver.Status s,) = resolver.priceAt(assetId, boundary);
+        // forge-lint: disable-next-line(reentrancy-no-eth, unused-return)
+        (IPriceResolver.Status s,) = resolver.checkpoint(assetId, boundary);
         if (s != IPriceResolver.Status.UNRESOLVABLE) revert NotUnresolvable();
         _invalidate(boundary);
     }
@@ -232,9 +236,10 @@ contract Market is ReentrancyGuard {
         // Halving above is the INVALID payout itself, not an intermediate; fee rounds down.
         // forge-lint: disable-next-line(divide-before-multiply)
         uint256 fee = payout * redeemFeeBps / BPS;
-        // slither-disable-next-line incorrect-equality
-        address recipient = fee == 0 ? address(0) : IMarketFactoryView(factory).feeRecipient();
-        if (recipient == address(0)) fee = 0;
+        // No fee while the factory has no recipient. Fees accrue here and are pulled by
+        // `claimFees`, so a blocked recipient can never block redemptions.
+        if (fee != 0 && IMarketFactoryView(factory).feeRecipient() == address(0)) fee = 0;
+        feesAccrued += fee;
 
         emit Redeemed(msg.sender, upBal, downBal, payout - fee, fee);
         // Trusted calls: our own OutcomeToken clones; function is nonReentrant.
@@ -243,7 +248,17 @@ contract Market is ReentrancyGuard {
         // forge-lint: disable-next-line(reentrancy-no-eth)
         if (downBal != 0) down.burn(msg.sender, downBal);
         if (payout - fee != 0) collateral.safeTransfer(msg.sender, payout - fee);
-        if (fee != 0) collateral.safeTransfer(recipient, fee);
+    }
+
+    /// @notice Sends accrued redeem fees to the factory's current fee recipient. Anyone may call.
+    function claimFees() external nonReentrant {
+        uint256 amount = feesAccrued;
+        if (amount == 0) revert NothingToClaim();
+        address recipient = IMarketFactoryView(factory).feeRecipient();
+        if (recipient == address(0)) revert NoFeeRecipient();
+        feesAccrued = 0;
+        emit FeesClaimed(recipient, amount);
+        collateral.safeTransfer(recipient, amount);
     }
 
     /// @notice Collateral owed to a holder if they redeemed now (before fee). 0 before outcome.
@@ -253,6 +268,27 @@ contract Market is ReentrancyGuard {
         if (s == State.RESOLVED_DOWN) return down.balanceOf(account);
         if (s == State.INVALID) return (up.balanceOf(account) + down.balanceOf(account)) / 2;
         return 0;
+    }
+
+    /// @dev Reads the boundary through `checkpoint` (terminal statuses become permanent).
+    ///      Evidence is submitted only while PENDING, so a late or redundant submission after
+    ///      the boundary is already FINAL/UNRESOLVABLE never reverts the call.
+    function _boundaryPrice(uint64 boundary, bytes calldata data)
+        private
+        returns (IPriceResolver.Status s, int256 price)
+    {
+        // Trusted calls: resolver fixed at creation; all callers are nonReentrant. msg.value is
+        // forwarded only to that resolver (oracle verification fee).
+        // forge-lint: disable-next-line(reentrancy-no-eth)
+        (s, price) = resolver.checkpoint(assetId, boundary);
+        if (s == IPriceResolver.Status.PENDING && data.length != 0) {
+            // forge-lint: disable-next-line(reentrancy-no-eth, arbitrary-send-eth)
+            resolver.submit{value: msg.value}(assetId, boundary, data);
+            // forge-lint: disable-next-line(reentrancy-no-eth)
+            (s, price) = resolver.checkpoint(assetId, boundary);
+        } else if (msg.value != 0) {
+            revert UnexpectedValue();
+        }
     }
 
     function _invalidate(uint64 boundary) private {

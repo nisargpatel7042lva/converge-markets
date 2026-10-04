@@ -159,6 +159,62 @@ contract DataStreamsResolverTest is Base {
         assertEq(uint8(_status(streamsResolver, ETH, T0)), uint8(IPriceResolver.Status.FINAL));
     }
 
+    function test_checkpoint_emitsSettledOnce() public {
+        vm.warp(T0 + 2);
+        streamsResolver.submit(ETH, T0, _report(ETH_FEED, uint32(T0), uint32(T0), 5e18));
+        (IPriceResolver.Status s,) = streamsResolver.checkpoint(ETH, T0);
+        assertEq(uint8(s), uint8(IPriceResolver.Status.PENDING));
+        vm.warp(T0 + 2 + WINDOW);
+        vm.expectEmit(address(streamsResolver));
+        emit D.BoundarySettled(ETH, T0, IPriceResolver.Status.FINAL, 5e18);
+        streamsResolver.checkpoint(ETH, T0);
+        vm.recordLogs();
+        streamsResolver.checkpoint(ETH, T0);
+        assertEq(vm.getRecordedLogs().length, 0);
+    }
+
+    function test_checkpoint_unresolvable() public {
+        vm.warp(T0 + GRACE + 1);
+        vm.expectEmit(address(streamsResolver));
+        emit D.BoundarySettled(ETH, T0, IPriceResolver.Status.UNRESOLVABLE, 0);
+        streamsResolver.checkpoint(ETH, T0);
+    }
+
+    function test_valueRejectedWhenFinal() public {
+        vm.warp(T0 + 2);
+        bytes memory rep = _report(ETH_FEED, uint32(T0), uint32(T0), 5e18);
+        streamsResolver.submit(ETH, T0, rep);
+        vm.warp(T0 + 2 + WINDOW);
+        vm.deal(alice, 1);
+        vm.prank(alice);
+        vm.expectRevert(D.ValueNotUsed.selector);
+        streamsResolver.submit{value: 1}(ETH, T0, rep);
+    }
+
+    function test_adminFunctions() public {
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
+        streamsResolver.setParameterPayload(hex"01");
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
+        streamsResolver.withdrawNative(payable(alice), 0);
+        vm.startPrank(admin);
+        vm.expectEmit(address(streamsResolver));
+        emit D.ParameterPayloadSet(hex"01");
+        streamsResolver.setParameterPayload(hex"01");
+        assertEq(streamsResolver.parameterPayload(), hex"01");
+        vm.expectRevert(D.ZeroAddress.selector);
+        streamsResolver.withdrawNative(payable(address(0)), 0);
+        vm.deal(address(streamsResolver), 5);
+        streamsResolver.withdrawNative(payable(treasury), 5);
+        assertEq(treasury.balance, 5);
+        // a recipient that rejects native transfers
+        vm.deal(address(streamsResolver), 1);
+        vm.expectRevert(D.NativeTransferFailed.selector);
+        streamsResolver.withdrawNative(payable(address(usdc)), 1);
+        vm.stopPrank();
+    }
+
     function _data(bytes memory payload) internal pure returns (bytes memory d) {
         (, d,) = abi.decode(payload, (bytes32[3], bytes, bytes));
     }

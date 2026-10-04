@@ -459,7 +459,80 @@ contract MarketTest is Base {
         vm.prank(alice);
         fm.redeem();
         assertEq(usdc.balanceOf(alice), 990e6);
+        assertEq(fm.feesAccrued(), 10e6);
+        assertEq(usdc.balanceOf(treasury), 0); // pull, not push
+        vm.expectEmit(address(fm));
+        emit Market.FeesClaimed(treasury, 10e6);
+        fm.claimFees();
         assertEq(usdc.balanceOf(treasury), 10e6);
+        assertEq(fm.feesAccrued(), 0);
+        vm.expectRevert(Market.NothingToClaim.selector);
+        fm.claimFees();
+    }
+
+    function test_claimFees_revertsWithoutRecipient_redeemNeverBlocked() public {
+        vm.startPrank(admin);
+        factory.setRedeemFee(100);
+        factory.setFeeRecipient(treasury);
+        vm.stopPrank();
+        Market fm = _create(BTC, M15, T0 + M15);
+        _split(fm, alice, 1000e6);
+        _split(fm, bob, 1000e6);
+        vm.warp(T0 + M15 + 10);
+        fm.open(_round(2, 100e8, T0 + M15 + 1));
+        vm.warp(T0 + 2 * M15 + 10);
+        fm.resolve(_round(3, 101e8, T0 + 2 * M15 + 1));
+        vm.prank(alice);
+        fm.redeem();
+        vm.prank(admin);
+        factory.setFeeRecipient(address(0)); // recipient removed: redeem still works, no fee
+        vm.prank(bob);
+        fm.redeem();
+        assertEq(usdc.balanceOf(bob), 1000e6);
+        vm.expectRevert(Market.NoFeeRecipient.selector);
+        fm.claimFees();
+        assertEq(fm.feesAccrued(), 10e6);
+    }
+
+    function test_open_rejectsValueWithoutSubmission() public {
+        vm.warp(T0 + 10);
+        bytes memory proof = _round(2, 1e8, T0 + 1);
+        roundResolver.submit(BTC, T0, proof);
+        vm.deal(alice, 1 ether);
+        vm.prank(alice);
+        vm.expectRevert(Market.UnexpectedValue.selector);
+        m.open{value: 1}("");
+    }
+
+    function test_open_afterGraceWithEvidence_invalidatesInsteadOfReverting() public {
+        Market em = _create(ETH, M15, T0);
+        bytes memory rep = _report(ETH_FEED, uint32(T0), uint32(T0), 1e18);
+        vm.warp(T0 + GRACE + 1);
+        em.open(rep); // checkpoint says UNRESOLVABLE first; late evidence is not submitted
+        assertEq(uint8(em.state()), uint8(Market.State.INVALID));
+    }
+
+    function test_streamsMarket_feeModeForwardsValue() public {
+        bytes memory param = abi.encode(address(0x1234));
+        verifierProxy.setFeeMode(1 gwei, param);
+        vm.prank(admin);
+        streamsResolver.setParameterPayload(param);
+        Market em = _create(ETH, M15, T0);
+        vm.warp(T0 + 3);
+        bytes memory rep = _report(ETH_FEED, uint32(T0), uint32(T0), 3000e18);
+        vm.deal(alice, 1 ether);
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSignature("FeeRequired(uint256,uint256)", 1 gwei, 0));
+        em.open(rep);
+        vm.prank(alice);
+        em.open{value: 3 gwei}(rep); // 2 gwei change refunded to the resolver
+        assertEq(address(streamsResolver).balance, 2 gwei);
+        vm.prank(admin);
+        streamsResolver.withdrawNative(payable(treasury), 2 gwei);
+        assertEq(treasury.balance, 2 gwei);
+        vm.warp(T0 + 3 + WINDOW);
+        em.open("");
+        assertEq(em.strike(), 3000e18);
     }
 
     function test_redeem_feeSkippedWithoutRecipient() public {
@@ -550,6 +623,22 @@ contract MarketTest is Base {
         vm.warp(T0 + GRACE + 1);
         em.invalidate();
         assertEq(uint8(em.state()), uint8(Market.State.INVALID));
+    }
+
+    /// Regression (Phase 1 review M1): during an aggregator migration a boundary must never be
+    /// both voided (for the round ending there) and priced (for the round starting there).
+    function test_adjacentRoundsAgreeAcrossPhaseMigration() public {
+        Market next = _create(BTC, M15, T0 + M15);
+        _open(100e8);
+        uint64 t1 = T0 + M15;
+        vm.warp(t1 + 5);
+        uint80 oldPhase = feed.setRound(1, 3, 120e8, t1 + 5); // old phase still transmitting
+        feed.setRound(2, 1, 90e8, t1 - 10); // proxy switched; its latest is before t1
+        vm.warp(t1 + MAX_DELAY + 1);
+        m.resolve(""); // stale current phase -> UNRESOLVABLE, checkpointed
+        assertEq(uint8(m.state()), uint8(Market.State.INVALID));
+        next.open(abi.encode(oldPhase)); // old-phase proof is ignored: boundary already decided
+        assertEq(uint8(next.state()), uint8(Market.State.INVALID));
     }
 
     // ------------------------------------------------------------------ helpers

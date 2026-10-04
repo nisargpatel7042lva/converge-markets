@@ -35,9 +35,22 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
     uint64 public immutable grace;
 
     mapping(bytes32 assetId => bytes32 feedId) public feedIdOf;
+    /// @notice Passed to VerifierProxy.verify. Empty under subscription billing (Chainlink docs).
+    ///         If Chainlink enables an onchain FeeManager on Monad, the owner sets the documented
+    ///         fee metadata here (e.g. abi.encode(feeToken)) and submitters forward msg.value, so
+    ///         settlement keeps working instead of every boundary voiding.
+    bytes public parameterPayload;
+    mapping(bytes32 assetId => mapping(uint64 timestamp => bool)) private _settledEmitted;
     mapping(bytes32 assetId => mapping(uint64 timestamp => Proposal)) private _proposals;
 
     event AssetConfigured(bytes32 indexed assetId, bytes32 feedId);
+    event ParameterPayloadSet(bytes payload);
+    event NativeWithdrawn(address indexed to, uint256 amount);
+    /// @notice Emitted once by `checkpoint` when a boundary becomes FINAL or UNRESOLVABLE (both
+    ///         are time-based here, so this is the indexer's explicit signal).
+    event BoundarySettled(
+        bytes32 indexed assetId, uint64 indexed timestamp, Status status, int256 price
+    );
     event ReportProposed(
         bytes32 indexed assetId,
         uint64 indexed timestamp,
@@ -56,6 +69,9 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
     error BoundaryNotInReportWindow(uint64 timestamp, uint32 validFrom, uint32 observations);
     error InvalidPrice(int192 price);
     error SubmissionWindowClosed(uint64 timestamp);
+    error ValueNotUsed();
+    error ZeroAddress();
+    error NativeTransferFailed();
 
     constructor(address owner_, IVerifierProxy verifier_, uint64 finalizationWindow_, uint64 grace_)
         Ownable(owner_)
@@ -87,12 +103,20 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
     /// @inheritdoc IPriceResolver
     /// @dev `data` is the full report payload from Data Streams (header + signed report).
     ///      No-op once FINAL.
-    // slither-disable-next-line reentrancy-no-eth
-    function submit(bytes32 assetId, uint64 timestamp, bytes calldata data) external nonReentrant {
+    // nonReentrant; the only external call is the immutable Chainlink VerifierProxy.
+    // slither-disable-next-line reentrancy-eth,reentrancy-no-eth
+    function submit(bytes32 assetId, uint64 timestamp, bytes calldata data)
+        external
+        payable
+        nonReentrant
+    {
         bytes32 feedId = _feedId(assetId);
         Proposal storage p = _proposals[assetId][timestamp];
         bool exists = p.firstProposedAt != 0;
-        if (exists && block.timestamp >= uint256(p.firstProposedAt) + finalizationWindow) return;
+        if (exists && block.timestamp >= uint256(p.firstProposedAt) + finalizationWindow) {
+            if (msg.value != 0) revert ValueNotUsed();
+            return;
+        }
         if (!exists && block.timestamp > uint256(timestamp) + grace) {
             revert SubmissionWindowClosed(timestamp);
         }
@@ -104,7 +128,7 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
 
         // Trusted call: the immutable Chainlink VerifierProxy; submit is also nonReentrant.
         // forge-lint: disable-next-line(reentrancy-no-eth)
-        bytes memory verified = verifier.verify(data, bytes(""));
+        bytes memory verified = verifier.verify{value: msg.value}(data, parameterPayload);
         ReportV3 memory r = abi.decode(verified, (ReportV3));
         if (r.feedId != feedId) revert WrongFeed(feedId, r.feedId);
         if (r.validFromTimestamp > timestamp || r.observationsTimestamp < timestamp) {
@@ -137,8 +161,40 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
     }
 
     /// @inheritdoc IPriceResolver
-    function priceAt(bytes32 assetId, uint64 timestamp)
+    function checkpoint(bytes32 assetId, uint64 timestamp)
         external
+        returns (Status status, int256 price)
+    {
+        (status, price) = priceAt(assetId, timestamp);
+        if (status != Status.PENDING && !_settledEmitted[assetId][timestamp]) {
+            _settledEmitted[assetId][timestamp] = true;
+            emit BoundarySettled(assetId, timestamp, status, price);
+        }
+    }
+
+    /// @notice Sets the fee metadata forwarded to the verifier (see `parameterPayload`).
+    function setParameterPayload(bytes calldata payload) external onlyOwner {
+        parameterPayload = payload;
+        emit ParameterPayloadSet(payload);
+    }
+
+    /// @notice Recovers native refunds a FeeManager may send back (change from fee payments).
+    // Owner-only recovery of fee-manager refunds (no user funds are ever held as ETH).
+    // slither-disable-next-line arbitrary-send-eth,low-level-calls
+    function withdrawNative(address payable to, uint256 amount) external onlyOwner {
+        if (to == address(0)) revert ZeroAddress();
+        emit NativeWithdrawn(to, amount);
+        // forge-lint: disable-next-line(arbitrary-send-eth)
+        (bool ok,) = to.call{value: amount}("");
+        if (!ok) revert NativeTransferFailed();
+    }
+
+    /// @dev Accepts native refunds from the verifier's fee manager.
+    receive() external payable {}
+
+    /// @inheritdoc IPriceResolver
+    function priceAt(bytes32 assetId, uint64 timestamp)
+        public
         view
         returns (Status status, int256 price)
     {

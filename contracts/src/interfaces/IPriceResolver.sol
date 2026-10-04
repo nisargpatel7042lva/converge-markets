@@ -19,7 +19,15 @@ interface IPriceResolver {
     /// @param assetId Asset identifier (e.g. keccak256("BTC/USD")).
     /// @param timestamp Aligned UTC boundary.
     /// @param data Resolver-specific evidence (abi-encoded roundId, or a signed report).
-    function submit(bytes32 assetId, uint64 timestamp, bytes calldata data) external;
+    ///      Payable so verification fees (if the oracle charges them) can be forwarded;
+    ///      implementations that charge nothing must reject value.
+    function submit(bytes32 assetId, uint64 timestamp, bytes calldata data) external payable;
+
+    /// @notice Like priceAt, but makes a terminal status permanent (stored + event) so every
+    ///         market touching this boundary sees the same outcome forever. Permissionless.
+    function checkpoint(bytes32 assetId, uint64 timestamp)
+        external
+        returns (Status status, int256 price);
 
     /// @notice Current status and price of P(assetId, timestamp).
     /// @return status PENDING, FINAL or UNRESOLVABLE.

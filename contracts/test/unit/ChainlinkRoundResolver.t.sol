@@ -187,6 +187,54 @@ contract ChainlinkRoundResolverTest is Base {
         roundResolver.submit(BTC, T0, abi.encode(id));
     }
 
+    function test_rejectsValue() public {
+        vm.warp(T0 + 10);
+        uint80 id = feed.setRound(1, 2, 1e8, T0 + 1);
+        vm.deal(alice, 1);
+        vm.prank(alice);
+        vm.expectRevert(R.NoValueAccepted.selector);
+        roundResolver.submit{value: 1}(BTC, T0, abi.encode(id));
+    }
+
+    /// Aggregator migration: the old phase keeps transmitting while the proxy points at the new
+    /// phase. Only current-phase proofs are accepted, so a submitter cannot pick between phases.
+    function test_crossPhase_onlyCurrentPhaseAccepted() public {
+        vm.warp(T0 + 10);
+        uint80 oldId = feed.setRound(1, 2, 100e8, T0 + 2); // old phase, valid shape
+        feed.setRound(2, 1, 150e8, T0 - 60);
+        uint80 newId = feed.setRound(2, 2, 200e8, T0 + 3); // proxy now on phase 2
+        vm.expectRevert(abi.encodeWithSelector(R.NotCurrentPhase.selector, oldId, newId));
+        roundResolver.submit(BTC, T0, abi.encode(oldId));
+        roundResolver.submit(BTC, T0, abi.encode(newId));
+        (, int256 p) = roundResolver.priceAt(BTC, T0);
+        assertEq(p, 200e8);
+    }
+
+    /// Once UNRESOLVABLE is checkpointed it can never become FINAL (adjacent rounds agree).
+    function test_checkpoint_makesUnresolvablePermanent() public {
+        vm.warp(T0 + MAX_DELAY + 1); // stale: no round since T0
+        vm.expectEmit(address(roundResolver));
+        emit R.BoundaryUnresolvable(BTC, T0);
+        (IPriceResolver.Status s,) = roundResolver.checkpoint(BTC, T0);
+        assertEq(uint8(s), uint8(IPriceResolver.Status.UNRESOLVABLE));
+        // a late round arrives: without the checkpoint the view would fall back to PENDING
+        uint80 id = feed.setRound(1, 2, 1e8, block.timestamp);
+        roundResolver.submit(BTC, T0, abi.encode(id)); // no-op: already decided
+        assertEq(uint8(_status(roundResolver, BTC, T0)), uint8(IPriceResolver.Status.UNRESOLVABLE));
+        roundResolver.checkpoint(BTC, T0); // idempotent, no second event
+    }
+
+    function test_checkpoint_pendingAndFinalPassThrough() public {
+        vm.warp(T0 + 10);
+        (IPriceResolver.Status s,) = roundResolver.checkpoint(BTC, T0);
+        assertEq(uint8(s), uint8(IPriceResolver.Status.PENDING));
+        roundResolver.submit(BTC, T0, _round(2, 9e8, T0 + 1));
+        int256 p;
+        (s, p) = roundResolver.checkpoint(BTC, T0);
+        assertEq(uint8(s), uint8(IPriceResolver.Status.FINAL));
+        assertEq(p, 9e8);
+    }
+
     function test_adjacentRoundsShareBoundary() public {
         vm.warp(T0 + M15 + 10);
         uint80 id = feed.setRound(1, 2, 7e8, T0 + M15 + 2);

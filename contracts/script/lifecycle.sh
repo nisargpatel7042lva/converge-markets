@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Phase 1 lifecycle on a deployed network: create a 15m TEST market at the next boundary, split,
 # open (signed test report), wait, resolve, redeem. Writes docs/evidence/phase-1/lifecycle-<net>.md
-# with every tx hash. Prices: the real Chainlink ETH/USD (Monad mainnet) answer read at each
-# boundary, signed by the TEST-ONLY streams signer (MockStreamsVerifierProxy).
+# with every tx hash. Prices: the latest Chainlink ETH/USD (Monad mainnet) answer at the moment
+# the script reaches each boundary (not a historical lookup), signed by the TEST-ONLY streams
+# signer (MockStreamsVerifierProxy).
+# Optional: END_PRICE_DELTA_BPS (rehearsal only) shifts the end price to exercise UP/DOWN when
+# the real price did not move; it is printed in the evidence when used.
 # Usage: NETWORK_NAME=testnet RPC_URL=https://testnet-rpc.monad.xyz bash contracts/script/lifecycle.sh
 # Optional: WARP=1 (local anvil only: jump time instead of sleeping).
 set -euo pipefail
@@ -43,10 +46,10 @@ send() { # label, to, sig, args... ; logs the tx hash
   log "| $label | \`$h\` | $bn | $([ "$st" = 1 ] && echo ok || echo REVERTED) |"
   [ "$st" = 1 ]
 }
-report() { # boundary ts -> signed payload hex (window [t, t], price = Chainlink ETH/USD * 1e10)
-  local t=$1
+report() { # boundary ts [delta bps] -> signed payload hex (window [t, t], price = ETH/USD * 1e10)
+  local t=$1 delta=${2:-0}
   local px; px=$(cast call $ETH_USD "latestRoundData()(uint80,int256,uint256,uint256,uint80)" --rpc-url "$PRICE_RPC" | sed -n 2p | awk '{print $1}')
-  local px18; px18=$(python3 -c "print($px * 10**10)")
+  local px18; px18=$(python3 -c "print($px * 10**10 * (10000 + $delta) // 10000)")
   local data; data=$(cast abi-encode "f(bytes32,uint32,uint32,uint192,uint192,uint32,int192,int192,int192)" \
     "$FEED_ID" "$t" "$t" 0 0 $((t + 86400)) "$px18" "$px18" "$px18")
   local sig; sig=$(cast wallet sign --private-key "$SK" "$(cast keccak "$data")")
@@ -64,7 +67,8 @@ END=$((START + 900))
   echo "- chain id: $(cast chain-id --rpc-url "$RPC_URL"), run at $(date -u +%FT%TZ)"
   echo "- factory \`$FACTORY\`, collateral tUSDC \`$TUSDC\`, resolver DataStreamsResolver \`$STREAMS\` (MockStreamsVerifierProxy, TEST-ONLY signer)"
   echo "- market: TEST/USD 15m, start $START ($(date -u -d @$START +%FT%TZ)), end $END"
-  echo "- prices: Chainlink ETH/USD on Monad mainnet at each boundary, x1e10 to 18 dp, signed by the test signer"
+  echo "- prices: latest Chainlink ETH/USD (Monad mainnet) answer when the script reached each boundary, x1e10 to 18 dp, signed by the test signer"
+  [ "${END_PRICE_DELTA_BPS:-0}" != "0" ] && echo "- **rehearsal nudge:** end price shifted by ${END_PRICE_DELTA_BPS} bps to exercise the non-tie path"
   echo
   echo "| step | tx hash | block | status |"
   echo "|---|---|---|---|"
@@ -86,7 +90,7 @@ send "open() after finalization window" "$MARKET" "open(bytes)" 0x
 STRIKE=$(cast call "$MARKET" "strike()(int256)" --rpc-url "$RPC_URL" | awk '{print $1}')
 
 wait_until $((END + 2))
-P2=$(report "$END" 2>/tmp/px2); PX2=$(cut -d= -f2 /tmp/px2)
+P2=$(report "$END" "${END_PRICE_DELTA_BPS:-0}" 2>/tmp/px2); PX2=$(cut -d= -f2 /tmp/px2)
 send "resolve(signed report @end, price $PX2)" "$MARKET" "resolve(bytes)" "$P2"
 wait_until $(( $(now) + WINDOW + 2 ))
 send "resolve() after finalization window" "$MARKET" "resolve(bytes)" 0x

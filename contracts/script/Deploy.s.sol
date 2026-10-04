@@ -31,7 +31,13 @@ contract Deploy is Script {
     /// @dev Chainlink BTC/USD proxy on Monad testnet (docs/EXTERNAL.md).
     address internal constant TESTNET_BTC_FEED = 0x12C0F44368a02081ce58a936d1C1F606BB301715;
 
+    error NotATestNetwork(uint256 chainId);
+
     function run() external {
+        // Testnet-only deployment: open-mint collateral + mock verifier must never reach mainnet.
+        if (block.chainid != 10_143 && block.chainid != 31_337) {
+            revert NotATestNetwork(block.chainid);
+        }
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
         address deployer = vm.addr(pk);
         address streamsSigner = vm.envAddress("STREAMS_TEST_SIGNER");
