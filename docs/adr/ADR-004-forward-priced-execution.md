@@ -1,6 +1,6 @@
 # ADR-004: Forward-priced execution (two-step swaps)
 
-- Status: **Proposed.** Needs Nisarg's decision: it changes ADR-001's venue design.
+- Status: **Accepted by Nisarg on 2026-10-05** (Phase 4 venue design, choice (a)), **with the Known limits below unresolved**: the information lead is unmeasured and the design has zero margin at a 2 s lead. It amends ADR-001 decisions 1 and 2; the Kuru leg is out of Phase 4.
 - Date: 2026-10-05
 - Evidence: `backtest/report/REPORT.md` (sections 3, 4, 5), `backtest/report/results.json`, `docs/evidence/phase-3/`
 - Supersedes: nothing yet. If accepted, it amends ADR-001 decision 1 and 2 (keeper-written mids and onchain band checks).

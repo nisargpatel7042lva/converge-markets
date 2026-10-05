@@ -153,3 +153,11 @@ Price feeds come from the official directory JSON https://reference-data-directo
 | Chainlink Data Streams history | Needs an API key and secret: not available. The Binance-to-Streams information lead is therefore **unmeasured** | `docs/EXTERNAL.md` Phase 2 rows | 2026-10-05 | **BLOCKED** (needs Nisarg's Data Streams key) |
 | `fast-check` | 4.10.2 (property tests), `@vitest/coverage-v8` 2.1.9 (coverage gate) | npm | 2026-10-05 | VERIFIED |
 | `@resvg/resvg-js` | 2.6.2 (SVG to PNG for the report charts, prebuilt binaries; DejaVu Sans bundled in `backtest/assets/fonts`) | npm, https://dejavu-fonts.github.io/License.html | 2026-10-05 | VERIFIED |
+
+## Phase 4 additions (vault)
+
+| Item | Value | Source | Verified | Status |
+|---|---|---|---|---|
+| Solady `FixedPointMathLib` | v0.1.26, commit `acd959aa4bd04720d640bf4e6a5c71037510cc4b`, vendored as one file plus its MIT licence in `contracts/lib/solady/` (used for `lnWad`, `expWad`, `sqrtWad`, `mulWad`, `fullMulDiv`) | https://github.com/Vectorized/solady | 2026-10-05 | VERIFIED (vendored, licence kept) |
+| Normal CDF approximation | West (2005), Hart (1968) double-precision algorithm, evaluated in WAD fixed point. Max absolute error against the TS float reference is asserted in `contracts/test/QuoteMath.t.sol` over 600 golden vectors | Graeme West, "Better approximations to cumulative normal functions", Wilmott 2005 | 2026-10-05 | VERIFIED (parity-tested) |
+| Mainnet-fork tests | Monad mainnet RPC (`MONAD_MAINNET_RPC_URL`), real USDC (`0x754704Bc059F8C67012fEd69BC8A327a5aafb603`), see ADR-003 | ADR-003 | 2026-10-05 | VERIFIED (ADR-003) |
