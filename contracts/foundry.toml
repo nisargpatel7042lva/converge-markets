@@ -6,6 +6,8 @@ solc_version = "0.8.28"
 evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200
+# Monad allows 128 KB contracts (docs.monad.xyz developer-essentials/summary); ConvergeVault is ~36 KB.
+code_size_limit = 131072
 # Deploy script writes deployments/<network>.json
 fs_permissions = [
   { access = "read-write", path = "../deployments" },
