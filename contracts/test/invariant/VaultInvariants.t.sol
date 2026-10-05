@@ -8,6 +8,7 @@ import {QuoteMath} from "../../src/vault/QuoteMath.sol";
 import {Market} from "../../src/Market.sol";
 import {IPriceResolver} from "../../src/interfaces/IPriceResolver.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Vm} from "forge-std/Vm.sol";
 import {FakeMarket} from "../unit/VaultInventory.t.sol";
 
 /// @notice Stateful fuzzing of the whole vault: LPs, a market lifecycle driver, takers trading
@@ -50,6 +51,7 @@ contract VaultInvariants is VaultBase {
     uint256 public cBreakerOrPaused;
     uint256 public cPartialRedeem;
     uint256 public cExecFail;
+    uint256 public cExpired;
 
     function setUp() public override {
         super.setUp();
@@ -67,7 +69,7 @@ contract VaultInvariants is VaultBase {
         _track();
 
         targetContract(address(this));
-        bytes4[] memory sel = new bytes4[](16);
+        bytes4[] memory sel = new bytes4[](19);
         sel[0] = this.h_warp.selector;
         sel[1] = this.h_move.selector;
         sel[2] = this.h_createOpen.selector;
@@ -84,6 +86,9 @@ contract VaultInvariants is VaultBase {
         sel[13] = this.h_pause.selector;
         sel[14] = this.h_attack.selector;
         sel[15] = this.h_trade.selector; // trades weigh double
+        sel[16] = this.h_settle.selector; // so do settlements and inventory moves
+        sel[17] = this.h_split.selector;
+        sel[18] = this.h_lpRedeem.selector;
         targetSelector(FuzzSelector({addr: address(this), selectors: sel}));
     }
 
@@ -144,7 +149,7 @@ contract VaultInvariants is VaultBase {
             cSigma++;
         }
         if (block.timestamp > uint256(vault.navUpdatedAt()) + 600) {
-            vault.checkpoint(_marksIfNeeded());
+            vault.checkpoint(_freshMarks());
         }
     }
 
@@ -156,15 +161,15 @@ contract VaultInvariants is VaultBase {
         }
     }
 
-    function _marksIfNeeded() internal view returns (bytes[] memory r) {
-        if (vault.marksNeeded().length == 0) return _noReports();
-        return _markNow(spot);
+    /// @dev A fresh mark for the breaker (checkpoint marks are optional; passing one is normal).
+    function _freshMarks() internal view returns (bytes[] memory r) {
+        return vault.marketCount() == 0 ? _noReports() : _markNow(spot);
     }
 
     // ------------------------------------------------------------------ environment
 
     function h_warp(uint256 dt) external {
-        vm.warp(block.timestamp + bound(dt, 1, 240));
+        vm.warp(block.timestamp + bound(dt, 1, 120));
         _track();
     }
 
@@ -196,13 +201,19 @@ contract VaultInvariants is VaultBase {
         if (ms.length == 0) return;
         Market m = _pick(i);
         if (m.state() != Market.State.OPEN) return;
+        _resolveMarket(m);
+        _track();
+    }
+
+    /// @dev Resolves a round the way the system does: through the next round's start report
+    ///      (same boundary), by submitting the end report, or, when nobody did in time, by
+    ///      invalidating it. Then pulls the vault's winnings back (anyone may).
+    function _resolveMarket(Market m) internal {
         uint64 end = m.endTime();
         if (_status(streamsResolver, ETH, end) == IPriceResolver.Status.FINAL) {
-            // the next round's start report (same boundary) already finalized it
             m.resolve("");
             cResolved++;
         } else if (block.timestamp > end + GRACE) {
-            // nobody submitted a report in time: the boundary is unresolvable
             m.invalidate();
             cInvalid++;
         } else {
@@ -224,7 +235,6 @@ contract VaultInvariants is VaultBase {
                 if (u != 0 || d != 0) _violate("redeemResolved reverted with tokens held");
             }
         }
-        _track();
     }
 
     // ------------------------------------------------------------------ LPs
@@ -256,8 +266,9 @@ contract VaultInvariants is VaultBase {
         }
     }
 
-    /// @dev Settles the first ended epoch with requests. The share price must not change from the
-    ///      flows alone (beyond rounding in the vault's favour).
+    /// @dev Settles the first ended epoch with requests (resolving the rounds that ended first,
+    ///      as a settler would). The share price must not change from the flows alone (beyond
+    ///      rounding in the vault's favour); an epoch left past its window must expire cleanly.
     function h_settle() external {
         for (uint256 i = 0; i < usedEpochs.length; i++) {
             uint256 e = usedEpochs[i];
@@ -270,30 +281,46 @@ contract VaultInvariants is VaultBase {
     }
 
     function _settleOne(uint256 e) internal {
-        bytes[] memory marks = _marksIfNeeded();
-        bool outage;
-        if (marks.length > 0 && block.timestamp > vault.epochEnd(e) + vault.markGrace()) {
-            marks = _noReports(); // exercise the outage path too
-            outage = true; // valued at the bounds: deliberately not comparable with the checkpoint
+        uint256 end = vault.epochEnd(e);
+        bool late = block.timestamp > end + vault.settleWindow();
+        bytes[] memory marks = _noReports();
+        if (!late) {
+            (, address[] memory pending) = vault.settlementPlan(e);
+            for (uint256 i = 0; i < pending.length; i++) {
+                _resolveMarket(Market(pending[i]));
+            }
+            late = block.timestamp > end + vault.settleWindow(); // resolving takes time
+            (bytes32[] memory feeds,) = vault.settlementPlan(e);
+            if (!late && feeds.length > 0) marks = _markAt(end, spot);
         }
-        // Reference prices from the same marks, at the same timestamp, before the flows.
-        vault.checkpoint(marks);
-        uint256 supply0 = vault.totalSupply();
-        uint256 pl0 = (vault.quoteNavLower() * 1e18) / supply0;
-        uint256 pu0 = (vault.lastNavUpper() * 1e18) / supply0;
+        vm.recordLogs();
         vault.settleEpoch(e, marks);
         cSettles++;
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        for (uint256 i = 0; i < logs.length; i++) {
+            if (logs[i].topics[0] == ConvergeVault.EpochExpired.selector) {
+                cExpired++;
+                return;
+            }
+            if (logs[i].topics[0] == ConvergeVault.EpochSettled.selector) {
+                _checkFlowPrice(e, logs[i].data);
+            }
+        }
+    }
+
+    function _checkFlowPrice(uint256 e, bytes memory data) internal {
+        (uint256 lo, uint256 hi, uint256 supplyBefore,,,,,) =
+            abi.decode(data, (uint256, uint256, uint256, uint256, uint256, uint256, uint256, bool));
         uint256 supply1 = vault.totalSupply();
         // 1e-9 relative slack for the integer division in the check itself
-        (, uint128 r,,,, uint128 filled, uint128 paid) = _ep(e);
-        if (r != 0 && filled < r && paid != 0) cPartialRedeem++;
-        if (outage) return;
-        if ((vault.quoteNavLower() * 1e18) / supply1 + 1e9 < pl0) {
+        if ((vault.quoteNavLower() * 1e18) / supply1 + 1e9 < (lo * 1e18) / supplyBefore) {
             _violate("lower share price fell from flows");
         }
-        if ((vault.lastNavUpper() * 1e18) / supply1 + 1e9 < pu0) {
+        if ((vault.lastNavUpper() * 1e18) / supply1 + 1e9 < (hi * 1e18) / supplyBefore) {
             _violate("upper share price fell from flows");
         }
+        (, uint128 r,,,, uint128 filled, uint128 paid) = _ep(e);
+        if (r != 0 && filled < r && paid != 0) cPartialRedeem++;
     }
 
     function _ep(uint256 e)
@@ -407,7 +434,7 @@ contract VaultInvariants is VaultBase {
     }
 
     function h_checkpoint() external {
-        vault.checkpoint(_marksIfNeeded());
+        vault.checkpoint(_freshMarks());
         _track();
     }
 
@@ -625,6 +652,7 @@ contract VaultInvariants is VaultBase {
         l = _kv(l, "pauses", cPauses);
         l = _kv(l, "partial", cPartialRedeem);
         l = _kv(l, "execfail", cExecFail);
+        l = _kv(l, "expired", cExpired);
         vm.writeLine("../docs/evidence/phase-4/invariant-paths.log", l);
     }
 

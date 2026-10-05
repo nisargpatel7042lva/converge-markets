@@ -19,3 +19,4 @@ services/scheduler/cre/scheduler/node_modules/
 backtest/data/raw/
 backtest/data/cache/
 backtest/report/quick/
+docs/evidence/phase-4/invariant-paths.log

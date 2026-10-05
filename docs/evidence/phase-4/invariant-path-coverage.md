@@ -1,25 +1,26 @@
 # Vault invariant path coverage
 
-Runs logged: 264
+Runs logged: 257
 
 | path | calls |
 |---|---|
-| attacks | 1614 |
-| claims | 510 |
-| deposits | 1616 |
+| attacks | 1293 |
+| claims | 536 |
+| deposits | 1353 |
 | execfail | 0 |
-| filled | 327 |
+| expired | 150 |
+| filled | 302 |
 | invalidated | 0 |
-| merges | 394 |
-| orders | 686 |
-| partial | 2 |
-| pauses | 485 |
-| redeemResolved | 411 |
-| redeems | 569 |
-| resolved | 742 |
-| settles | 612 |
-| sigma | 1870 |
-| splits | 509 |
-| unfilled | 359 |
+| merges | 340 |
+| orders | 627 |
+| partial | 5 |
+| pauses | 413 |
+| redeemResolved | 401 |
+| redeems | 771 |
+| resolved | 621 |
+| settles | 620 |
+| sigma | 1596 |
+| splits | 761 |
+| unfilled | 325 |
 
 Missing required paths: none

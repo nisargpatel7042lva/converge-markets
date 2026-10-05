@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -63,3 +63,17 @@ check-3: check-all
 	@head -5 backtest/report/REPORT.md | grep -q "VERDICT"
 	@test -s docs/evidence/phase-3/determinism.txt
 	@echo "check-3 OK"
+
+# Phase 4: everything in check-all (unit + fuzz + the malicious-keeper invariant suite at 256 runs x
+# depth 100, forge lint, slither), plus: the strategy twin parity (in ts-check), invariant path
+# coverage, >= 95% line coverage on the vault, venue and QuoteMath, and the fork tests on a Monad
+# mainnet fork (real USDC and the real VerifierProxy; needs network).
+check-4: check-all
+	cd contracts && rm -f ../docs/evidence/phase-4/invariant-paths.log && forge test --match-contract VaultInvariants
+	cd contracts && bash script/invariant-path-coverage-vault.sh
+	cd contracts && bash script/check-coverage-vault.sh
+	cd contracts && forge test --match-contract VaultForkTest --rpc-url $${MONAD_MAINNET_RPC_URL:-https://rpc.monad.xyz}
+	@test -f docs/security/threat-model.md && test -f docs/adr/ADR-005-converge-vault.md
+	@grep -q '"vault"' deployments/testnet.json
+	@test -s docs/evidence/phase-4/testnet-e2e.md
+	@echo "check-4 OK"

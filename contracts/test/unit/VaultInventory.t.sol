@@ -350,34 +350,26 @@ contract VaultInventoryTest is VaultBase {
         _donate(h, true, 10 * U);
     }
 
-    function test_nav_strictSettlementNeedsMarkUntilGrace() public {
+    function test_nav_strictSettlementNeedsTheCanonicalMark() public {
         _hourMarketWithExcess();
-        bytes32[] memory needed = vault.marksNeeded();
+        uint256 e = _requestDeposit(carolAddr(), 20 * U);
+        (bytes32[] memory needed, address[] memory pending) = vault.settlementPlan(e);
         assertEq(needed.length, 1);
         assertEq(needed[0], ETH_FEED);
-        uint256 e = _requestDeposit(carolAddr(), 20 * U);
+        assertEq(pending.length, 0);
         _toEpochEnd(e); // 15:30, the hour market runs to 16:00
         vm.expectRevert(abi.encodeWithSelector(ConvergeVault.MarkMissing.selector, ETH));
         vault.settleEpoch(e, _noReports());
-        vault.settleEpoch(e, _markNow(3000e18)); // with a fresh report it settles
+        vault.settleEpoch(e, _markAt(block.timestamp, 3000e18)); // with the report at T it settles
         assertGt(vault.lastNavUpper(), vault.quoteNavLower());
-    }
-
-    function test_nav_missingMarkAfterGraceUsesBounds() public {
-        _hourMarketWithExcess();
-        uint256 e = _requestDeposit(carolAddr(), 20 * U);
-        _toEpochEnd(e);
-        vm.warp(vault.epochEnd(e) + vault.markGrace());
-        vault.settleEpoch(e, _noReports());
-        // unmarked excess: worth 0 at the lower NAV and 1 at the upper
-        assertEq(vault.quoteNavLower(), 1000 * U + 20 * U);
-        assertEq(vault.lastNavUpper(), 1000 * U + 20 * U + 10 * U);
     }
 
     function test_nav_marksNeededEmptyWhenNoExcess() public {
         vm.prank(vKeeper);
         vault.splitForInventory(m, 50 * U);
-        assertEq(vault.marksNeeded().length, 0);
+        (bytes32[] memory feeds, address[] memory pending) = vault.settlementPlan(5);
+        assertEq(feeds.length, 0);
+        assertEq(pending.length, 0);
     }
 
     function test_nav_resolvedMarketsAreExactNetOfFee() public {
@@ -470,6 +462,20 @@ contract VaultInventoryTest is VaultBase {
         vault.checkpoint(_noReports());
         assertFalse(vault.quotingPaused());
         assertApproxEqRel(vault.quoteNavLower(), lower, 0.01e18);
+    }
+
+    function test_breaker_roundEndedButUnresolvedDoesNotTripIt() public {
+        _setSigma(0.6e18);
+        vm.prank(vKeeper);
+        vault.splitForInventory(m, 100 * U);
+        _donate(m, true, 100 * U); // 100 spare UP: a large exposure to the round's outcome
+        vault.checkpoint(_markNow(3010e18)); // spot above strike: UP is likely to win
+        vm.warp(T0 + 900 + 5); // the round has ended; the resolution report is not final yet
+        vault.checkpoint(_noReports()); // anyone, with no report
+        assertFalse(vault.quotingPaused());
+        // valued from the last verified mark (less the sigma corners and the band), not at zero:
+        // the lower NAV keeps a good part of the 100 USDC of spare UP
+        assertGt(vault.quoteNavLower(), 1000 * U + 50 * U);
     }
 
     function test_checkpoint_onEmptyVaultIsNoop() public {
@@ -617,6 +623,7 @@ contract VaultInventoryTest is VaultBase {
         vm.startPrank(vOwner);
         vault.setRiskConfig(20, 0.1e18, 300, 300, 0.2e18, 0.4e18);
         assertEq(vault.maxMarkAge(), 20);
+        assertEq(vault.settleWindow(), 300);
         assertEq(vault.breakerBps(), 300);
         vm.expectRevert(ConvergeVault.InvalidConfig.selector);
         vault.setRiskConfig(0, 0.1e18, 300, 300, 0.2e18, 0.4e18);

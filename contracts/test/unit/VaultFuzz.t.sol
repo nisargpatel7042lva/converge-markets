@@ -156,7 +156,7 @@ contract VaultFuzzTest is VaultBase {
         uint256 e = _requestDeposit(carol(), deposit);
         _toEpochEnd(e); // T0 + 900: the round has just ended, excess is awaiting resolution
         // keep the round open instead: use an epoch end that falls inside a longer round
-        vault.settleEpoch(e, _markIfNeeded(px));
+        vault.settleEpoch(e, _planMarks(e, px));
         vm.prank(carol());
         vault.claimDeposit(e, carol());
         uint256 shares = vault.balanceOf(carol());
@@ -165,7 +165,7 @@ contract VaultFuzzTest is VaultBase {
         vm.prank(carol());
         uint256 e2 = vault.requestRedeem(shares);
         _toEpochEnd(e2);
-        vault.settleEpoch(e2, _markIfNeeded(px));
+        vault.settleEpoch(e2, _planMarks(e2, px));
         vm.prank(carol());
         vault.claimRedeem(e2, carol());
         assertLe(usdc.balanceOf(carol()), deposit);
@@ -173,10 +173,6 @@ contract VaultFuzzTest is VaultBase {
 
     function carol() internal returns (address) {
         return makeAddr("carolFuzz");
-    }
-
-    function _markIfNeeded(int192 px) internal view returns (bytes[] memory) {
-        return vault.marksNeeded().length == 0 ? _noReports() : _markNow(px);
     }
 
     /// @dev Several LPs in one epoch: the sum of what they claim never exceeds what the epoch settled.

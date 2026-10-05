@@ -26,6 +26,7 @@ import {DataStreamsResolver} from "../resolvers/DataStreamsResolver.sol";
 import {IVerifierProxy, ReportV3} from "../interfaces/IVerifierProxy.sol";
 import {QuoteMath} from "./QuoteMath.sol";
 import {ReportLib} from "./ReportLib.sol";
+import {Series} from "../libraries/Series.sol";
 
 /// @title ConvergeVault
 /// @notice LP vault for the Converge outcome markets (docs/adr/ADR-005, docs/security/threat-model.md).
@@ -84,9 +85,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     }
 
     enum MarkMode {
-        STRICT, // a missing mark that is needed reverts (settlement)
-        LAST_KNOWN, // a missing mark falls back to the last verified one (breaker)
-        BOUNDS // a missing mark means excess tokens are worth 0 (lower) or 1 (upper)
+        STRICT, // a missing mark that is needed reverts, an unresolved ended round reverts (settlement)
+        LAST_KNOWN // a missing mark falls back to the last verified one (breaker, auto-checkpoint)
     }
 
     /// @dev What the venue needs to price one market.
@@ -105,6 +105,10 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     uint256 public constant MAX_ASSETS = 8;
     uint256 public constant MAX_FEE_BPS = 2_000; // 20%
     uint256 public constant VENUE_DELAY = 2 days;
+    /// @dev While trading continues the vault re-values itself at most this often (seconds), and
+    ///      only from a venue report no older than AUTO_MARK_MAX_AGE.
+    uint256 public constant AUTO_CHECKPOINT_INTERVAL = 60;
+    uint256 public constant AUTO_MARK_MAX_AGE = 60;
     /// @dev Shares permanently locked at the first settlement (donation-inflation defense).
     uint256 public constant DEAD_SHARES = 1_000;
     address internal constant DEAD = address(0xdEaD);
@@ -140,9 +144,13 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     uint32 public maxMarkAge = 10;
     /// @notice Extra haircut around every mark, WAD (covers price movement during maxMarkAge).
     uint64 public markBand = 0.05e18;
-    /// @notice Seconds after an epoch ends before it may settle without a mark for every market
-    ///         with unresolved exposure (a feed outage must not freeze exits).
-    uint32 public markGrace = 10 minutes;
+    /// @notice Seconds after an epoch ends during which it can be settled (60 s up to, not
+    ///         including, one round of 15 minutes). Marks are the reports that contain the epoch's
+    ///         end time, and epoch ends and round ends share one 15 minute grid, so no round that
+    ///         was still running at the epoch end can have ended inside the window: waiting reveals
+    ///         nothing. An epoch not settled in time expires: deposits are refunded and redemption
+    ///         requests are queued again, nothing is priced late.
+    uint32 public settleWindow = 10 minutes;
     /// @notice Daily drawdown limit on the lower share price, in bps.
     uint16 public breakerBps = 500;
     uint16 public maxSigmaStepBps = 2_000;
@@ -217,6 +225,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     event NavSnapshot(
         uint256 navLower, uint256 navUpper, uint256 ppsLower, uint256 supply, bool settlement
     );
+    event EpochExpired(uint256 indexed epochId, uint256 depositsRefunded, uint256 redeemShares);
     event PerformanceFee(uint256 feeShares, uint256 feeAssets, uint256 newHwm);
     event Fill(
         address indexed market,
@@ -250,7 +259,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     event RiskConfigSet(
         uint256 maxMarkAge,
         uint256 markBand,
-        uint256 markGrace,
+        uint256 settleWindow,
         uint256 breakerBps,
         uint256 maxPairFraction,
         uint256 maxInventoryFraction
@@ -281,6 +290,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     error DuplicateReport(bytes32 assetId);
     error StaleReport(uint32 obsTs, uint256 nowTs);
     error MarkMissing(bytes32 assetId);
+    error MarketNotResolved(address market);
+    error ReportNotCanonical(uint64 at, uint32 validFrom, uint32 observations);
     error NotFactoryMarket(address market);
     error MarketNotRegistered(address market);
     error TooManyMarkets();
@@ -341,7 +352,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
                 || address(streams_) == address(0) || guardian_ == address(0)
                 || keeper_ == address(0) || treasury_ == address(0)
         ) revert ZeroAddress();
-        if (epochLength_ < 60 || minRequest_ <= DEAD_SHARES) revert InvalidConfig();
+        // Epoch ends must fall on the round grid (15 min), so that no round can end inside a
+        // settlement window (which is shorter than a round): see settleWindow.
+        if (epochLength_ % Series.FIFTEEN_MINUTES != 0 || minRequest_ <= DEAD_SHARES) {
+            revert InvalidConfig();
+        }
         if (address(factory_.collateral()) != address(asset_)) revert InvalidConfig();
         uint8 d = IERC20Metadata(address(asset_)).decimals();
         if (d > 18) revert InvalidConfig();
@@ -432,10 +447,14 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         bool rejected;
     }
 
-    /// @notice Settles an ended epoch at one lower and one upper NAV. Anyone may call.
-    /// @param reports Data Streams reports (one per asset whose markets carry unresolved
-    ///        exposure; see `marksNeeded`), each no older than `maxMarkAge`. After `markGrace`
-    ///        a missing mark is valued at the bounds (0 / 1) instead of reverting.
+    /// @notice Settles an ended epoch at one lower and one upper NAV. Anyone may call, within
+    ///         `settleWindow` of the epoch's end; later the call expires the epoch instead
+    ///         (deposits refundable, redemption requests queued again, no price is struck).
+    /// @param reports One Data Streams report per asset listed by `settlementPlan(epochId)`: the
+    ///        report whose window contains the epoch's end time (validFrom <= T <= observations),
+    ///        the same canonical rule as the resolver and the venue. The NAV is therefore a
+    ///        function of the price AT the epoch end; the settler chooses nothing about it.
+    ///        Every round that had ended by T must already be resolved (anyone can resolve it).
     // All entry points are nonReentrant; the external calls go to the factory's own Market clones, the immutable asset or the immutable verifier proxy.
     // slither-disable-next-line reentrancy-no-eth
     function settleEpoch(uint256 epochId, bytes[] calldata reports) external nonReentrant {
@@ -443,14 +462,16 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         Epoch storage e = epochs[epochId];
         if (e.settled) revert AlreadySettled(epochId);
         if (e.depositAssets == 0 && e.redeemShares == 0) revert NothingToSettle(epochId);
+        uint256 end = epochEnd(epochId);
+        if (block.timestamp > end + settleWindow) {
+            _expire(e, epochId);
+            return;
+        }
 
         Settlement memory z = Settlement(0, 0, 0, 0, 0, 0, 0, false);
         {
-            Mark[] memory marks = _collectMarks(reports);
-            MarkMode mode = block.timestamp >= epochEnd(epochId) + markGrace
-                ? MarkMode.BOUNDS
-                : MarkMode.STRICT;
-            (z.lo, z.hi) = _navs(marks, mode);
+            Mark[] memory marks = _collectMarks(reports, end);
+            (z.lo, z.hi) = _navs(marks, MarkMode.STRICT, end);
             _recordMarks(marks);
         }
         uint256 supplyBefore = totalSupply();
@@ -480,6 +501,20 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // forge-lint: disable-end(reentrancy-events)
         // forge-lint: disable-next-line(reentrancy-events)
         emit NavSnapshot(z.lo, z.hi, ppsLo, totalSupply(), true);
+    }
+
+    /// @dev An epoch nobody settled in time: no price is struck, so nothing can be gamed by waiting.
+    ///      Deposits come back through `claimDeposit`; redemption requests are queued again by
+    ///      `claimRedeem` (nothing filled).
+    function _expire(Epoch storage e, uint256 epochId) internal {
+        uint256 d = e.depositAssets;
+        pendingDeposits -= d;
+        if (d != 0) {
+            claimableAssets += d;
+            e.depositRejected = true;
+        }
+        e.settled = true;
+        emit EpochExpired(epochId, d, e.redeemShares);
     }
 
     /// @dev Deposits mint at the upper NAV (rounded down). The first deposit mints 1 share per
@@ -613,7 +648,12 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
 
     /// @notice Verifies the reports and returns one mark per enabled asset (aligned with
     ///         `assetIds`). Each report is checked against the asset's configured feed.
-    function _collectMarks(bytes[] calldata reports) internal returns (Mark[] memory marks) {
+    /// @param at 0: fresh marks (no older than `maxMarkAge`, used by the breaker). Otherwise the
+    ///        canonical report for time `at` (its window contains `at`), recorded as a mark at `at`.
+    function _collectMarks(bytes[] calldata reports, uint256 at)
+        internal
+        returns (Mark[] memory marks)
+    {
         marks = new Mark[](assetIds.length);
         bytes memory param = streams.parameterPayload();
         for (uint256 i = 0; i < reports.length; i++) {
@@ -632,6 +672,18 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             // forge-lint: disable-next-line(require-revert-in-loop)
             if (marks[idx].known) revert DuplicateReport(assetIds[idx]);
             ReportV3 memory r = ReportLib.verify(verifier, param, reports[i], feed);
+            // price > 0 is checked by the library, so the cast cannot truncate a negative.
+            // forge-lint: disable-next-line(unsafe-typecast)
+            marks[idx] = Mark(true, uint192(r.price), _markTime(r, at));
+        }
+    }
+
+    /// @dev The timestamp a verified report is a mark for: `at` if the report is canonical for it,
+    ///      or its own observation time if it is fresh.
+    // `at == 0` selects the fresh-mark mode; it is a flag, not a balance.
+    // slither-disable-start incorrect-equality
+    function _markTime(ReportV3 memory r, uint256 at) internal view returns (uint64) {
+        if (at == 0) {
             if (
                 r.observationsTimestamp > block.timestamp
                     || block.timestamp - r.observationsTimestamp > maxMarkAge
@@ -639,23 +691,34 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
                 // forge-lint: disable-next-line(require-revert-in-loop)
                 revert StaleReport(r.observationsTimestamp, block.timestamp);
             }
-            // price > 0 is checked by the library, so the cast cannot truncate a negative.
-            // forge-lint: disable-next-line(unsafe-typecast)
-            marks[idx] = Mark(true, uint192(r.price), r.observationsTimestamp);
+            return r.observationsTimestamp;
         }
+        if (r.validFromTimestamp > at || r.observationsTimestamp < at) {
+            // forge-lint: disable-next-line(unsafe-typecast, require-revert-in-loop)
+            revert ReportNotCanonical(uint64(at), r.validFromTimestamp, r.observationsTimestamp);
+        }
+        // forge-lint: disable-next-line(unsafe-typecast)
+        return uint64(at);
     }
 
+    // slither-disable-end incorrect-equality
+
+    /// @dev Keeps the newest verified mark per asset (the breaker reads it when a report is omitted).
     function _recordMarks(Mark[] memory marks) internal {
         for (uint256 i = 0; i < marks.length; i++) {
-            if (marks[i].known) lastMark[assetIds[i]] = LastMark(marks[i].price, marks[i].obsTs);
+            if (marks[i].known && marks[i].obsTs > lastMark[assetIds[i]].obsTs) {
+                lastMark[assetIds[i]] = LastMark(marks[i].price, marks[i].obsTs);
+            }
         }
     }
 
-    /// @notice Lower and upper NAV (asset units) under the given marks.
+    /// @notice Lower and upper NAV (asset units) of the vault as of time `at`.
     /// @dev lower = free collateral + pairs + excess tokens at the lowest plausible value;
     ///      upper = the same at the highest. Matched UP+DOWN pairs are worth exactly 1 (merge never
-    ///      fails). Resolved markets are valued exactly (net of the redeem fee).
-    function _navs(Mark[] memory marks, MarkMode mode)
+    ///      fails). A round that had ended by `at` is valued exactly from its outcome (net of the
+    ///      redeem fee); a round still running at `at` is valued from the mark at `at`, even if it
+    ///      has been resolved since, so settling later reveals nothing.
+    function _navs(Mark[] memory marks, MarkMode mode, uint256 at)
         internal
         view
         returns (uint256 lo, uint256 hi)
@@ -663,13 +726,13 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         lo = hi = _freeLiquidity();
         uint256 n = _markets.length;
         for (uint256 i = 0; i < n; i++) {
-            (uint256 l, uint256 h) = _marketValue(Market(_markets[i]), marks, mode);
+            (uint256 l, uint256 h) = _marketValue(Market(_markets[i]), marks, mode, at);
             lo += l;
             hi += h;
         }
     }
 
-    function _marketValue(Market m, Mark[] memory marks, MarkMode mode)
+    function _marketValue(Market m, Mark[] memory marks, MarkMode mode, uint256 at)
         internal
         view
         returns (uint256 lo, uint256 hi)
@@ -678,68 +741,86 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         uint256 u = IERC20(address(m.up())).balanceOf(address(this));
         // forge-lint: disable-next-line(calls-loop)
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
-        uint256 pairs = F.min(u, d);
-        lo = hi = pairs;
-        uint256 excess = u > d ? u - d : d - u;
+        lo = hi = F.min(u, d);
         // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
         // slither-disable-next-line incorrect-equality
-        if (excess == 0) return (lo, hi);
-        bool upExcess = u > d;
+        if (u == d) return (lo, hi);
+        (uint256 el, uint256 eh) = _excessValue(m, u > d, u > d ? u - d : d - u, marks, mode, at);
+        return (lo + el, hi + eh);
+    }
+
+    /// @dev Value (lower, upper) of `excess` tokens of one side, as of `at`.
+    function _excessValue(
+        Market m,
+        bool upExcess,
+        uint256 excess,
+        Mark[] memory marks,
+        MarkMode mode,
+        uint256 at
+    ) internal view returns (uint256 el, uint256 eh) {
         // forge-lint: disable-next-line(calls-loop)
         Market.State s = m.state();
-        if (s == Market.State.RESOLVED_UP || s == Market.State.RESOLVED_DOWN) {
-            bool upWins = s == Market.State.RESOLVED_UP;
-            // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
-            // slither-disable-next-line incorrect-equality
-            if (upWins == upExcess) {
-                // forge-lint: disable-next-line(calls-loop)
-                uint256 fee = m.redeemFeeBps();
-                lo += excess - F.mulDivUp(excess, fee, BPS);
-                hi += excess;
-            }
-            return (lo, hi);
-        }
         if (s == Market.State.INVALID) {
             uint256 half = excess / 2;
             // forge-lint: disable-next-line(calls-loop)
-            lo += half - F.mulDivUp(half, m.redeemFeeBps(), BPS);
-            hi += F.mulDivUp(excess, 1, 2);
-            return (lo, hi);
+            el = half - F.mulDivUp(half, m.redeemFeeBps(), BPS);
+            eh = F.mulDivUp(excess, 1, 2);
+            return (el, eh);
         }
-        // Unresolved: price the excess side.
-        (uint256 pLo, uint256 pHi) = _upBand(m, s, marks, mode);
-        if (upExcess) {
-            lo += F.mulWad(excess, pLo);
-            hi += F.mulWadUp(excess, pHi);
-        } else {
-            lo += F.mulWad(excess, WAD - pHi);
-            hi += F.mulWadUp(excess, WAD - pLo);
+        // forge-lint: disable-next-line(calls-loop)
+        uint256 end = m.endTime();
+        if (end <= at) {
+            // The round was over at `at`.
+            if (s == Market.State.RESOLVED_UP || s == Market.State.RESOLVED_DOWN) {
+                return _settledExcess(m, s == Market.State.RESOLVED_UP, upExcess, excess);
+            }
+            // Ended but unresolved: a settlement waits for the resolution (anyone can submit it);
+            // the breaker values it from the last verified mark (never at zero).
+            // forge-lint: disable-next-line(require-revert-in-loop)
+            if (mode == MarkMode.STRICT) revert MarketNotResolved(address(m));
         }
+        // A round that had not started at `at` has no strike yet: its sides are worth 1/2 each,
+        // whatever happened to it since (a strike struck after `at` is information from after `at`).
+        // forge-lint: disable-next-line(calls-loop)
+        if (m.startTime() > at) s = Market.State.CREATED;
+        (uint256 pLo, uint256 pHi) = _upBand(m, s, marks, mode, end);
+        if (upExcess) return (F.mulWad(excess, pLo), F.mulWadUp(excess, pHi));
+        return (F.mulWad(excess, WAD - pHi), F.mulWadUp(excess, WAD - pLo));
     }
 
-    /// @dev Lowest and highest plausible UP value of an unresolved market (WAD).
-    function _upBand(Market m, Market.State s, Mark[] memory marks, MarkMode mode)
+    /// @dev A winning excess pays 1 minus the redeem fee (rounded against the vault in the lower
+    ///      value), a losing excess pays nothing.
+    function _settledExcess(Market m, bool upWins, bool upExcess, uint256 excess)
+        internal
+        view
+        returns (uint256 el, uint256 eh)
+    {
+        if (upWins != upExcess) return (0, 0);
+        // forge-lint: disable-next-line(calls-loop)
+        uint256 fee = m.redeemFeeBps();
+        return (excess - F.mulDivUp(excess, fee, BPS), excess);
+    }
+
+    /// @dev Lowest and highest plausible UP value of a market that is still unresolved at the
+    ///      valuation time (WAD): the extremes of the fair value over {keeper sigma, sigmaMin,
+    ///      sigmaMax}, widened by `markBand`. Without a strike (not opened) both sides are 1/2.
+    function _upBand(Market m, Market.State s, Mark[] memory marks, MarkMode mode, uint256 end)
         internal
         view
         returns (uint256 pLo, uint256 pHi)
     {
         uint256 band = markBand;
-        if (s == Market.State.CREATED) {
-            // No strike yet: both sides are worth 1/2 by symmetry.
-            return (WAD / 2 > band ? WAD / 2 - band : 0, F.min(WAD, WAD / 2 + band));
-        }
-        // forge-lint: disable-next-line(calls-loop)
-        uint256 end = m.endTime();
-        if (block.timestamp >= end) return (0, WAD); // awaiting resolution
+        uint256 halfLo = WAD / 2 > band ? WAD / 2 - band : 0;
+        uint256 halfHi = F.min(WAD, WAD / 2 + band);
+        if (s == Market.State.CREATED) return (halfLo, halfHi);
         // forge-lint: disable-next-line(calls-loop)
         bytes32 a = m.assetId();
         (bool ok, uint256 spot, uint256 obs) = _markOf(a, marks, mode);
-        if (!ok || obs >= end) return (0, WAD);
+        if (!ok) return (halfLo, halfHi); // never marked: no information either way
         AssetCfg storage c = assetCfg[a];
-        // The market must have a strike here (OPEN); read it.
         // forge-lint: disable-next-line(calls-loop, unsafe-typecast)
         uint256 strike = uint256(m.strike());
-        uint256 tau = end - obs;
+        uint256 tau = end > obs ? end - obs : 1; // a mark at or after the end: the outcome is all but decided
         (pLo, pHi) = (WAD, 0);
         uint256[3] memory sg = [uint256(c.sigma), uint256(c.sigmaMin), uint256(c.sigmaMax)];
         for (uint256 k = 0; k < 3; k++) {
@@ -767,18 +848,28 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             return (lm.price != 0, lm.price, lm.obsTs);
         }
         // forge-lint: disable-next-line(require-revert-in-loop)
-        if (mode == MarkMode.STRICT) revert MarkMissing(a);
-        return (false, 0, 0);
+        revert MarkMissing(a);
     }
 
-    /// @notice Assets whose Data Streams feed needs a fresh report to settle now (a registered,
-    ///         unresolved, open market holds excess of one side). Use it to build `reports`.
-    function marksNeeded() external view returns (bytes32[] memory feeds) {
+    /// @notice What `settleEpoch(epochId, ...)` needs: the feeds whose canonical report at the
+    ///         epoch's end time is required (a registered round that was still running then holds
+    ///         excess of one side), and the registered rounds that had ended but are not resolved
+    ///         yet (resolve them first; the settlement reverts otherwise).
+    function settlementPlan(uint256 epochId)
+        external
+        view
+        returns (bytes32[] memory feeds, address[] memory unresolved)
+    {
+        uint256 at = epochEnd(epochId);
         bytes32[] memory tmp = new bytes32[](assetIds.length);
+        address[] memory pending = new address[](_markets.length);
         uint256 n = 0;
+        uint256 k = 0;
         for (uint256 i = 0; i < _markets.length; i++) {
             Market m = Market(_markets[i]);
-            if (!_needsMark(m)) continue;
+            (bool needs, bool awaiting) = _planOf(m, at);
+            if (awaiting) pending[k++] = address(m);
+            if (!needs) continue;
             // forge-lint: disable-next-line(calls-loop)
             bytes32 f = assetCfg[m.assetId()].feedId;
             bool seen = false;
@@ -793,18 +884,32 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         for (uint256 j = 0; j < n; j++) {
             feeds[j] = tmp[j];
         }
+        unresolved = new address[](k);
+        for (uint256 j = 0; j < k; j++) {
+            unresolved[j] = pending[j];
+        }
     }
 
-    function _needsMark(Market m) internal view returns (bool) {
+    /// @dev (needs a mark at `at`, ended but unresolved at `at`) for one registered market.
+    // Comparing two token balances for equality is the intent: equal means no excess.
+    // slither-disable-start incorrect-equality
+    function _planOf(Market m, uint256 at) internal view returns (bool needs, bool awaiting) {
         // Bounded loop caller (MAX_MARKETS); balances are compared for inequality on purpose.
         // forge-lint: disable-start(calls-loop, incorrect-strict-equality)
-        Market.State s = m.state();
-        if (s != Market.State.OPEN || block.timestamp >= m.endTime()) return false;
         uint256 u = IERC20(address(m.up())).balanceOf(address(this));
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
-        return u != d;
+        if (u == d) return (false, false);
+        Market.State s = m.state();
+        if (s == Market.State.INVALID) return (false, false);
+        if (m.endTime() <= at) {
+            awaiting = s == Market.State.OPEN || s == Market.State.CREATED;
+            return (false, awaiting);
+        }
+        needs = s != Market.State.CREATED && m.startTime() <= at;
         // forge-lint: disable-end(calls-loop, incorrect-strict-equality)
     }
+
+    // slither-disable-end incorrect-equality
 
     /// @notice Re-values the vault with fresh reports (last verified marks for assets without
     ///         one), stores the lower NAV used for sizing and runs the daily drawdown breaker.
@@ -815,8 +920,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
         // slither-disable-next-line incorrect-equality
         if (supply == 0) return;
-        Mark[] memory marks = _collectMarks(reports);
-        (uint256 lo, uint256 hi) = _navs(marks, MarkMode.LAST_KNOWN);
+        Mark[] memory marks = _collectMarks(reports, 0);
+        (uint256 lo, uint256 hi) = _navs(marks, MarkMode.LAST_KNOWN, block.timestamp);
         _recordMarks(marks);
         quoteNavLower = lo;
         lastNavUpper = hi;
@@ -1154,6 +1259,34 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             pos.cash
         );
         // forge-lint: disable-end(reentrancy-events)
+        if (block.timestamp >= uint256(navUpdatedAt) + AUTO_CHECKPOINT_INTERVAL) {
+            _autoCheckpoint(a, f.refPrice, f.refObs);
+        }
+    }
+
+    /// @dev The breaker must not depend on someone calling `checkpoint`: while trading goes on the
+    ///      vault re-values itself at most once a minute, using the verified report the venue just
+    ///      priced from (other assets at their last verified mark). It can only LOWER the NAV used
+    ///      for sizing and it can trip the breaker; it never raises either.
+    function _autoCheckpoint(bytes32 a, uint192 price, uint64 obs) internal {
+        uint256 supply = totalSupply();
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
+        if (supply == 0 || obs > block.timestamp || block.timestamp - obs > AUTO_MARK_MAX_AGE) {
+            return;
+        }
+        Mark[] memory marks = new Mark[](assetIds.length);
+        for (uint256 i = 0; i < marks.length; i++) {
+            if (assetIds[i] == a) marks[i] = Mark(true, price, obs);
+        }
+        (uint256 lo, uint256 hi) = _navs(marks, MarkMode.LAST_KNOWN, block.timestamp);
+        if (lo < quoteNavLower) quoteNavLower = lo;
+        // forge-lint: disable-next-line(unsafe-typecast)
+        navUpdatedAt = uint64(block.timestamp);
+        uint256 ppsLo = F.mulDiv(lo, WAD, supply);
+        _updateBreaker(ppsLo);
+        // forge-lint: disable-next-line(reentrancy-events)
+        emit NavSnapshot(lo, hi, ppsLo, supply, false);
     }
 
     function _moveFill(FillParams calldata f) internal {
@@ -1290,22 +1423,22 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function setRiskConfig(
         uint256 maxMarkAge_,
         uint256 markBand_,
-        uint256 markGrace_,
+        uint256 settleWindow_,
         uint256 breakerBps_,
         uint256 maxPairFraction_,
         uint256 maxInventoryFraction_
     ) external onlyOwner {
         if (
-            maxMarkAge_ == 0 || maxMarkAge_ > 60 || markBand_ > 0.3e18 || markGrace_ < 60
-                || markGrace_ > 1 days || breakerBps_ == 0 || breakerBps_ > 2_500
-                || maxPairFraction_ > WAD || maxInventoryFraction_ > WAD
+            maxMarkAge_ == 0 || maxMarkAge_ > 60 || markBand_ > 0.3e18 || settleWindow_ < 60
+                || settleWindow_ >= Series.FIFTEEN_MINUTES || breakerBps_ == 0
+                || breakerBps_ > 2_500 || maxPairFraction_ > WAD || maxInventoryFraction_ > WAD
         ) revert InvalidConfig();
         // forge-lint: disable-next-line(unsafe-typecast)
         maxMarkAge = uint32(maxMarkAge_);
         // forge-lint: disable-next-line(unsafe-typecast)
         markBand = uint64(markBand_);
         // forge-lint: disable-next-line(unsafe-typecast)
-        markGrace = uint32(markGrace_);
+        settleWindow = uint32(settleWindow_);
         // forge-lint: disable-next-line(unsafe-typecast)
         breakerBps = uint16(breakerBps_);
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -1313,7 +1446,12 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // forge-lint: disable-next-line(unsafe-typecast)
         maxInventoryFraction = uint64(maxInventoryFraction_);
         emit RiskConfigSet(
-            maxMarkAge_, markBand_, markGrace_, breakerBps_, maxPairFraction_, maxInventoryFraction_
+            maxMarkAge_,
+            markBand_,
+            settleWindow_,
+            breakerBps_,
+            maxPairFraction_,
+            maxInventoryFraction_
         );
     }
 

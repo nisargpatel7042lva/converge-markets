@@ -227,19 +227,20 @@ contract VaultFlowsTest is VaultBase {
         vault.settleEpoch(0, _noReports());
     }
 
-    function test_settle_epochsAreIndependentAndOrderFree() public {
+    function test_settle_eachEpochHasItsOwnDisjointWindow() public {
         uint256 e0 = _requestDeposit(alice, 20 * U);
         vm.warp(vault.epochEnd(0));
         uint256 e1 = _requestDeposit(bob, 20 * U);
         assertEq(e1, e0 + 1);
         vm.warp(vault.epochEnd(1));
-        vault.settleEpoch(1, _noReports()); // later epoch first: it is the first deposit
-        vault.settleEpoch(0, _noReports());
+        vault.settleEpoch(1, _noReports()); // epoch 1 settles in its window and is the first deposit
+        vault.settleEpoch(0, _noReports()); // epoch 0's window is long gone: it expires instead
         vm.prank(alice);
         vault.claimDeposit(0, alice);
         vm.prank(bob);
         vault.claimDeposit(1, bob);
-        assertEq(vault.balanceOf(alice) + vault.balanceOf(bob), 40 * U - 1000);
+        assertEq(usdc.balanceOf(alice), 20 * U); // refunded
+        assertEq(vault.balanceOf(bob), 20 * U - 1000); // shares
     }
 
     // ------------------------------------------------------------------ claims
@@ -481,7 +482,7 @@ contract VaultFlowsTest is VaultBase {
 
     // ------------------------------------------------------------------ settlement fed by marks
 
-    function test_settle_revertsOnUnknownOrDuplicateOrStaleReport() public {
+    function test_settle_revertsOnUnknownDuplicateOrNonCanonicalReport() public {
         _fund(alice, 100 * U);
         Market m = _openEth(T0, M15, 3000e18);
         vm.warp(T0 + 100);
@@ -490,23 +491,161 @@ contract VaultFlowsTest is VaultBase {
         vault.splitForInventory(m, 20 * U);
         uint256 e = _requestDeposit(bob, 20 * U);
         _toEpochEnd(e);
+        uint64 t = uint64(block.timestamp);
         bytes32 other = 0x0003aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;
         bytes[] memory rs = new bytes[](1);
-        rs[0] = _report(other, uint32(block.timestamp - 1), uint32(block.timestamp), 1e18);
+        rs[0] = _report(other, uint32(t - 1), uint32(t), 1e18);
         vm.expectRevert(abi.encodeWithSelector(ConvergeVault.UnknownReportFeed.selector, other));
         vault.settleEpoch(e, rs);
-        rs[0] = _rep(uint32(block.timestamp - 11), 3000e18);
+        // a report from before the epoch end does not contain it
+        rs[0] = _rep(uint32(t - 11), 3000e18);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ConvergeVault.StaleReport.selector, uint32(block.timestamp - 11), block.timestamp
-            )
+            abi.encodeWithSelector(ConvergeVault.ReportNotCanonical.selector, t, t - 12, t - 11)
+        );
+        vault.settleEpoch(e, rs);
+        // nor does one from after it
+        rs[0] = _repWindow(t + 1, t + 2, 3000e18, t + 1 days);
+        vm.expectRevert(
+            abi.encodeWithSelector(ConvergeVault.ReportNotCanonical.selector, t, t + 1, t + 2)
         );
         vault.settleEpoch(e, rs);
         rs = new bytes[](2);
-        rs[0] = _rep(uint32(block.timestamp), 3000e18);
-        rs[1] = _rep(uint32(block.timestamp - 1), 3000e18);
+        rs[0] = _rep(uint32(t), 3000e18);
+        rs[1] = _rep(uint32(t), 3000e18);
         vm.expectRevert(abi.encodeWithSelector(ConvergeVault.DuplicateReport.selector, ETH));
         vault.settleEpoch(e, rs);
+    }
+
+    // ------------------------------------------------------------------ settlement window
+
+    function test_settle_expiresAfterTheWindow_refundsAndRequeues() public {
+        _fund(alice, 100 * U);
+        uint256 aliceShares = vault.balanceOf(alice);
+        uint256 e = _requestDeposit(bob, 40 * U);
+        vm.prank(alice);
+        vault.requestRedeem(aliceShares / 2);
+        _toEpochEnd(e);
+        vm.warp(block.timestamp + vault.settleWindow() + 1);
+        vm.expectEmit(address(vault));
+        emit ConvergeVault.EpochExpired(e, 40 * U, aliceShares / 2);
+        vault.settleEpoch(e, _noReports());
+        // nothing was priced: deposits are refundable, redemption requests queued again
+        assertEq(vault.pendingDeposits(), 0);
+        assertEq(vault.claimableAssets(), 40 * U);
+        vm.prank(bob);
+        vault.claimDeposit(e, bob);
+        assertEq(usdc.balanceOf(bob), 40 * U);
+        vm.prank(alice);
+        vault.claimRedeem(e, alice);
+        assertEq(usdc.balanceOf(alice), 0);
+        assertEq(vault.redeemRequest(vault.currentEpoch(), alice), aliceShares / 2);
+        assertEq(vault.claimableAssets(), 0);
+        assertEq(vault.totalSupply(), 100 * U); // no mint, no burn, no new NAV
+    }
+
+    function test_settle_lastSecondOfTheWindowStillSettles() public {
+        uint256 e = _requestDeposit(alice, 40 * U);
+        _toEpochEnd(e);
+        vm.warp(block.timestamp + vault.settleWindow());
+        vault.settleEpoch(e, _noReports());
+        vm.prank(alice);
+        vault.claimDeposit(e, alice);
+        assertEq(vault.balanceOf(alice), 40 * U - 1000);
+    }
+
+    /// @dev The price is the one AT the epoch end: settling later inside the window (a round can
+    ///      not end inside it) gives the same shares however the price moved in between.
+    function test_settle_laterInTheWindowGivesTheSameShares() public {
+        _fund(alice, 1000 * U);
+        // an hour round starting 15:00; excess exposure is built before the 15:30 epoch end
+        Market h = _openEth(T0 + 2700, H1, 3000e18);
+        vm.warp(T0 + 2700 + 300);
+        _setSigma(0.6e18);
+        vm.prank(vKeeper);
+        vault.splitForInventory(h, 100 * U);
+        _split(h, bob, 50 * U);
+        IERC20 up = IERC20(address(h.up()));
+        vm.prank(bob);
+        up.transfer(address(vault), 50 * U); // 50 UP above the pairs
+        uint256 e = _requestDeposit(carol(), 100 * U);
+        uint256 end = vault.epochEnd(e);
+        vm.warp(end);
+        uint256 snap = vm.snapshotState();
+
+        // settle at once with the canonical mark at the epoch end
+        vault.settleEpoch(e, _markAt(end, 3000e18));
+        uint256 sharesNow = _mintedFor(e);
+
+        // the same epoch 9 minutes later (the price has moved a lot meanwhile): identical
+        vm.revertToState(snap);
+        vm.warp(end + 9 * 60);
+        vault.settleEpoch(e, _markAt(end, 3000e18));
+        assertEq(_mintedFor(e), sharesNow);
+        assertGt(sharesNow, 0);
+    }
+
+    function test_settleWindow_mustBeShorterThanARound_andEpochsOnTheRoundGrid() public {
+        vm.startPrank(vOwner);
+        vault.setRiskConfig(10, 0.05e18, 899, 500, 0.3e18, 0.5e18);
+        vm.expectRevert(ConvergeVault.InvalidConfig.selector);
+        vault.setRiskConfig(10, 0.05e18, 900, 500, 0.3e18, 0.5e18);
+        vm.stopPrank();
+        QuoteMath.Params memory p = _launchParams();
+        vm.expectRevert(ConvergeVault.InvalidConfig.selector);
+        new ConvergeVault(
+            IERC20(address(usdc)),
+            factory,
+            streamsResolver,
+            vOwner,
+            vGuardian,
+            vKeeper,
+            vTreasury,
+            1000,
+            10 * U,
+            1,
+            p
+        );
+    }
+
+    function _mintedFor(uint256 e) internal view returns (uint256 m) {
+        (,,,, m,,) = vault.epochs(e);
+    }
+
+    function _resolveAt(Market mk, uint64 endTs, int192 px) internal {
+        vm.warp(endTs + 1);
+        streamsResolver.submit(
+            ETH, endTs, _report(ETH_FEED, uint32(endTs - 1), uint32(endTs + 1), px)
+        );
+        vm.warp(endTs + WINDOW + 1);
+        mk.resolve("");
+    }
+
+    function test_settle_endedButUnresolvedRoundBlocksUntilResolved() public {
+        _fund(alice, 1000 * U);
+        Market m = _openEth(T0, M15, 3000e18);
+        vm.warp(T0 + 200);
+        _setSigma(0.6e18);
+        vm.prank(vKeeper);
+        vault.splitForInventory(m, 100 * U);
+        _split(m, bob, 20 * U);
+        IERC20 up = IERC20(address(m.up()));
+        vm.prank(bob);
+        up.transfer(address(vault), 20 * U); // excess exposure in a round ending at T0 + 900
+        uint256 e = _requestDeposit(carol(), 50 * U);
+        vm.warp(vault.epochEnd(e)); // the epoch ends exactly when the round does
+        (bytes32[] memory feeds, address[] memory pending) = vault.settlementPlan(e);
+        assertEq(feeds.length, 0); // ended by then: no mark, an outcome instead
+        assertEq(pending.length, 1);
+        assertEq(pending[0], address(m));
+        vm.expectRevert(
+            abi.encodeWithSelector(ConvergeVault.MarketNotResolved.selector, address(m))
+        );
+        vault.settleEpoch(e, _noReports());
+        // anyone resolves, then the settlement goes through at the exact outcome value
+        _resolveAt(m, T0 + 900, 3100e18);
+        vault.settleEpoch(e, _noReports());
+        (, pending) = vault.settlementPlan(e);
+        assertEq(pending.length, 0);
     }
 }
 

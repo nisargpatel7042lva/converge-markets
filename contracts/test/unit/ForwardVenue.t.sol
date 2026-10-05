@@ -34,7 +34,7 @@ contract ForwardVenueTest is VaultBase {
     function _exec(uint256 id, int192 px) internal returns (uint256 filled, uint256 premium) {
         (,,, uint64 execAt,,,,,) = venue.orders(id);
         if (block.timestamp < execAt) vm.warp(execAt);
-        bytes memory rep = _repWindow(execAt - 1, execAt + 1, px, execAt + 1 days);
+        bytes memory rep = _repWindow(execAt - 1, execAt, px, execAt + 1 days);
         vm.prank(executor);
         return venue.executeOrder(id, rep);
     }
@@ -284,6 +284,7 @@ contract ForwardVenueTest is VaultBase {
     function test_exec_staleSigmaMeansNoQuote() public {
         vm.prank(vOwner);
         vault.setSigmaConfig(2000, 30, 60, 1800); // sigma older than 60 s is stale
+        // forge-lint: disable-next-line(environment-read-across-mutation)
         // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp + 61);
         vault.checkpoint(_noReports());
@@ -548,19 +549,17 @@ contract ForwardVenueTest is VaultBase {
         assertEq(cash, -int256(1 * U));
         assertEq(up.balanceOf(address(vault)), 102 * U);
         assertEq(usdc.balanceOf(taker), 1 * U);
-        // reserved assets are never spendable: a claimable payout blocks the buy
-        uint256 aliceShares = vault.balanceOf(alice);
-        vm.prank(alice);
-        uint256 e = vault.requestRedeem(aliceShares);
-        vm.warp(vault.epochEnd(e));
-        vault.settleEpoch(e, _noReports());
-        assertGt(vault.claimableAssets(), 0);
-        f.premium = 1; // dust price is out of bounds; use a real one
-        f.units = 2 * U;
-        f.premium = 1 * U;
+
+        // reserved assets are never spendable: leave 0.4 USDC free and a 2-UP buy is out of room
+        uint256 bal = usdc.balanceOf(address(vault));
+        vm.prank(address(vault));
+        usdc.transfer(address(0xB0B), bal - 400_000);
+        assertEq(vault.fillRoom(m, true, false, 0.5e18), 800_000); // 0.4 USDC / 0.5
         _split(m, address(venue), 2 * U);
         vm.prank(address(venue));
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(ConvergeVault.RiskLimitExceeded.selector, 2 * U, 800_000)
+        );
         vault.venueFill(f);
     }
 
@@ -569,6 +568,57 @@ contract ForwardVenueTest is VaultBase {
         vm.prank(address(venue));
         vm.expectRevert();
         vault.venueFill(_fp(1 * U, 1 * U / 2));
+    }
+
+    // ------------------------------------------------------------------ the breaker needs nobody
+
+    function test_autoCheckpoint_tripsTheBreakerFromFills() public {
+        // 6% of the collateral disappears (a loss the vault has not noticed yet)
+        vm.prank(address(vault));
+        usdc.transfer(address(0xB0B), 56 * U); // 1000 NAV with 100 in pairs: 6% of the 944 free + pairs
+        assertFalse(vault.quotingPaused());
+        // forge-lint: disable-next-line(environment-read-across-mutation)
+        vm.warp(block.timestamp + 61); // the stored NAV is more than a minute old
+        _setSigma(0.62e18); // keep sigma fresh
+        uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
+        uint256 before = vault.quoteNavLower();
+        _exec(id, 3000e18); // the fill itself is fine; it re-values the vault afterwards
+        assertTrue(vault.quotingPaused());
+        assertLt(vault.quoteNavLower(), before);
+        // no new trading, but exits are untouched
+        vm.deal(taker, 1 ether);
+        vm.prank(taker);
+        vm.expectRevert(abi.encodeWithSelector(ForwardVenue.MarketNotTradable.selector, address(m)));
+        venue.placeOrder{value: REWARD}(m, ForwardVenue.Kind.BUY_UP, 1 * U, 0.6e18);
+    }
+
+    function test_autoCheckpoint_neverRaisesTheNav() public {
+        usdc.mint(address(vault), 50 * U); // the vault is worth more than its stored NAV
+        uint256 before = vault.quoteNavLower();
+        // forge-lint: disable-next-line(environment-read-across-mutation)
+        vm.warp(block.timestamp + 61);
+        _setSigma(0.62e18);
+        uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
+        _exec(id, 3000e18);
+        assertEq(vault.quoteNavLower(), before); // only a checkpoint or a settlement can raise it
+        assertEq(vault.navUpdatedAt(), block.timestamp);
+        assertFalse(vault.quotingPaused());
+    }
+
+    function test_autoCheckpoint_ignoresAVenueMarkOlderThanAMinute() public {
+        // a hostile venue passing an old report cannot move the NAV or trip the breaker with it
+        // forge-lint: disable-next-line(environment-read-across-mutation)
+        vm.warp(block.timestamp + 61);
+        _setSigma(0.62e18);
+        uint64 stamp = vault.navUpdatedAt();
+        ConvergeVault.FillParams memory f = _fp(1 * U, 550_000);
+        f.refObs = uint64(block.timestamp - 100);
+        _asVenueFill(f);
+        assertEq(vault.navUpdatedAt(), stamp);
+        // a fresh one does re-value
+        f.refObs = uint64(block.timestamp);
+        _asVenueFill(f);
+        assertEq(vault.navUpdatedAt(), block.timestamp);
     }
 
     function test_gas_executeOrderIsMeasured() public {

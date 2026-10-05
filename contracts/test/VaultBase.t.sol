@@ -144,6 +144,18 @@ abstract contract VaultBase is Base {
         payload = abi.encode(ctx, reportData, abi.encodePacked(r, sg, v));
     }
 
+    /// @dev The canonical report for time `at` (its window contains `at`), as a one-element array.
+    function _markAt(uint256 at, int192 px) internal view returns (bytes[] memory r) {
+        r = new bytes[](1);
+        r[0] = _rep(uint32(at), px);
+    }
+
+    /// @dev What settling epoch `epochId` needs: the canonical mark if any asset needs one.
+    function _planMarks(uint256 epochId, int192 px) internal view returns (bytes[] memory) {
+        (bytes32[] memory feeds,) = vault.settlementPlan(epochId);
+        return feeds.length == 0 ? _noReports() : _markAt(vault.epochEnd(epochId), px);
+    }
+
     function _markNow(int192 px) internal view returns (bytes[] memory r) {
         r = new bytes[](1);
         r[0] = _rep(uint32(block.timestamp), px);
