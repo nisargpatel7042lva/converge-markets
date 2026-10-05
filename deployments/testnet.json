@@ -1,0 +1,151 @@
+{
+  "assetBTC": "0xee62665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d6489",
+  "assetTEST": "0xc51c6f5008d2b2e7b962147b42b36b492f1c5ae672da3a5f4b6662e2a33e705d",
+  "btcFeed": "0x12C0F44368a02081ce58a936d1C1F606BB301715",
+  "chainId": 10143,
+  "chainlinkRoundResolver": "0xFc8A878B5C306E48E7E923dCA5E7219470A0A812",
+  "collateral_tUSDC": "0x9dedC1B054a0e53777df49722D1Aa20354edB100",
+  "creForwarder": "0xB9F79d863261869B234c481D1f9A7af84AeAd192",
+  "dataStreamsResolver": "0x0B1122271A5103193E17A31543De274474a4f10D",
+  "deployBlock": 68426048,
+  "deployer": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
+  "finalizationWindow": 20,
+  "marketFactory": "0x6d3C829CbE58c53625b714d19E49cE1D41e66639",
+  "marketImplementation": "0x905ED74F9e9C183A69f3d899efb4BF81681Af739",
+  "mockStreamsVerifierProxy_TESTONLY": "0x1a1d91c243D6c9580694f0A5C444Ca730C6E93CA",
+  "outcomeTokenImplementation": "0xD93A8Af3801b2FC095865D78529AcC1f348d49f5",
+  "schedulerLens": "0xB7f4F599eC109d16a9a0D7D1500037b466fCE18d",
+  "schedulerReceiver": "0x92e749013cd31a43EBd41FfEe96Ce95E58008322",
+  "streamsTestSigner": "0x26F6BC36b8e028A0e9F1018C272cDaBc84D1B149",
+  "testFeedId": "0x0003000000000000000000000000000000000000000000000000000000000001",
+  "transactions": [
+    {
+      "hash": "0xe7e870ca2869a8e95d9e289c9473d8da5eaacc60539dd187e98124951c0e7bd9",
+      "contractName": "MockERC20",
+      "function": null,
+      "contractAddress": "0x9dedc1b054a0e53777df49722d1aa20354edb100"
+    },
+    {
+      "hash": "0xd3e9a581fd927f012914a4e92a497c29b88a2b2b0be9b61e6f83c1a50d9152a1",
+      "contractName": "MarketFactory",
+      "function": null,
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0x8b28b53fffc1451152a0b96e832589f8addff7fff048eb2368e93c0944e3fe77",
+      "contractName": "ChainlinkRoundResolver",
+      "function": null,
+      "contractAddress": "0xfc8a878b5c306e48e7e923dca5e7219470a0a812"
+    },
+    {
+      "hash": "0xb91865854099f3f0a6d9d73dbfcd7d23c6d553817a536279dd8f5f514f0ecaf5",
+      "contractName": "ChainlinkRoundResolver",
+      "function": "configureAsset(bytes32,address,uint32)",
+      "contractAddress": "0xfc8a878b5c306e48e7e923dca5e7219470a0a812"
+    },
+    {
+      "hash": "0x19cd9d1ef63b707a3aa8c100a4df2fdcb21e0429f6a343f3870805dd97fa8825",
+      "contractName": "MockStreamsVerifierProxy",
+      "function": null,
+      "contractAddress": "0x1a1d91c243d6c9580694f0a5c444ca730c6e93ca"
+    },
+    {
+      "hash": "0x87fdb652b416bbdd5c6b71e90a44f9667b395ef01e17d08894402393799d4b6d",
+      "contractName": "DataStreamsResolver",
+      "function": null,
+      "contractAddress": "0x0b1122271a5103193e17a31543de274474a4f10d"
+    },
+    {
+      "hash": "0xea8519672a1428738a18ca74d3b661cd7ee165fda9a0d6e8a22e2a662bcb7139",
+      "contractName": "DataStreamsResolver",
+      "function": "configureAsset(bytes32,bytes32)",
+      "contractAddress": "0x0b1122271a5103193e17a31543de274474a4f10d"
+    },
+    {
+      "hash": "0xdd50c5f3a265a563f4fd4d7dbc6ab1447c01ae71cbdb694bcef0858fa7689b95",
+      "contractName": "MarketFactory",
+      "function": "grantRole(bytes32,address)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0x68e3c7fde724e944e6a862aac25a5c684d05c5dd5dcfa64f296e6a74485a6b71",
+      "contractName": "MarketFactory",
+      "function": "grantRole(bytes32,address)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0x8521e401faba761fa9f4e08726cedb85d3e9f47622ef26ee2d5a7ea080d76650",
+      "contractName": "MarketFactory",
+      "function": "setAsset(bytes32,address,string,bool)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0x85560acf3e994079003477ccc2a52b1adedb7d4156dc3b8af657692ae63bf495",
+      "contractName": "MarketFactory",
+      "function": "setAsset(bytes32,address,string,bool)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0xdbf51bed4050bd61dbce600a660d2804a76d662f124bcd4024c3f0b066c1cd56",
+      "contractName": "SchedulerReceiver",
+      "function": null,
+      "contractAddress": "0x92e749013cd31a43ebd41ffee96ce95e58008322"
+    },
+    {
+      "hash": "0xd5c894131924a13a8abbd15e57075aa08b63e394a8e64f236da4f4818be8d13f",
+      "contractName": "SchedulerReceiver",
+      "function": "setWorkflow(address,bytes32)",
+      "contractAddress": "0x92e749013cd31a43ebd41ffee96ce95e58008322"
+    },
+    {
+      "hash": "0xbcd5cd15f118b5ec408254fa7176199a7af5effe4ac871adc05ab51c930311fa",
+      "contractName": "MarketFactory",
+      "function": "grantRole(bytes32,address)",
+      "contractAddress": "0x6d3c829cbe58c53625b714d19e49ce1d41e66639"
+    },
+    {
+      "hash": "0x7d4b64ea943305369fb492f4014f1bfe84d1e87384eb1cceca71177060cc706f",
+      "contractName": "SchedulerLens",
+      "function": null,
+      "contractAddress": "0xb7f4f599ec109d16a9a0d7d1500037b466fce18d"
+    }
+  ],
+  "vault": {
+    "chainId": 10143,
+    "deployBlock": 68426213,
+    "epochLength": 900,
+    "execDelaySeconds": 2,
+    "forwardVenue": "0x68153506Da3ab7D767c7462ed678D3804008C042",
+    "maxLatenessSeconds": 30,
+    "tvlCap": 5000000000,
+    "vault": "0xbe417d5D53725E60A937F2b2894972A7344a92cc",
+    "vaultKeeper": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4",
+    "vaultOwnerGuardianTreasury": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
+    "transactions": [
+      {
+        "hash": "0x5e2ae03ed5b550dcdf46c4463be816b4a7bcf475895c62e912a43695b9a869de",
+        "contractName": "ConvergeVault",
+        "function": null,
+        "contractAddress": "0xbe417d5d53725e60a937f2b2894972a7344a92cc"
+      },
+      {
+        "hash": "0x65a244e16d7c3460b443baf8fc94674406081f03e22874ff28e11dfb2b2444e0",
+        "contractName": "ForwardVenue",
+        "function": null,
+        "contractAddress": "0x68153506da3ab7d767c7462ed678d3804008c042"
+      },
+      {
+        "hash": "0x19d509db7d79bedf152bc6aa900b2d995f7302427f52886bd3ab9da58a79c3a0",
+        "contractName": "ConvergeVault",
+        "function": "enableAsset(bytes32,uint256,uint256)",
+        "contractAddress": "0xbe417d5d53725e60a937f2b2894972a7344a92cc"
+      },
+      {
+        "hash": "0xeeef99f633fa72164b1840a7699b44c8035296723ae62e4b59c62f4ece6ec387",
+        "contractName": "ConvergeVault",
+        "function": "setInitialVenue(address)",
+        "contractAddress": "0xbe417d5d53725e60a937f2b2894972a7344a92cc"
+      }
+    ]
+  }
+}

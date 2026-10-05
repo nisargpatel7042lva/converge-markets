@@ -1,0 +1,37 @@
+import subprocess,shutil,os,sys
+S='/tmp/claude-1000/-home-mysterioxplorer/36709940-9cdf-4a54-a867-7d1ce9d3ff6f/scratchpad'
+base=S+'/mut-base/contracts'
+env=dict(os.environ); env['PATH']=os.path.expanduser('~/.foundry/bin')+':'+env['PATH']
+V='src/vault/ConvergeVault.sol'; N='src/vault/ForwardVenue.sol'
+muts=[
+ ('M1 reserved assets not excluded from free liquidity',V,'uint256 reserved = pendingDeposits + claimableAssets;','uint256 reserved = 0;','VaultFlows|VaultFuzz'),
+ ('M2 sigma step limit removed',V,'if (diff * BPS > prev * maxSigmaStepBps) revert SigmaStepTooLarge(sigma, prev);','','VaultInventoryTest'),
+ ('M3 deposits mint at the lower NAV',V,'z.minted = F.mulDiv(d, z.supply0, z.hi);','z.minted = F.mulDiv(d, z.supply0, z.lo == 0 ? z.hi : z.lo);','VaultFuzz'),
+ ('M4 non-canonical report accepted',V,'if (r.validFromTimestamp > at || r.observationsTimestamp < at) {','if (false) {','VaultFlows'),
+ ('M5 factory-market check removed',V,'if (factory.getMarket(a, e - s, s) != address(m)) revert NotFactoryMarket(address(m));','','VaultInventoryTest'),
+ ('M6 onlyVenue removed',V,'external nonReentrant onlyVenue {','external nonReentrant {','VaultInventoryTest|VaultInvariants'),
+ ('M7 breaker never trips',V,'quotingPaused = true;\n            emit BreakerTripped','emit BreakerTripped','VaultInventoryTest|ForwardVenueTest'),
+ ('M8 redemptions paid at the upper NAV',V,'uint256 want = F.mulDiv(r, z.lo, z.supply0);','uint256 want = F.mulDiv(r, z.hi, z.supply0);','VaultFuzz|VaultE2E'),
+ ('M9 ended-unresolved round not blocking settlement',V,'if (mode == MarkMode.STRICT) revert MarketNotResolved(address(m));','','VaultFlows'),
+ ('M10 settle window unlimited (no expiry)',V,'if (block.timestamp > end + settleWindow) {','if (false) {','VaultFlows'),
+ ('M11 venue ignores the limit price',N,'if (buy ? p > o.limit : p < o.limit) break;','','ForwardVenueTest'),
+ ('M12 venue accepts any report window',N,'if (r.validFromTimestamp > o.execAt || r.observationsTimestamp < o.execAt) {','if (false) {','ForwardVenueTest'),
+ ('M13 price bounds on fills removed',V,'revert PriceOutOfBounds(F.mulDiv(f.premium, WAD, f.units));','','ForwardVenueTest'),
+ ('M14 loss ceiling room ignored',V,'if (f.units > room) revert RiskLimitExceeded(f.units, room);','','ForwardVenueTest|VaultInvariants'),
+ ('M15 pair cap removed',V,'if (newBasis > int256(pairCap)) revert PairCapExceeded(uint256(newBasis), pairCap);','','VaultInventoryTest'),
+]
+res=[]
+for name,f,old,new,flt in muts:
+    work=S+'/mut-work'
+    shutil.rmtree(work,ignore_errors=True); shutil.copytree(base,work,symlinks=True)
+    p=work+'/'+f; s=open(p).read()
+    if old not in s: res.append((name,'PATTERN NOT FOUND')); continue
+    open(p,'w').write(s.replace(old,new,1))
+    r=subprocess.run(['forge','test','--match-contract',flt],cwd=work,env=env,capture_output=True,text=True)
+    out=r.stdout+r.stderr
+    killed = r.returncode!=0
+    if 'Compiler run failed' in out: res.append((name,'COMPILE ERROR')); continue
+    res.append((name,'KILLED' if killed else 'SURVIVED'))
+    print(res[-1],flush=True)
+open(S+'/mutation-results.txt','w').write('\n'.join(f'{a}: {b}' for a,b in res))
+print('done')

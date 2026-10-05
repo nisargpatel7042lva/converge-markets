@@ -10,3 +10,4 @@ services/scheduler/cre/scheduler/node_modules/
 backtest/report/results.json
 backtest/report/tuning.json
 backtest/report/quick/
+docs/evidence/phase-4/*.json

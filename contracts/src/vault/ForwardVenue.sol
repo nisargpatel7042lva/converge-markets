@@ -297,6 +297,9 @@ contract ForwardVenue is ReentrancyGuard {
             // forge-lint: disable-next-line(calls-loop)
             take = F.min(take, vault.fillRoom(o.market, upToken, buy, p));
             if (take < MIN_FILL) continue;
+            // A buyer's premium can never exceed its own escrow (the escrow carries slack for the
+            // per-level rounding), so one order can not draw on another order's collateral.
+            if (buy && premium + F.mulDivUp(take, p, 1e18) > o.escrow) break;
             uint256 prem = _swap(o, upToken, buy, take, p, r);
             remaining -= take;
             filled += take;

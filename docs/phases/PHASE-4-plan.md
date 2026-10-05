@@ -42,3 +42,12 @@ Goal: an LP vault that holds collateral, provides two-sided liquidity to our out
 ## Exit rule
 
 Phase protocol: build/evaluate per task, then the evaluation loop (max 5 iterations), then the report and STOP.
+
+## As built (changes after the first plan, found while building and by our own review)
+
+1. **Settlement is bound to the epoch end.** The first plan let anyone settle at any time with a fresh report. That gives the settler a free option (wait until an exposed round is decided). Final rule: marks are the reports whose window contains the epoch end, the epoch must be settled inside `settleWindow` (default 600 s, always below one 15 minute round, epoch ends on the round grid), otherwise it expires with refunds and re-queued redemptions. Rounds that ended by the epoch end must be resolved first. See ADR-005 and threat-model C1 to C4.
+2. **The breaker no longer needs a caller.** `venueFill` re-values the vault at most once a minute from the verified report it priced from (it can only lower the sizing NAV and trip the breaker). `checkpoint` stays permissionless.
+3. **Breaker grief fix.** An omitted report uses the last verified mark; an ended-but-unresolved round is valued from the last mark rather than at zero.
+4. **Gas measured** (ADR-004 asked for it): 395k per filled order with one registered market, 1.02M with 16.
+5. Only Data Streams assets can be enabled in the vault (BTC, ETH). MON (push-feed resolution) is not tradable in the vault.
+6. `DeployVault.s.sol` + `deploy-vault.sh`, `scripts/vault-e2e` (real wall-clock testnet run), `script/check-coverage-vault.sh`, `script/invariant-path-coverage-vault.sh`, `make check-4`.

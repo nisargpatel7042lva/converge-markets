@@ -621,6 +621,31 @@ contract ForwardVenueTest is VaultBase {
         assertEq(vault.navUpdatedAt(), block.timestamp);
     }
 
+    /// @dev The vault walks its registry (at most 16 markets) on every fill: measure the worst case.
+    function test_gas_executeOrderWithSixteenRegisteredMarkets() public {
+        Market[] memory more = new Market[](15);
+        for (uint256 i = 0; i < 15; i++) {
+            more[i] = _create(ETH, M15, T0 + uint64(900 * (i + 1)));
+        }
+        vm.startPrank(vKeeper);
+        for (uint256 i = 0; i < 15; i++) {
+            vault.splitForInventory(more[i], 5 * U);
+        }
+        vm.stopPrank();
+        assertEq(vault.marketCount(), 16);
+        vault.checkpoint(_noReports());
+        uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
+        (,,, uint64 at,,,,,) = venue.orders(id);
+        vm.warp(at);
+        bytes memory rep = _repWindow(at - 1, at, 3000e18, at + 1 days);
+        uint256 g = gasleft();
+        vm.prank(executor);
+        venue.executeOrder(id, rep);
+        uint256 used = g - gasleft();
+        emit log_named_uint("gas: executeOrder with 16 registered markets (one level)", used);
+        assertLt(used, 2_000_000);
+    }
+
     function test_gas_executeOrderIsMeasured() public {
         uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
         (,,, uint64 at,,,,,) = venue.orders(id);
