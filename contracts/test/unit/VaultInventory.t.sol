@@ -71,10 +71,14 @@ contract VaultInventoryTest is VaultBase {
         // inside the band but too soon
         vm.expectRevert(
             abi.encodeWithSelector(
-                ConvergeVault.SigmaTooSoon.selector, uint64(block.timestamp + 30)
+                // forge-lint: disable-next-line(environment-read-across-mutation)
+                ConvergeVault.SigmaTooSoon.selector,
+                // forge-lint: disable-next-line(environment-read-across-mutation)
+                uint64(block.timestamp + 30)
             )
         );
         vault.setSigma(ETH, 0.61e18);
+        // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp + 30);
         // 20% step limit: 0.6 -> 0.73 is +21.7%
         vm.expectRevert(

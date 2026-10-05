@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+// Static-analysis review (forge lint, slither): every `forge-lint: disable` in this file was reviewed.
+// - unsafe-typecast: each cast is of a value bounded by a check, a constant or a library guarantee
+//   (price > 0, config ranges validated in the setters, WAD math with explicit clamps).
+// - calls-loop / require-revert-in-loop: loops run over the registry, which is bounded by
+//   MAX_MARKETS (16) and MAX_ASSETS (8), or over the at most MAX_LEVELS (4) ladder levels.
+// - reentrancy-*: every entry point that moves value is nonReentrant, and the external calls
+//   go to the immutable asset, the factory's own Market/OutcomeToken clones, the immutable
+//   verifier proxy, or the owner-timelocked venue.
+// - incorrect-strict-equality: exact comparisons of token balances against zero or against each
+//   other are the intent (nothing to burn/pay; excess exists).
+// - weak-prng / divide-before-multiply: epoch alignment arithmetic and tick-grid flooring.
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -175,6 +187,7 @@ contract ForwardVenue is ReentrancyGuard {
             uint128(msg.value)
         );
         // forge-lint: disable-end(unsafe-typecast)
+        // forge-lint: disable-next-line(reentrancy-events)
         emit OrderPlaced(id, msg.sender, address(m), kind, shares, limit, execAt, msg.value);
     }
 
@@ -205,18 +218,20 @@ contract ForwardVenue is ReentrancyGuard {
 
         (filled, premium) = _fill(o, r);
         _refund(o, filled, premium);
-        _payReward(msg.sender, o.reward);
+        _payReward(o.reward);
         // r.price > 0 (ReportLib).
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-start(reentrancy-events, unsafe-typecast)
         emit OrderExecuted(
             id,
             msg.sender,
             filled,
             premium,
+            // forge-lint: disable-next-line(unsafe-typecast)
             uint256(uint192(r.price)),
             r.validFromTimestamp,
             r.observationsTimestamp
         );
+        // forge-lint: disable-end(reentrancy-events, unsafe-typecast)
     }
 
     /// @notice Refunds an order nobody executed in time. Anyone may call; the caller takes the
@@ -229,7 +244,8 @@ contract ForwardVenue is ReentrancyGuard {
         if (block.timestamp <= deadline) revert NotExpired(deadline);
         orders[id].status = Status.DONE;
         _refund(o, 0, 0);
-        _payReward(msg.sender, o.reward);
+        _payReward(o.reward);
+        // forge-lint: disable-next-line(reentrancy-events)
         emit OrderExpired(id, msg.sender);
     }
 
@@ -278,6 +294,7 @@ contract ForwardVenue is ReentrancyGuard {
             uint256 p = upToken ? levels[i].price : 1e18 - levels[i].price;
             if (buy ? p > o.limit : p < o.limit) break; // later levels are worse for the taker
             uint256 take = F.min(remaining, levels[i].size / SCALE);
+            // forge-lint: disable-next-line(calls-loop)
             take = F.min(take, vault.fillRoom(o.market, upToken, buy, p));
             if (take < MIN_FILL) continue;
             uint256 prem = _swap(o, upToken, buy, take, p, r);
@@ -300,7 +317,7 @@ contract ForwardVenue is ReentrancyGuard {
         if (buy) asset.forceApprove(address(vault), prem);
         else _tokenOf(o.market, upToken).forceApprove(address(vault), take);
         // r.price > 0 (ReportLib).
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-start(calls-loop, reentrancy-no-eth, unsafe-typecast)
         vault.venueFill(
             ConvergeVault.FillParams(
                 o.market,
@@ -309,10 +326,12 @@ contract ForwardVenue is ReentrancyGuard {
                 take,
                 prem,
                 o.taker,
+                // forge-lint: disable-next-line(unsafe-typecast)
                 uint192(r.price),
                 r.observationsTimestamp
             )
         );
+        // forge-lint: disable-end(calls-loop, reentrancy-no-eth, unsafe-typecast)
     }
 
     function _refund(Order memory o, uint256 filled, uint256 premium) internal {
@@ -326,17 +345,23 @@ contract ForwardVenue is ReentrancyGuard {
         }
     }
 
-    function _payReward(address to, uint256 amount) internal {
+    /// @dev Pays the caller (the executor or whoever expires the order): never another address.
+    // The destination is always msg.sender (the executor who is owed the prepaid reward).
+    // slither-disable-start arbitrary-send-eth
+    function _payReward(uint256 amount) internal {
         if (amount == 0) return;
-        (bool ok,) = to.call{value: amount}("");
+        // forge-lint: disable-next-line(arbitrary-send-eth, reentrancy-eth)
+        (bool ok,) = msg.sender.call{value: amount}("");
         if (!ok) revert NativeTransferFailed();
     }
+    // slither-disable-end arbitrary-send-eth
 
     function _token(Market m, Kind kind) internal view returns (IERC20) {
         return _tokenOf(m, kind == Kind.BUY_UP || kind == Kind.SELL_UP);
     }
 
     function _tokenOf(Market m, bool up) internal view returns (IERC20) {
+        // forge-lint: disable-next-line(calls-loop)
         return up ? IERC20(address(m.up())) : IERC20(address(m.down()));
     }
 
@@ -357,6 +382,7 @@ contract ForwardVenue is ReentrancyGuard {
         // forge-lint: disable-next-line(unsafe-typecast)
         q = QuoteMath.quote(
             spot,
+            // forge-lint: disable-next-line(unsafe-typecast)
             uint256(m.strike()),
             v.sigma,
             end - at,

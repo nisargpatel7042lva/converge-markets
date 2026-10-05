@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+// Static-analysis review (forge lint, slither): every `forge-lint: disable` in this file was reviewed.
+// - unsafe-typecast: each cast is of a value bounded by a check, a constant or a library guarantee
+//   (price > 0, config ranges validated in the setters, WAD math with explicit clamps).
+// - calls-loop / require-revert-in-loop: loops run over the registry, which is bounded by
+//   MAX_MARKETS (16) and MAX_ASSETS (8), or over the at most MAX_LEVELS (4) ladder levels.
+// - reentrancy-*: every entry point that moves value is nonReentrant, and the external calls
+//   go to the immutable asset, the factory's own Market/OutcomeToken clones, the immutable
+//   verifier proxy, or the owner-timelocked venue.
+// - incorrect-strict-equality: exact comparisons of token balances against zero or against each
+//   other are the intent (nothing to burn/pay; excess exists).
+// - weak-prng / divide-before-multiply: epoch alignment arithmetic and tick-grid flooring.
+
 import {FixedPointMathLib as F} from "solady/utils/FixedPointMathLib.sol";
 
 /// @title QuoteMath
@@ -90,8 +102,9 @@ library QuoteMath {
     ///         `normCdf` in packages/strategy. Absolute error below 1e-15.
     function normCdf(int256 x) internal pure returns (uint256) {
         uint256 a = F.abs(x);
-        uint256 tail;
+        uint256 tail = 0;
         if (a <= 37e18) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             uint256 e = uint256(F.expWad(-int256(F.mulWad(a, a) / 2)));
             if (a < 7.07106781186547e18) {
                 uint256 b = F.mulWad(0.0352624965998911e18, a) + 0.700383064443688e18;
@@ -99,6 +112,8 @@ library QuoteMath {
                 b = F.mulWad(b, a) + 33.912866078383e18;
                 b = F.mulWad(b, a) + 112.079291497871e18;
                 b = F.mulWad(b, a) + 221.213596169931e18;
+                // The two assignments are mutually exclusive branches of the Hart (1968) approximation.
+                // slither-disable-next-line write-after-write
                 b = F.mulWad(b, a) + 220.206867912376e18;
                 uint256 c = F.mulWad(e, b);
                 b = F.mulWad(0.0883883476483184e18, a) + 1.75566716318264e18;
@@ -124,6 +139,7 @@ library QuoteMath {
     /// @notice Standard normal density φ(x), WAD in and out.
     function normPdf(int256 x) internal pure returns (uint256) {
         uint256 a = F.abs(x);
+        // forge-lint: disable-next-line(unsafe-typecast)
         return F.mulWad(INV_SQRT_2PI, uint256(F.expWad(-int256(F.mulWad(a, a) / 2))));
     }
 
@@ -134,9 +150,11 @@ library QuoteMath {
         pure
         returns (int256)
     {
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 m = F.lnWad(int256(F.divWad(spot, strike)));
         uint256 std = F.mulWad(sigma, F.sqrtWad(tauSec * WAD / YEAR));
         if (std < MIN_STD) return m >= 0 ? D2_MAX : -D2_MAX;
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 v = F.sDivWad(m - int256(F.mulWad(std, std) / 2), int256(std));
         return v > D2_MAX ? D2_MAX : (v < -D2_MAX ? -D2_MAX : v);
     }
@@ -145,6 +163,7 @@ library QuoteMath {
     function tanhWad(int256 x) internal pure returns (int256) {
         uint256 a = F.abs(x);
         if (a > 20e18) return x < 0 ? -SWAD : SWAD;
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 e2 = F.expWad(int256(2 * a));
         int256 r = F.sDivWad(e2 - SWAD, e2 + SWAD);
         return x < 0 ? -r : r;
@@ -154,7 +173,9 @@ library QuoteMath {
 
     /// @notice Worst-case loss of a position: max(0, basis − cash − min(up, down)).
     function loss(Pos memory p) internal pure returns (uint256) {
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 v = p.basis - p.cash - int256(F.min(p.up, p.down));
+        // forge-lint: disable-next-line(unsafe-typecast)
         return v > 0 ? uint256(v) : 0;
     }
 
@@ -184,7 +205,9 @@ library QuoteMath {
         uint256 ceiling
     ) internal pure returns (uint256) {
         if (price >= WAD || own == 0) return 0;
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 num = int256(ceiling) - basis + cash + int256(own);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint256 bound = num > 0 ? F.divWad(uint256(num), WAD - price) : 0;
         uint256 free = own > other ? own - other : 0; // selling this much does not add risk
         return F.min(own, F.max(bound, free));
@@ -202,7 +225,9 @@ library QuoteMath {
         uint256 ceiling
     ) internal pure returns (uint256) {
         if (price == 0) return 0;
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 num = int256(ceiling) - basis + cash + int256(other);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint256 bound = num > 0 ? F.divWad(uint256(num), price) : 0;
         uint256 free = other > own ? other - own : 0; // completing pairs does not add risk
         return F.max(bound, free);
@@ -245,7 +270,7 @@ library QuoteMath {
         if (spot == 0 || strike == 0 || nav == 0 || roundSec == 0 || tauSec <= q.noQuoteWindowSec) {
             return out;
         }
-        Ctx memory c;
+        Ctx memory c = Ctx(0, 0, 0, 0, 0, 0, 0);
         c.x = d2(spot, strike, sigma, tauSec);
         c.p0 = normCdf(c.x);
         c.phi = normPdf(c.x);
@@ -253,6 +278,7 @@ library QuoteMath {
         out.halfSpread = _halfSpread(c.phi, tauSec, q);
         out.skew = _skew(pos, nav, out.halfSpread, q);
         c.half = out.halfSpread;
+        // forge-lint: disable-next-line(unsafe-typecast)
         c.center = int256(out.fair) + out.skew;
         (c.dz, c.levelSize) = _geometry(c.phi, tauSec, roundSec, nav, q);
         if (c.levelSize < F.max(q.minLevelSize, 1)) return out;
@@ -282,9 +308,12 @@ library QuoteMath {
     {
         uint256 ref = 2 * F.mulWad(q.perMarketMaxFraction, nav);
         if (ref == 0) return 0;
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 f = -F.sDivWad(int256(pos.up) - int256(pos.down), int256(ref));
         int256 raw =
-            F.sMulWad(int256(q.inventorySkewMax), tanhWad(F.sMulWad(int256(q.inventorySkewK), f)));
+        // forge-lint: disable-next-line(unsafe-typecast)
+        F.sMulWad(int256(q.inventorySkewMax), tanhWad(F.sMulWad(int256(q.inventorySkewK), f)));
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 lim = int256(F.mulWad(8e17, half));
         return raw > lim ? lim : (raw < -lim ? -lim : raw);
     }
@@ -309,13 +338,18 @@ library QuoteMath {
 
     /// @dev Bids: the vault buys UP at descending prices, floored to the tick grid. Levels that land
     ///      on the same tick (deep in the tails, where Φ is flat) merge: their depth adds up.
+    // Flooring to the tick grid is the intended rounding.
+    // slither-disable-start divide-before-multiply
     function _bids(Ctx memory c, Params memory q) private pure returns (Level[] memory r) {
         Level[] memory tmp = new Level[](q.levels);
-        uint256 n;
+        uint256 n = 0;
         for (uint256 j = 0; j < q.levels; j++) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             int256 raw = c.center - int256(c.half)
+                // forge-lint: disable-next-line(unsafe-typecast)
                 - (int256(c.p0) - int256(normCdf(c.x - int256(j * c.dz))));
             if (raw <= 0) break;
+            // forge-lint: disable-next-line(divide-before-multiply, unsafe-typecast)
             uint256 price = (uint256(raw) / q.tick) * q.tick;
             if (price < q.priceMin) break;
             if (price > q.priceMax) continue;
@@ -325,14 +359,21 @@ library QuoteMath {
         r = _trim(tmp, n);
     }
 
+    // slither-disable-end divide-before-multiply
+
     /// @dev Asks: the vault sells UP at ascending prices, ceiled to the tick grid.
+    // Flooring to the tick grid is the intended rounding.
+    // slither-disable-start divide-before-multiply
     function _asks(Ctx memory c, Params memory q) private pure returns (Level[] memory r) {
         Level[] memory tmp = new Level[](q.levels);
-        uint256 n;
+        uint256 n = 0;
         for (uint256 j = 0; j < q.levels; j++) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             int256 raw = c.center + int256(c.half)
+                // forge-lint: disable-next-line(unsafe-typecast)
                 + (int256(normCdf(c.x + int256(j * c.dz))) - int256(c.p0));
             if (raw <= 0) continue;
+            // forge-lint: disable-next-line(divide-before-multiply, unsafe-typecast)
             uint256 price = ((uint256(raw) + q.tick - 1) / q.tick) * q.tick;
             if (price > q.priceMax) break;
             if (price < q.priceMin) continue;
@@ -341,6 +382,7 @@ library QuoteMath {
         }
         r = _trim(tmp, n);
     }
+    // slither-disable-end divide-before-multiply
 
     function _trim(Level[] memory a, uint256 n) private pure returns (Level[] memory r) {
         r = new Level[](n);

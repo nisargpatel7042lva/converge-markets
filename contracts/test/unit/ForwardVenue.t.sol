@@ -274,14 +274,17 @@ contract ForwardVenueTest is VaultBase {
     }
 
     function _setSigmaFresh() internal {
+        // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp + 31);
         _setSigma(0.62e18);
+        // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp - 31);
     }
 
     function test_exec_staleSigmaMeansNoQuote() public {
         vm.prank(vOwner);
         vault.setSigmaConfig(2000, 30, 60, 1800); // sigma older than 60 s is stale
+        // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp + 61);
         vault.checkpoint(_noReports());
         uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);

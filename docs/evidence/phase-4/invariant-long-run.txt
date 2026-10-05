@@ -1,0 +1,13 @@
+# Long invariant run (VaultInvariants), 2026-10-05
+FOUNDRY_INVARIANT_RUNS=2500 requested; FOUNDRY_INVARIANT_DEPTH=150
+[PASS]
+[PASS] invariant_keeperAndGuardianHoldNothing
+[PASS] invariant_lossWithinConfiguredCaps
+[PASS] invariant_navBandIsOrdered
+[PASS] invariant_noStandingApprovals
+[PASS] invariant_noViolation
+[PASS] invariant_registryBounded
+[PASS] invariant_sumOfClaimableAssetsBackedByBalance
+ VaultInvariants invariants (runs: 3000, calls: 450000, reverts: 0)
+
+path counters summed over 5017 logged runs: {'attacks': 46969, 'claims': 22742, 'deposits': 46876, 'execfail': 0, 'filled': 8829, 'invalidated': 10, 'merges': 10091, 'orders': 18389, 'partial': 38, 'pauses': 12973, 'redeemResolved': 10312, 'redeems': 18998, 'resolved': 20436, 'settles': 19658, 'sigma': 55136, 'splits': 13792, 'unfilled': 9560}

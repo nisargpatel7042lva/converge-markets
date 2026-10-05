@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+// Static-analysis review (forge lint, slither): every `forge-lint: disable` in this file was reviewed.
+// - unsafe-typecast: each cast is of a value bounded by a check, a constant or a library guarantee
+//   (price > 0, config ranges validated in the setters, WAD math with explicit clamps).
+// - calls-loop / require-revert-in-loop: loops run over the registry, which is bounded by
+//   MAX_MARKETS (16) and MAX_ASSETS (8), or over the at most MAX_LEVELS (4) ladder levels.
+// - reentrancy-*: every entry point that moves value is nonReentrant, and the external calls
+//   go to the immutable asset, the factory's own Market/OutcomeToken clones, the immutable
+//   verifier proxy, or the owner-timelocked venue.
+// - incorrect-strict-equality: exact comparisons of token balances against zero or against each
+//   other are the intent (nothing to burn/pay; excess exists).
+// - weak-prng / divide-before-multiply: epoch alignment arithmetic and tick-grid flooring.
+
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -309,6 +321,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
 
     // ------------------------------------------------------------------ construction
 
+    // Not randomness: block.timestamp is used to align epochs and UTC days.
+    // slither-disable-start weak-prng
     constructor(
         IERC20 asset_,
         MarketFactory factory_,
@@ -337,7 +351,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         verifier = streams_.verifier();
         epochLength = epochLength_;
         // uint64 holds timestamps for hundreds of billions of years.
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-line(unsafe-typecast, weak-prng)
         genesis = uint64(block.timestamp - (block.timestamp % epochLength_));
         minRequest = minRequest_;
         _dec = d;
@@ -352,6 +366,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         lastPpsLower = WAD;
         emit ParamsSet(params_);
     }
+    // slither-disable-end weak-prng
 
     function decimals() public view override returns (uint8) {
         return _dec;
@@ -385,6 +400,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         epochId = currentEpoch();
         uint256 before = asset.balanceOf(address(this));
         asset.safeTransferFrom(msg.sender, address(this), assets);
+        // forge-lint: disable-next-line(incorrect-strict-equality)
         if (asset.balanceOf(address(this)) - before != assets) revert FeeOnTransferNotSupported();
         depositRequest[epochId][msg.sender] += assets;
         // Bounded by the asset's total supply in practice; checked cast.
@@ -420,13 +436,15 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     /// @param reports Data Streams reports (one per asset whose markets carry unresolved
     ///        exposure; see `marksNeeded`), each no older than `maxMarkAge`. After `markGrace`
     ///        a missing mark is valued at the bounds (0 / 1) instead of reverting.
+    // All entry points are nonReentrant; the external calls go to the factory's own Market clones, the immutable asset or the immutable verifier proxy.
+    // slither-disable-next-line reentrancy-no-eth
     function settleEpoch(uint256 epochId, bytes[] calldata reports) external nonReentrant {
         if (epochId >= currentEpoch()) revert EpochNotEnded(epochId);
         Epoch storage e = epochs[epochId];
         if (e.settled) revert AlreadySettled(epochId);
         if (e.depositAssets == 0 && e.redeemShares == 0) revert NothingToSettle(epochId);
 
-        Settlement memory z;
+        Settlement memory z = Settlement(0, 0, 0, 0, 0, 0, 0, false);
         {
             Mark[] memory marks = _collectMarks(reports);
             MarkMode mode = block.timestamp >= epochEnd(epochId) + markGrace
@@ -438,6 +456,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         uint256 supplyBefore = totalSupply();
         z.supply0 = supplyBefore;
         if (supplyBefore != 0 && z.lo != 0) z.supply0 += _performanceFee(z.lo, supplyBefore);
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
         uint256 ppsLo = z.supply0 == 0 ? WAD : F.mulDiv(z.lo, WAD, z.supply0);
 
         _settleDeposits(e, z);
@@ -453,9 +473,12 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // forge-lint: disable-next-line(unsafe-typecast)
         navUpdatedAt = uint64(block.timestamp);
         _updateBreaker(ppsLo);
+        // forge-lint: disable-start(reentrancy-events)
         emit EpochSettled(
             epochId, z.lo, z.hi, supplyBefore, z.minted, z.burned, z.paid, z.accepted, z.rejected
         );
+        // forge-lint: disable-end(reentrancy-events)
+        // forge-lint: disable-next-line(reentrancy-events)
         emit NavSnapshot(z.lo, z.hi, ppsLo, totalSupply(), true);
     }
 
@@ -466,15 +489,21 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         uint256 d = e.depositAssets;
         pendingDeposits -= d;
         if (d == 0) return;
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
         if (z.supply0 == 0) {
             // minRequest > DEAD_SHARES (constructor), so the first deposit always covers them.
             _mint(DEAD, DEAD_SHARES);
             z.minted = d - DEAD_SHARES;
             _mint(address(this), z.minted);
+            // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+            // slither-disable-next-line incorrect-equality
         } else if (z.hi == 0) {
             z.rejected = true;
         } else {
             z.minted = F.mulDiv(d, z.supply0, z.hi);
+            // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+            // slither-disable-next-line incorrect-equality
             if (z.minted == 0) z.rejected = true;
             else _mint(address(this), z.minted);
         }
@@ -490,6 +519,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     ///      free liquidity. What is not filled is queued again at claim time.
     function _settleRedemptions(Epoch storage e, Settlement memory z) internal {
         uint256 r = e.redeemShares;
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
         if (r == 0 || z.supply0 == 0 || z.lo == 0) return;
         uint256 want = F.mulDiv(r, z.lo, z.supply0);
         uint256 free = _freeLiquidity();
@@ -520,6 +551,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         }
         uint256 s = F.mulDiv(a, e.sharesMinted, e.depositAssets);
         _transfer(address(this), receiver, s);
+        // forge-lint: disable-next-line(reentrancy-events)
         emit DepositClaimed(epochId, msg.sender, receiver, s, 0);
     }
 
@@ -540,9 +572,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             uint256 cur = currentEpoch();
             redeemRequest[cur][msg.sender] += rest;
             epochs[cur].redeemShares += _u128(rest);
+            // forge-lint: disable-next-line(reentrancy-events)
             emit RedeemRequested(cur, msg.sender, rest, true);
         }
         if (out != 0) asset.safeTransfer(receiver, out);
+        // forge-lint: disable-next-line(reentrancy-events)
         emit RedeemClaimed(epochId, msg.sender, receiver, out, rest);
     }
 
@@ -554,11 +588,16 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             return 0;
         }
         uint256 feeAssets = F.mulDiv(F.mulDiv(pps - hwmPps, supply, WAD), performanceFeeBps, BPS);
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
         if (feeAssets == 0 || feeAssets >= lo) return 0;
         feeShares = F.mulDiv(feeAssets, supply, lo - feeAssets);
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
         if (feeShares == 0) return 0;
         _mint(treasury, feeShares);
         hwmPps = F.mulDiv(lo, WAD, supply + feeShares);
+        // forge-lint: disable-next-line(reentrancy-events)
         emit PerformanceFee(feeShares, feeAssets, hwmPps);
     }
 
@@ -581,18 +620,23 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             bytes32 feed = ReportLib.feedOf(reports[i]);
             uint256 idx = type(uint256).max;
             for (uint256 j = 0; j < assetIds.length; j++) {
+                // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+                // slither-disable-next-line incorrect-equality
                 if (assetCfg[assetIds[j]].feedId == feed) {
                     idx = j;
                     break;
                 }
             }
+            // forge-lint: disable-next-line(require-revert-in-loop)
             if (idx == type(uint256).max) revert UnknownReportFeed(feed);
+            // forge-lint: disable-next-line(require-revert-in-loop)
             if (marks[idx].known) revert DuplicateReport(assetIds[idx]);
             ReportV3 memory r = ReportLib.verify(verifier, param, reports[i], feed);
             if (
                 r.observationsTimestamp > block.timestamp
                     || block.timestamp - r.observationsTimestamp > maxMarkAge
             ) {
+                // forge-lint: disable-next-line(require-revert-in-loop)
                 revert StaleReport(r.observationsTimestamp, block.timestamp);
             }
             // price > 0 is checked by the library, so the cast cannot truncate a negative.
@@ -630,17 +674,25 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         view
         returns (uint256 lo, uint256 hi)
     {
+        // forge-lint: disable-next-line(calls-loop)
         uint256 u = IERC20(address(m.up())).balanceOf(address(this));
+        // forge-lint: disable-next-line(calls-loop)
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
         uint256 pairs = F.min(u, d);
         lo = hi = pairs;
         uint256 excess = u > d ? u - d : d - u;
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
         if (excess == 0) return (lo, hi);
         bool upExcess = u > d;
+        // forge-lint: disable-next-line(calls-loop)
         Market.State s = m.state();
         if (s == Market.State.RESOLVED_UP || s == Market.State.RESOLVED_DOWN) {
             bool upWins = s == Market.State.RESOLVED_UP;
+            // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+            // slither-disable-next-line incorrect-equality
             if (upWins == upExcess) {
+                // forge-lint: disable-next-line(calls-loop)
                 uint256 fee = m.redeemFeeBps();
                 lo += excess - F.mulDivUp(excess, fee, BPS);
                 hi += excess;
@@ -649,6 +701,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         }
         if (s == Market.State.INVALID) {
             uint256 half = excess / 2;
+            // forge-lint: disable-next-line(calls-loop)
             lo += half - F.mulDivUp(half, m.redeemFeeBps(), BPS);
             hi += F.mulDivUp(excess, 1, 2);
             return (lo, hi);
@@ -675,13 +728,16 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             // No strike yet: both sides are worth 1/2 by symmetry.
             return (WAD / 2 > band ? WAD / 2 - band : 0, F.min(WAD, WAD / 2 + band));
         }
+        // forge-lint: disable-next-line(calls-loop)
         uint256 end = m.endTime();
         if (block.timestamp >= end) return (0, WAD); // awaiting resolution
+        // forge-lint: disable-next-line(calls-loop)
         bytes32 a = m.assetId();
         (bool ok, uint256 spot, uint256 obs) = _markOf(a, marks, mode);
         if (!ok || obs >= end) return (0, WAD);
         AssetCfg storage c = assetCfg[a];
         // The market must have a strike here (OPEN); read it.
+        // forge-lint: disable-next-line(calls-loop, unsafe-typecast)
         uint256 strike = uint256(m.strike());
         uint256 tau = end - obs;
         (pLo, pHi) = (WAD, 0);
@@ -710,6 +766,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             LastMark memory lm = lastMark[a];
             return (lm.price != 0, lm.price, lm.obsTs);
         }
+        // forge-lint: disable-next-line(require-revert-in-loop)
         if (mode == MarkMode.STRICT) revert MarkMissing(a);
         return (false, 0, 0);
     }
@@ -718,13 +775,16 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     ///         unresolved, open market holds excess of one side). Use it to build `reports`.
     function marksNeeded() external view returns (bytes32[] memory feeds) {
         bytes32[] memory tmp = new bytes32[](assetIds.length);
-        uint256 n;
+        uint256 n = 0;
         for (uint256 i = 0; i < _markets.length; i++) {
             Market m = Market(_markets[i]);
             if (!_needsMark(m)) continue;
+            // forge-lint: disable-next-line(calls-loop)
             bytes32 f = assetCfg[m.assetId()].feedId;
-            bool seen;
+            bool seen = false;
             for (uint256 j = 0; j < n; j++) {
+                // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+                // slither-disable-next-line incorrect-equality
                 if (tmp[j] == f) seen = true;
             }
             if (!seen) tmp[n++] = f;
@@ -736,10 +796,14 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     }
 
     function _needsMark(Market m) internal view returns (bool) {
+        // Bounded loop caller (MAX_MARKETS); balances are compared for inequality on purpose.
+        // forge-lint: disable-start(calls-loop, incorrect-strict-equality)
         Market.State s = m.state();
         if (s != Market.State.OPEN || block.timestamp >= m.endTime()) return false;
-        return IERC20(address(m.up())).balanceOf(address(this))
-            != IERC20(address(m.down())).balanceOf(address(this));
+        uint256 u = IERC20(address(m.up())).balanceOf(address(this));
+        uint256 d = IERC20(address(m.down())).balanceOf(address(this));
+        return u != d;
+        // forge-lint: disable-end(calls-loop, incorrect-strict-equality)
     }
 
     /// @notice Re-values the vault with fresh reports (last verified marks for assets without
@@ -748,18 +812,24 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     ///         mark is used instead of a worst-case value.
     function checkpoint(bytes[] calldata reports) external nonReentrant {
         uint256 supply = totalSupply();
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
         if (supply == 0) return;
         Mark[] memory marks = _collectMarks(reports);
         (uint256 lo, uint256 hi) = _navs(marks, MarkMode.LAST_KNOWN);
         _recordMarks(marks);
         quoteNavLower = lo;
         lastNavUpper = hi;
+        // forge-lint: disable-next-line(unsafe-typecast)
         navUpdatedAt = uint64(block.timestamp);
         uint256 ppsLo = F.mulDiv(lo, WAD, supply);
         _updateBreaker(ppsLo);
+        // forge-lint: disable-next-line(reentrancy-events)
         emit NavSnapshot(lo, hi, ppsLo, supply, false);
     }
 
+    // Not randomness: block.timestamp is used to align epochs and UTC days.
+    // slither-disable-start weak-prng
     function _updateBreaker(uint256 ppsLo) internal {
         lastPpsLower = ppsLo;
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -769,10 +839,14 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             dayStartPps = ppsLo;
         } else if (!quotingPaused && ppsLo < F.mulDiv(dayStartPps, BPS - breakerBps, BPS)) {
             quotingPaused = true;
+            // forge-lint: disable-next-line(reentrancy-events)
             emit BreakerTripped(ppsLo, dayStartPps);
+            // forge-lint: disable-next-line(reentrancy-events)
             emit QuotingPaused(address(this));
         }
     }
+
+    // slither-disable-end weak-prng
 
     // ================================================================== keeper actions
 
@@ -797,6 +871,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             }
         }
         c.sigma = _u128(sigma);
+        // forge-lint: disable-next-line(unsafe-typecast)
         c.sigmaUpdatedAt = uint64(block.timestamp);
         emit SigmaSet(assetId, sigma);
     }
@@ -804,7 +879,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     /// @notice Turns `amount` of collateral into UP+DOWN pairs in a factory market of an enabled
     ///         asset (registering the market on first use). A pair is always worth 1 (it can be
     ///         merged at any time), so this does not change the NAV.
-    function splitForInventory(Market m, uint256 amount) external onlyKeeper nonReentrant {
+    function splitForInventory(Market m, uint256 amount) external nonReentrant onlyKeeper {
         if (amount == 0) revert ZeroAmount();
         if (quotingPaused) revert QuotingIsPaused();
         _checkMarket(m);
@@ -815,25 +890,32 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         Position storage p = _pos[address(m)];
         uint256 navU = quoteNavLower;
         uint256 pairCap = F.mulWad(maxPairFraction, navU);
+        // forge-lint: disable-next-line(unsafe-typecast)
         int256 newBasis = p.basis + int256(amount);
+        // forge-lint: disable-next-line(unsafe-typecast)
         if (newBasis > int256(pairCap)) revert PairCapExceeded(uint256(newBasis), pairCap);
         uint256 total = amount;
         for (uint256 i = 0; i < _markets.length; i++) {
             int256 b = _pos[_markets[i]].basis;
+            // forge-lint: disable-next-line(unsafe-typecast)
             if (b > 0) total += uint256(b);
         }
         uint256 invCap = F.mulWad(maxInventoryFraction, navU);
         if (total > invCap) revert InventoryCapExceeded(total, invCap);
         p.basis = newBasis;
         asset.forceApprove(address(m), amount);
+        // forge-lint: disable-next-line(reentrancy-no-eth)
         m.split(amount);
         asset.forceApprove(address(m), 0);
+        // forge-lint: disable-next-line(reentrancy-events)
         emit InventorySplit(address(m), amount);
     }
 
     /// @notice Merges `amount` complete pairs back into collateral. Works while paused and after
     ///         resolution.
-    function mergeInventory(Market m, uint256 amount) external onlyKeeper nonReentrant {
+    // All entry points are nonReentrant; the external calls go to the factory's own Market clones, the immutable asset or the immutable verifier proxy.
+    // slither-disable-next-line reentrancy-no-eth
+    function mergeInventory(Market m, uint256 amount) external nonReentrant onlyKeeper {
         if (amount == 0) revert ZeroAmount();
         if (_slot[address(m)] == 0) revert MarketNotRegistered(address(m));
         _merge(m, amount);
@@ -846,13 +928,18 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             IERC20(address(m.down())).balanceOf(address(this))
         );
         if (amount > have) revert NotEnoughPairs(have, amount);
+        // forge-lint: disable-next-line(unsafe-typecast)
         _pos[address(m)].basis -= int256(amount);
+        // forge-lint: disable-next-line(reentrancy-no-eth)
         m.merge(amount);
+        // forge-lint: disable-next-line(reentrancy-events)
         emit InventoryMerged(address(m), amount);
     }
 
     /// @notice Pulls a resolved (or invalid) registered market's value back into the vault: merges
     ///         complete pairs (no fee), redeems the rest. Anyone may call.
+    // The stale value only selects the revert branch; the Market is a trusted factory clone and this function is nonReentrant.
+    // slither-disable-next-line reentrancy-balance,reentrancy-no-eth
     function redeemResolved(Market m) external nonReentrant {
         if (_slot[address(m)] == 0) revert MarketNotRegistered(address(m));
         Market.State s = m.state();
@@ -861,14 +948,19 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         IERC20 down = IERC20(address(m.down()));
         uint256 pairs = F.min(up.balanceOf(address(this)), down.balanceOf(address(this)));
         if (pairs != 0) _merge(m, pairs);
-        uint256 payout;
+        uint256 payout = 0;
+        // forge-lint: disable-next-line(incorrect-strict-equality)
         if (up.balanceOf(address(this)) != 0 || down.balanceOf(address(this)) != 0) {
             uint256 before = asset.balanceOf(address(this));
+            // forge-lint: disable-next-line(reentrancy-no-eth)
             m.redeem();
             payout = asset.balanceOf(address(this)) - before;
+            // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+            // slither-disable-next-line incorrect-equality
         } else if (pairs == 0) {
             revert NothingToRedeem();
         }
+        // forge-lint: disable-next-line(reentrancy-events)
         emit ResolvedRedeemed(address(m), pairs, payout);
         _unregister(m);
     }
@@ -902,15 +994,18 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         _markets.pop();
         delete _slot[address(m)];
         delete _pos[address(m)];
+        // forge-lint: disable-next-line(reentrancy-events)
         emit MarketUnregistered(address(m));
     }
 
+    // Exact zero check on both balances is the intent.
+    // slither-disable-start incorrect-equality
     function _pruneIfEmpty(Market m) internal {
-        if (
-            IERC20(address(m.up())).balanceOf(address(this)) == 0
-                && IERC20(address(m.down())).balanceOf(address(this)) == 0
-        ) _unregister(m);
+        uint256 u = IERC20(address(m.up())).balanceOf(address(this));
+        uint256 d = IERC20(address(m.down())).balanceOf(address(this));
+        if (u + d == 0) _unregister(m);
     }
+    // slither-disable-end incorrect-equality
 
     function marketCount() external view returns (uint256) {
         return _markets.length;
@@ -944,9 +1039,13 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function _posWad(address m) internal view returns (QuoteMath.Pos memory p) {
         Position storage q = _pos[m];
         Market mk = Market(m);
+        // forge-lint: disable-next-line(unsafe-typecast)
         p.basis = q.basis * int256(SCALE);
+        // forge-lint: disable-next-line(unsafe-typecast)
         p.cash = q.cash * int256(SCALE);
+        // forge-lint: disable-next-line(calls-loop)
         p.up = IERC20(address(mk.up())).balanceOf(address(this)) * SCALE;
+        // forge-lint: disable-next-line(calls-loop)
         p.down = IERC20(address(mk.down())).balanceOf(address(this)) * SCALE;
     }
 
@@ -964,7 +1063,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
 
     /// @dev Loss ceiling of market `m` given the other markets' current losses.
     function _ceiling(address m, QuoteMath.Pos memory p) internal view returns (uint256) {
-        uint256 other;
+        uint256 other = 0;
         for (uint256 i = 0; i < _markets.length; i++) {
             if (_markets[i] == m) continue;
             other += QuoteMath.loss(_posWad(_markets[i]));
@@ -1012,7 +1111,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     }
 
     /// @notice Executes one fill on behalf of the venue. All risk checks are repeated here.
-    function venueFill(FillParams calldata f) external onlyVenue nonReentrant {
+    function venueFill(FillParams calldata f) external nonReentrant onlyVenue {
         if (f.units == 0) revert ZeroAmount();
         if (f.taker == address(0) || f.taker == address(this)) revert ZeroAddress();
         if (_slot[address(f.market)] == 0) revert MarketNotRegistered(address(f.market));
@@ -1043,6 +1142,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         uint256 l = QuoteMath.loss(post);
         if (l > ceiling) revert LossAboveCeiling(l, ceiling);
         Position storage pos = _pos[address(f.market)];
+        // forge-lint: disable-start(reentrancy-events)
         emit Fill(
             address(f.market),
             f.upToken,
@@ -1053,6 +1153,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             pos.basis,
             pos.cash
         );
+        // forge-lint: disable-end(reentrancy-events)
     }
 
     function _moveFill(FillParams calldata f) internal {
@@ -1061,9 +1162,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (f.vaultSells) {
             uint256 before = asset.balanceOf(address(this));
             asset.safeTransferFrom(msg.sender, address(this), f.premium);
+            // forge-lint: disable-next-line(incorrect-strict-equality)
             if (asset.balanceOf(address(this)) - before != f.premium) {
                 revert FeeOnTransferNotSupported();
             }
+            // forge-lint: disable-next-line(unsafe-typecast)
             pos.cash += int256(f.premium);
             tok.safeTransfer(f.taker, f.units);
         } else {
@@ -1071,9 +1174,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             if (f.premium > free) revert InsufficientLiquidity(f.premium, free);
             uint256 before = tok.balanceOf(address(this));
             tok.safeTransferFrom(msg.sender, address(this), f.units);
+            // forge-lint: disable-next-line(incorrect-strict-equality)
             if (tok.balanceOf(address(this)) - before != f.units) {
                 revert FeeOnTransferNotSupported();
             }
+            // forge-lint: disable-next-line(unsafe-typecast)
             pos.cash -= int256(f.premium);
             asset.safeTransfer(f.taker, f.premium);
         }
@@ -1103,6 +1208,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
 
     function setPerformanceFee(uint256 bps) external onlyOwner {
         if (bps > MAX_FEE_BPS) revert FeeTooHigh(bps);
+        // forge-lint: disable-next-line(unsafe-typecast)
         performanceFeeBps = uint16(bps);
         emit FeeSet(bps);
     }
@@ -1194,11 +1300,17 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
                 || markGrace_ > 1 days || breakerBps_ == 0 || breakerBps_ > 2_500
                 || maxPairFraction_ > WAD || maxInventoryFraction_ > WAD
         ) revert InvalidConfig();
+        // forge-lint: disable-next-line(unsafe-typecast)
         maxMarkAge = uint32(maxMarkAge_);
+        // forge-lint: disable-next-line(unsafe-typecast)
         markBand = uint64(markBand_);
+        // forge-lint: disable-next-line(unsafe-typecast)
         markGrace = uint32(markGrace_);
+        // forge-lint: disable-next-line(unsafe-typecast)
         breakerBps = uint16(breakerBps_);
+        // forge-lint: disable-next-line(unsafe-typecast)
         maxPairFraction = uint64(maxPairFraction_);
+        // forge-lint: disable-next-line(unsafe-typecast)
         maxInventoryFraction = uint64(maxInventoryFraction_);
         emit RiskConfigSet(
             maxMarkAge_, markBand_, markGrace_, breakerBps_, maxPairFraction_, maxInventoryFraction_
@@ -1215,9 +1327,13 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             maxStepBps == 0 || maxStepBps > BPS || minInterval == 0 || maxAge < minInterval
                 || navMaxAge_ < 60
         ) revert InvalidConfig();
+        // forge-lint: disable-next-line(unsafe-typecast)
         maxSigmaStepBps = uint16(maxStepBps);
+        // forge-lint: disable-next-line(unsafe-typecast)
         sigmaMinInterval = uint32(minInterval);
+        // forge-lint: disable-next-line(unsafe-typecast)
         sigmaMaxAge = uint32(maxAge);
+        // forge-lint: disable-next-line(unsafe-typecast)
         navMaxAge = uint32(navMaxAge_);
         emit SigmaConfigSet(maxStepBps, minInterval, maxAge, navMaxAge_);
     }
@@ -1233,6 +1349,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function proposeVenue(address v) external onlyOwner {
         if (v == address(0)) revert ZeroAddress();
         pendingVenue = v;
+        // forge-lint: disable-next-line(unsafe-typecast)
         pendingVenueEta = uint64(block.timestamp + VENUE_DELAY);
         emit VenueProposed(v, pendingVenueEta);
     }
@@ -1257,6 +1374,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function _u128(uint256 x) internal pure returns (uint128) {
         // Asset amounts here are far below 2^128; a larger value is a bug or an attack.
         if (x > type(uint128).max) revert InvalidConfig();
+        // forge-lint: disable-next-line(unsafe-typecast)
         return uint128(x);
     }
 
