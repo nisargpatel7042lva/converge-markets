@@ -5,6 +5,21 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "backtest:data": "tsx src/download.ts",
+    "backtest": "tsx src/cli.ts",
+    "determinism": "tsx src/determinism.ts",
+    "verify-data": "tsx src/verify.ts",
+    "backtest:chainlink": "tsx src/chainlink-fetch.ts"
+  },
+  "dependencies": {
+    "@converge/strategy": "workspace:*",
+    "@resvg/resvg-js": "2.6.2",
+    "viem": "^2.57.2"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "2.1.9",
+    "fast-check": "^4.10.2",
+    "tsx": "^4.23.15"
   }
 }

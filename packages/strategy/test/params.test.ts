@@ -35,6 +35,7 @@ describe("validateParams", () => {
     ["drawdownBreakerFraction", { drawdownBreakerFraction: 0 }],
     ["vol.halfLifeSec", { vol: { ...DEFAULT_PARAMS.vol, halfLifeSec: 0 } }],
     ["vol.priorAnnualVol", { vol: { ...DEFAULT_PARAMS.vol, priorAnnualVol: 0 } }],
+    ["vol.scale", { vol: { ...DEFAULT_PARAMS.vol, scale: 0 } }],
     ["vol clamp", { vol: { ...DEFAULT_PARAMS.vol, minAnnualVol: 5, maxAnnualVol: 1 } }],
     ["refreshTicks", { refreshTicks: -1 }],
     ["maxQuoteAgeBlocks", { maxQuoteAgeBlocks: 0 }],

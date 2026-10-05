@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -49,3 +49,17 @@ check-2: check-all
 	cd services/scheduler/cre && MONAD_TESTNET_RPC_URL=https://testnet-rpc.monad.xyz cre workflow build scheduler -T staging-settings
 	@test -f docs/ops/scheduler-runbook.md
 	@echo "check-2 OK"
+
+# Phase 3: everything in check-all, plus >= 95% coverage on packages/strategy (thresholds enforced in
+# its vitest config), the backtest tests (accounting identity, causality, determinism), the pinned
+# data check, a worker-pool determinism check, and the report artifacts. Needs the Binance archives
+# (`pnpm --filter @converge/backtest backtest:data`); the full report takes about an hour to regenerate.
+check-3: check-all
+	cd packages/strategy && pnpm exec vitest run --coverage
+	cd backtest && pnpm exec vitest run
+	pnpm --filter @converge/backtest verify-data
+	pnpm --filter @converge/backtest determinism
+	@test -f backtest/report/REPORT.md && test -f backtest/report/results.json && test -f config/strategy.default.json
+	@head -5 backtest/report/REPORT.md | grep -q "VERDICT"
+	@test -s docs/evidence/phase-3/determinism.txt
+	@echo "check-3 OK"

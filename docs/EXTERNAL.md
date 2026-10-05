@@ -124,7 +124,7 @@ Price feeds come from the official directory JSON https://reference-data-directo
 
 | Item | Value | Status |
 |---|---|---|
-| Paper | https://www.paradigm.xyz/2024/11/pm-amm. The exact liquidity schedule must be checked against the paper in Phase 3 before use | Not needed in Phase 0 |
+| Paper | https://www.paradigm.xyz/2024/11/pm-amm. **Verified in Phase 3 (2026-10-05)** from the page's TeX source: dynamic invariant (y−x)Φ((y−x)/(L√(T−t))) + L√(T−t)φ((y−x)/(L√(T−t))) − y = 0; liquidity curve L_t = L√(T−t) (section "Dynamic pm-AMM", subsection "Constant LVR"); y*−x* = L_tΦ⁻¹(P); pool value V(P,t) = L_t φ(Φ⁻¹(P)); outcome-token volatility φ(Φ⁻¹(P))/√(T−t). Cited in `packages/strategy/src/liquidity.ts`; cross-checked numerically in `packages/strategy/test/liquidity.test.ts` | VERIFIED |
 
 ## Phase 2 additions (scheduler)
 
@@ -141,3 +141,15 @@ Price feeds come from the official directory JSON https://reference-data-directo
 | Data Streams feed IDs for BTC/ETH (Monad) | Unknown | needs Chainlink account | — | **BLOCKED** (`config/series.json` holds zero IDs) |
 | Chainlink push-feed behaviour at 15m boundaries (real data, last 6 h) | First round at or after T within 120 s: MON 24/24, BTC 9/24, ETH 7/24 | `docs/evidence/phase-2/mainnet-fork-dry-run.md` | 2026-10-04 | VERIFIED (mainnet fork) |
 | `@noble/curves` | 1.9.1 (already a viem dependency), used for the TEST-ONLY sync signer | lockfile | 2026-10-04 | VERIFIED |
+
+## Phase 3 additions (strategy and backtest)
+
+| Item | Value | Source | Verified | Status |
+|---|---|---|---|---|
+| Historical prices, BTC and ETH | Binance spot daily klines, 1 s: `https://data.binance.vision/data/spot/daily/klines/{BTCUSDT,ETHUSDT}/1s/{SYMBOL}-1s-{YYYY-MM-DD}.zip`. 91 days (2026-07-05 to 2026-10-03; the first day warms up the volatility estimator). Open times are µs from 2025-01-01. No key. Each archive verified against the SHA-256 in its `.CHECKSUM` file and pinned in `backtest/data/manifest.json` | https://data.binance.vision, https://github.com/binance/binance-public-data | 2026-10-05 | VERIFIED (downloaded, hashes match) |
+| Historical prices, MON | **No Binance spot market** (HTTP 404 for spot 1s and 1m). Only the USDⓈ-M perpetual at 1 m: `futures/um/daily/klines/MONUSDT/1m/`. Used for context only, not for the economic backtest | `curl -I` on the archive URLs | 2026-10-05 | VERIFIED (limitation) |
+| Binance data license | Binance Data Collection terms (https://www.binance.com/en/terms): public archives, free to download. Only derived close prices are used; raw archives are git-ignored | data.binance.vision | 2026-10-05 | VERIFIED (doc); not legal advice |
+| Chainlink push-feed history | BTC/USD and ETH/USD proxies (addresses above) read round by round with `getRoundData` through Multicall3 `0xcA11bde05977b3631167028862bE2a173976CA11` (code present on Monad mainnet). BTC feed was at round 672,347 (phase 1) on 2026-10-05, about one update per 41 s on average. Used to measure the basis and the lag against Binance (`backtest/data/chainlink-basis.json`) | onchain | 2026-10-05 | VERIFIED |
+| Chainlink Data Streams history | Needs an API key and secret: not available. The Binance-to-Streams information lead is therefore **unmeasured** | `docs/EXTERNAL.md` Phase 2 rows | 2026-10-05 | **BLOCKED** (needs Nisarg's Data Streams key) |
+| `fast-check` | 4.10.2 (property tests), `@vitest/coverage-v8` 2.1.9 (coverage gate) | npm | 2026-10-05 | VERIFIED |
+| `@resvg/resvg-js` | 2.6.2 (SVG to PNG for the report charts, prebuilt binaries; DejaVu Sans bundled in `backtest/assets/fonts`) | npm, https://dejavu-fonts.github.io/License.html | 2026-10-05 | VERIFIED |

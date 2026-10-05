@@ -1,0 +1,3132 @@
+{
+ "specified": {
+  "id": "m0.15",
+  "params": {
+   "minHalfSpread": 0.1,
+   "maxHalfSpread": 0.2,
+   "volSpreadK": 1.5,
+   "stalenessSec": 2.5,
+   "inventorySkewMax": 0.01,
+   "inventorySkewK": 2,
+   "toxicityPullBps": 40,
+   "toxicityWindowSec": 5,
+   "toxicityWidenMax": 0,
+   "noQuoteWindowSec": 600,
+   "priceMin": 0.02,
+   "priceMax": 0.98,
+   "tick": 0.01,
+   "levels": 3,
+   "baseRangeTicks": 4,
+   "minRangeTicks": 2,
+   "liquidityNavFraction": 0.03,
+   "minLevelSize": 1,
+   "perMarketMaxFraction": 0.05,
+   "totalAtRiskMaxFraction": 0.4,
+   "drawdownBreakerFraction": 0.05,
+   "vol": {
+    "halfLifeSec": 1800,
+    "priorAnnualVol": 0.5,
+    "minAnnualVol": 0.1,
+    "maxAnnualVol": 3,
+    "scale": 1.1
+   },
+   "refreshTicks": 3,
+   "maxQuoteAgeBlocks": 200
+  },
+  "screen": {
+   "pessimistic": {
+    "expectedPerDay": 0.02980378244116544,
+    "stdDaily": 8.40101876395785,
+    "tripFraction": 0,
+    "maxDrawdownPct": 0.5413769884709836,
+    "score": -4.17070559953776
+   },
+   "sniper": {
+    "expectedPerDay": -106.63220052532301,
+    "stdDaily": 187.80371631036837,
+    "tripFraction": 0.3,
+    "maxDrawdownPct": 21.38073150561302,
+    "score": -819.5706339611583
+   },
+   "combined": -823.741339560696
+  },
+  "train": {
+   "pessimistic": {
+    "expectedPerDay": 1.0236093459578384,
+    "stdDaily": 12.9509864432094,
+    "tripFraction": 0,
+    "maxDrawdownPct": 1.7028646060727985,
+    "score": -5.451883875646862
+   },
+   "sniper": {
+    "expectedPerDay": -67.79590946228538,
+    "stdDaily": 133.82398736946882,
+    "tripFraction": 0.18333333333333332,
+    "maxDrawdownPct": 54.66405830018803,
+    "score": -2359.577484823088
+   },
+   "combined": -2365.0293686987347
+  }
+ },
+ "proposed": {
+  "id": "m0.17",
+  "params": {
+   "minHalfSpread": 0.05,
+   "maxHalfSpread": 0.2,
+   "volSpreadK": 1,
+   "stalenessSec": 4,
+   "inventorySkewMax": 0.1,
+   "inventorySkewK": 2,
+   "toxicityPullBps": 12,
+   "toxicityWindowSec": 5,
+   "toxicityWidenMax": 0,
+   "noQuoteWindowSec": 30,
+   "priceMin": 0.02,
+   "priceMax": 0.98,
+   "tick": 0.01,
+   "levels": 2,
+   "baseRangeTicks": 8,
+   "minRangeTicks": 2,
+   "liquidityNavFraction": 0.12,
+   "minLevelSize": 1,
+   "perMarketMaxFraction": 0.01,
+   "totalAtRiskMaxFraction": 0.08,
+   "drawdownBreakerFraction": 0.05,
+   "vol": {
+    "halfLifeSec": 1800,
+    "priorAnnualVol": 0.5,
+    "minAnnualVol": 0.1,
+    "maxAnnualVol": 3,
+    "scale": 1.1
+   },
+   "refreshTicks": 2,
+   "maxQuoteAgeBlocks": 25
+  },
+  "screen": {
+   "pessimistic": {
+    "expectedPerDay": 41.9152165137084,
+    "stdDaily": 113.34977533615485,
+    "tripFraction": 0,
+    "maxDrawdownPct": 6.888655218384557,
+    "score": -14.759671154369023
+   },
+   "sniper": {
+    "expectedPerDay": 211.34328981928053,
+    "stdDaily": 134.3087782391875,
+    "tripFraction": 0,
+    "maxDrawdownPct": 6.926434411271712,
+    "score": 144.18890069968677
+   },
+   "combined": 129.42922954531775
+  },
+  "train": {
+   "pessimistic": {
+    "expectedPerDay": 46.66644606130684,
+    "stdDaily": 124.72029488641704,
+    "tripFraction": 0,
+    "maxDrawdownPct": 11.968974910892886,
+    "score": -15.693701381901676
+   },
+   "sniper": {
+    "expectedPerDay": 242.98319341031626,
+    "stdDaily": 354.280830488763,
+    "tripFraction": 0,
+    "maxDrawdownPct": 22.421375282988848,
+    "score": -455.2259859835077
+   },
+   "combined": -470.9196873654094
+  }
+ },
+ "specifiedTop": [
+  {
+   "id": "m0.15",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1.5,
+    "stalenessSec": 2.5,
+    "inventorySkewMax": 0.01,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 40,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 3,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.03,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.05,
+    "totalAtRiskMaxFraction": 0.4,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 3,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 0.02980378244116544,
+     "stdDaily": 8.40101876395785,
+     "tripFraction": 0,
+     "maxDrawdownPct": 0.5413769884709836,
+     "score": -4.17070559953776
+    },
+    "sniper": {
+     "expectedPerDay": -106.63220052532301,
+     "stdDaily": 187.80371631036837,
+     "tripFraction": 0.3,
+     "maxDrawdownPct": 21.38073150561302,
+     "score": -819.5706339611583
+    },
+    "combined": -823.741339560696
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 1.0236093459578384,
+     "stdDaily": 12.9509864432094,
+     "tripFraction": 0,
+     "maxDrawdownPct": 1.7028646060727985,
+     "score": -5.451883875646862
+    },
+    "sniper": {
+     "expectedPerDay": -67.79590946228538,
+     "stdDaily": 133.82398736946882,
+     "tripFraction": 0.18333333333333332,
+     "maxDrawdownPct": 54.66405830018803,
+     "score": -2359.577484823088
+    },
+    "combined": -2365.0293686987347
+   }
+  },
+  {
+   "id": "m0.8",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1.5,
+    "stalenessSec": 2.5,
+    "inventorySkewMax": 0.01,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 40,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 3,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.03,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.05,
+    "totalAtRiskMaxFraction": 0.4,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 3,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 0.02980378244116544,
+     "stdDaily": 8.40101876395785,
+     "tripFraction": 0,
+     "maxDrawdownPct": 0.5413769884709836,
+     "score": -4.17070559953776
+    },
+    "sniper": {
+     "expectedPerDay": -106.63220052532301,
+     "stdDaily": 187.80371631036837,
+     "tripFraction": 0.3,
+     "maxDrawdownPct": 21.38073150561302,
+     "score": -819.5706339611583
+    },
+    "combined": -823.741339560696
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 1.0236093459578384,
+     "stdDaily": 12.9509864432094,
+     "tripFraction": 0,
+     "maxDrawdownPct": 1.7028646060727985,
+     "score": -5.451883875646862
+    },
+    "sniper": {
+     "expectedPerDay": -67.79590946228538,
+     "stdDaily": 133.82398736946882,
+     "tripFraction": 0.18333333333333332,
+     "maxDrawdownPct": 54.66405830018803,
+     "score": -2359.577484823088
+    },
+    "combined": -2365.0293686987347
+   }
+  },
+  {
+   "id": "m0.1",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 3,
+    "stalenessSec": 2.5,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 40,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.03,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.05,
+    "totalAtRiskMaxFraction": 0.4,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 3,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 0.8502994403331801,
+     "stdDaily": 12.357601496045854,
+     "tripFraction": 0,
+     "maxDrawdownPct": 0.6269236133303274,
+     "score": -5.328501307689747
+    },
+    "sniper": {
+     "expectedPerDay": -128.79427911824956,
+     "stdDaily": 191.48134464867712,
+     "tripFraction": 0.3,
+     "maxDrawdownPct": 21.301837327891697,
+     "score": -839.6268178371731
+    },
+    "combined": -844.9553191448629
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 1.978147701893857,
+     "stdDaily": 16.90387809909352,
+     "tripFraction": 0,
+     "maxDrawdownPct": 2.0903638310483257,
+     "score": -6.473791347652904
+    },
+    "sniper": {
+     "expectedPerDay": -74.59830220235965,
+     "stdDaily": 131.89235472205743,
+     "tripFraction": 0.25,
+     "maxDrawdownPct": 58.614947576105905,
+     "score": -2596.2918583686837
+    },
+    "combined": -2602.7656497163366
+   }
+  },
+  {
+   "id": "m0.12",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1.5,
+    "stalenessSec": 2.5,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 40,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.03,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.05,
+    "totalAtRiskMaxFraction": 0.4,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 3,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 0.8502994403331801,
+     "stdDaily": 12.357601496045854,
+     "tripFraction": 0,
+     "maxDrawdownPct": 0.6269236133303274,
+     "score": -5.328501307689747
+    },
+    "sniper": {
+     "expectedPerDay": -128.79427911824956,
+     "stdDaily": 191.48134464867712,
+     "tripFraction": 0.3,
+     "maxDrawdownPct": 21.301837327891697,
+     "score": -839.6268178371731
+    },
+    "combined": -844.9553191448629
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 1.978147701893857,
+     "stdDaily": 16.90387809909352,
+     "tripFraction": 0,
+     "maxDrawdownPct": 2.0903638310483257,
+     "score": -6.473791347652904
+    },
+    "sniper": {
+     "expectedPerDay": -74.59830220235965,
+     "stdDaily": 131.89235472205743,
+     "tripFraction": 0.25,
+     "maxDrawdownPct": 58.614947576105905,
+     "score": -2596.2918583686837
+    },
+    "combined": -2602.7656497163366
+   }
+  },
+  {
+   "id": "m1.1",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 3,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.06,
+    "inventorySkewK": 4,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 4,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.06,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": -5.371037664313066,
+     "stdDaily": 17.27774991301813,
+     "tripFraction": 0,
+     "maxDrawdownPct": 1.5223761467474834,
+     "score": -14.009912620822131
+    },
+    "sniper": {
+     "expectedPerDay": -157.02353048858714,
+     "stdDaily": 192.32002845905407,
+     "tripFraction": 0.2,
+     "maxDrawdownPct": 22.702826156940773,
+     "score": -888.3248525651528
+    },
+    "combined": -902.3347651859749
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": -4.905183682946444,
+     "stdDaily": 22.491579783951497,
+     "tripFraction": 0,
+     "maxDrawdownPct": 7.272450660585072,
+     "score": -16.150973574922194
+    },
+    "sniper": {
+     "expectedPerDay": -87.18912707475829,
+     "stdDaily": 136.0439648297788,
+     "tripFraction": 0.2,
+     "maxDrawdownPct": 61.61110397342018,
+     "score": -2735.7663081606565
+    },
+    "combined": -2751.917281735579
+   }
+  },
+  {
+   "id": "m1.18",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 3,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.06,
+    "inventorySkewK": 4,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 4,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.06,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": -3.8994933853174816,
+     "stdDaily": 20.943809327347306,
+     "tripFraction": 0,
+     "maxDrawdownPct": 1.646088013067838,
+     "score": -14.371398048991136
+    },
+    "sniper": {
+     "expectedPerDay": -174.831951364055,
+     "stdDaily": 207.96364102833326,
+     "tripFraction": 0.2,
+     "maxDrawdownPct": 23.541377012533722,
+     "score": -955.8826225049077
+    },
+    "combined": -970.2540205538988
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": -3.8588805616818984,
+     "stdDaily": 24.206426921860057,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.750494075120969,
+     "score": -15.962094022611927
+    },
+    "sniper": {
+     "expectedPerDay": -95.54563172035947,
+     "stdDaily": 143.6910564805144,
+     "tripFraction": 0.23333333333333334,
+     "maxDrawdownPct": 70.94368269833645,
+     "score": -3231.2419615441054
+    },
+    "combined": -3247.204055566717
+   }
+  },
+  {
+   "id": "m1.23",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 3,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.06,
+    "inventorySkewK": 4,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0.06,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 4,
+    "baseRangeTicks": 14,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.06,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 3.5244644386342485,
+     "stdDaily": 20.99651392949201,
+     "tripFraction": 0,
+     "maxDrawdownPct": 1.2598271825510348,
+     "score": -6.973792526111756
+    },
+    "sniper": {
+     "expectedPerDay": -196.75582443835498,
+     "stdDaily": 191.6529302314119,
+     "tripFraction": 0.2,
+     "maxDrawdownPct": 24.647216968335105,
+     "score": -1024.9431379708162
+    },
+    "combined": -1031.916930496928
+   }
+  },
+  {
+   "id": "m0.6",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 0.5,
+    "stalenessSec": 2.5,
+    "inventorySkewMax": 0.03,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 40,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.03,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.05,
+    "totalAtRiskMaxFraction": 0.4,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 3,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 0.8498549106399789,
+     "stdDaily": 12.356612650554212,
+     "tripFraction": 0,
+     "maxDrawdownPct": 0.6269148552973457,
+     "score": -5.328451414637127
+    },
+    "sniper": {
+     "expectedPerDay": -137.56961879497254,
+     "stdDaily": 221.7262353701487,
+     "tripFraction": 0.3,
+     "maxDrawdownPct": 25.369682507079304,
+     "score": -1066.916861834012
+    },
+    "combined": -1072.2453132486492
+   }
+  },
+  {
+   "id": "m0.14",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1.5,
+    "stalenessSec": 2.5,
+    "inventorySkewMax": 0.01,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 40,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.03,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.035,
+    "totalAtRiskMaxFraction": 0.28,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 3,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 0.8506341543497384,
+     "stdDaily": 12.358415069307123,
+     "tripFraction": 0,
+     "maxDrawdownPct": 0.6269527193664544,
+     "score": -5.328573380303823
+    },
+    "sniper": {
+     "expectedPerDay": -140.6770797187658,
+     "stdDaily": 222.9842125697042,
+     "tripFraction": 0.3,
+     "maxDrawdownPct": 25.45309892605508,
+     "score": -1074.824132306372
+    },
+    "combined": -1080.1527056866757
+   }
+  },
+  {
+   "id": "m0.13",
+   "params": {
+    "minHalfSpread": 0.1,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1.5,
+    "stalenessSec": 2.5,
+    "inventorySkewMax": 0.01,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 40,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 600,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 4,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.03,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.05,
+    "totalAtRiskMaxFraction": 0.4,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 3,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 0.8506414112486169,
+     "stdDaily": 12.358089393007477,
+     "tripFraction": 0,
+     "maxDrawdownPct": 0.6269149124895012,
+     "score": -5.3284032852551215
+    },
+    "sniper": {
+     "expectedPerDay": -140.2691183071498,
+     "stdDaily": 223.5571696870188,
+     "tripFraction": 0.3,
+     "maxDrawdownPct": 25.712431449044654,
+     "score": -1087.669275602892
+    },
+    "combined": -1092.997678888147
+   }
+  }
+ ],
+ "proposedTop": [
+  {
+   "id": "m0.17",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.9152165137084,
+     "stdDaily": 113.34977533615485,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.888655218384557,
+     "score": -14.759671154369023
+    },
+    "sniper": {
+     "expectedPerDay": 211.34328981928053,
+     "stdDaily": 134.3087782391875,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.926434411271712,
+     "score": 144.18890069968677
+    },
+    "combined": 129.42922954531775
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 46.66644606130684,
+     "stdDaily": 124.72029488641704,
+     "tripFraction": 0,
+     "maxDrawdownPct": 11.968974910892886,
+     "score": -15.693701381901676
+    },
+    "sniper": {
+     "expectedPerDay": 242.98319341031626,
+     "stdDaily": 354.280830488763,
+     "tripFraction": 0,
+     "maxDrawdownPct": 22.421375282988848,
+     "score": -455.2259859835077
+    },
+    "combined": -470.9196873654094
+   }
+  },
+  {
+   "id": "m0.23",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.9152165137084,
+     "stdDaily": 113.34977533615485,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.888655218384557,
+     "score": -14.759671154369023
+    },
+    "sniper": {
+     "expectedPerDay": 211.34328981928053,
+     "stdDaily": 134.3087782391875,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.926434411271712,
+     "score": 144.18890069968677
+    },
+    "combined": 129.42922954531775
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 46.66644606130684,
+     "stdDaily": 124.72029488641704,
+     "tripFraction": 0,
+     "maxDrawdownPct": 11.968974910892886,
+     "score": -15.693701381901676
+    },
+    "sniper": {
+     "expectedPerDay": 242.98319341031626,
+     "stdDaily": 354.280830488763,
+     "tripFraction": 0,
+     "maxDrawdownPct": 22.421375282988848,
+     "score": -455.2259859835077
+    },
+    "combined": -470.9196873654094
+   }
+  },
+  {
+   "id": "m0.7",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.9152165137084,
+     "stdDaily": 113.34977533615485,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.888655218384557,
+     "score": -14.759671154369023
+    },
+    "sniper": {
+     "expectedPerDay": 211.34328981928053,
+     "stdDaily": 134.3087782391875,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.926434411271712,
+     "score": 144.18890069968677
+    },
+    "combined": 129.42922954531775
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 46.66644606130684,
+     "stdDaily": 124.72029488641704,
+     "tripFraction": 0,
+     "maxDrawdownPct": 11.968974910892886,
+     "score": -15.693701381901676
+    },
+    "sniper": {
+     "expectedPerDay": 242.98319341031626,
+     "stdDaily": 354.280830488763,
+     "tripFraction": 0,
+     "maxDrawdownPct": 22.421375282988848,
+     "score": -455.2259859835077
+    },
+    "combined": -470.9196873654094
+   }
+  },
+  {
+   "id": "m0.9",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.9152165137084,
+     "stdDaily": 113.34977533615485,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.888655218384557,
+     "score": -14.759671154369023
+    },
+    "sniper": {
+     "expectedPerDay": 211.34328981928053,
+     "stdDaily": 134.3087782391875,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.926434411271712,
+     "score": 144.18890069968677
+    },
+    "combined": 129.42922954531775
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 46.66644606130684,
+     "stdDaily": 124.72029488641704,
+     "tripFraction": 0,
+     "maxDrawdownPct": 11.968974910892886,
+     "score": -15.693701381901676
+    },
+    "sniper": {
+     "expectedPerDay": 242.98319341031626,
+     "stdDaily": 354.280830488763,
+     "tripFraction": 0,
+     "maxDrawdownPct": 22.421375282988848,
+     "score": -455.2259859835077
+    },
+    "combined": -470.9196873654094
+   }
+  },
+  {
+   "id": "m0.0",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0.03,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.78095704195411,
+     "stdDaily": 114.10810134670142,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.729873530886507,
+     "score": -15.273093631396598
+    },
+    "sniper": {
+     "expectedPerDay": 211.5350649783427,
+     "stdDaily": 141.32382613134737,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.941005655176196,
+     "score": 140.87315191266902
+    },
+    "combined": 125.60005828127242
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 46.57832850566094,
+     "stdDaily": 124.67711026071039,
+     "tripFraction": 0,
+     "maxDrawdownPct": 11.935634837596881,
+     "score": -15.760226624694255
+    },
+    "sniper": {
+     "expectedPerDay": 243.69464070740077,
+     "stdDaily": 353.4432795264134,
+     "tripFraction": 0,
+     "maxDrawdownPct": 22.65514799456527,
+     "score": -465.78439878406937
+    },
+    "combined": -481.54462540876364
+   }
+  },
+  {
+   "id": "m0.11",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0.03,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.78095704195411,
+     "stdDaily": 114.10810134670142,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.729873530886507,
+     "score": -15.273093631396598
+    },
+    "sniper": {
+     "expectedPerDay": 211.5350649783427,
+     "stdDaily": 141.32382613134737,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.941005655176196,
+     "score": 140.87315191266902
+    },
+    "combined": 125.60005828127242
+   },
+   "train": {
+    "pessimistic": {
+     "expectedPerDay": 46.57832850566094,
+     "stdDaily": 124.67711026071039,
+     "tripFraction": 0,
+     "maxDrawdownPct": 11.935634837596881,
+     "score": -15.760226624694255
+    },
+    "sniper": {
+     "expectedPerDay": 243.69464070740077,
+     "stdDaily": 353.4432795264134,
+     "tripFraction": 0,
+     "maxDrawdownPct": 22.65514799456527,
+     "score": -465.78439878406937
+    },
+    "combined": -481.54462540876364
+   }
+  },
+  {
+   "id": "m0.15",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0.03,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 200
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.78095704195411,
+     "stdDaily": 114.10810134670142,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.729873530886507,
+     "score": -15.273093631396598
+    },
+    "sniper": {
+     "expectedPerDay": 211.5350649783427,
+     "stdDaily": 141.32382613134737,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.941005655176196,
+     "score": 140.87315191266902
+    },
+    "combined": 125.60005828127242
+   }
+  },
+  {
+   "id": "r59",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0.03,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 41.78095704195411,
+     "stdDaily": 114.10810134670142,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.729873530886507,
+     "score": -15.273093631396598
+    },
+    "sniper": {
+     "expectedPerDay": 211.5350649783427,
+     "stdDaily": 141.32382613134737,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.941005655176196,
+     "score": 140.87315191266902
+    },
+    "combined": 125.60005828127242
+   }
+  },
+  {
+   "id": "m0.16",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 0.5,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.06,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0.03,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 42.3597123400062,
+     "stdDaily": 117.18257600951536,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.592820960042281,
+     "score": -16.23157566475148
+    },
+    "sniper": {
+     "expectedPerDay": 209.89674163197554,
+     "stdDaily": 139.45299758731997,
+     "tripFraction": 0,
+     "maxDrawdownPct": 6.6031783881577395,
+     "score": 140.17024283831557
+    },
+    "combined": 123.93866717356408
+   }
+  },
+  {
+   "id": "m0.21",
+   "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 1,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0.03,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 4,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+     "halfLifeSec": 1800,
+     "priorAnnualVol": 0.5,
+     "minAnnualVol": 0.1,
+     "maxAnnualVol": 3,
+     "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+   },
+   "screen": {
+    "pessimistic": {
+     "expectedPerDay": 38.064176343657564,
+     "stdDaily": 91.48349614441476,
+     "tripFraction": 0,
+     "maxDrawdownPct": 3.444897215783458,
+     "score": -7.677571728549815
+    },
+    "sniper": {
+     "expectedPerDay": 184.79421753119527,
+     "stdDaily": 110.71905332790881,
+     "tripFraction": 0,
+     "maxDrawdownPct": 7.303025345902769,
+     "score": 129.43469086724087
+    },
+    "combined": 121.75711913869105
+   }
+  }
+ ],
+ "specifiedAll": [
+  {
+   "id": "m0.15",
+   "combined": -823.741339560696,
+   "pessimistic": 0.02980378244116544,
+   "sniper": -106.63220052532301
+  },
+  {
+   "id": "m0.8",
+   "combined": -823.741339560696,
+   "pessimistic": 0.02980378244116544,
+   "sniper": -106.63220052532301
+  },
+  {
+   "id": "m0.1",
+   "combined": -844.9553191448629,
+   "pessimistic": 0.8502994403331801,
+   "sniper": -128.79427911824956
+  },
+  {
+   "id": "m0.12",
+   "combined": -844.9553191448629,
+   "pessimistic": 0.8502994403331801,
+   "sniper": -128.79427911824956
+  },
+  {
+   "id": "m1.1",
+   "combined": -902.3347651859749,
+   "pessimistic": -5.371037664313066,
+   "sniper": -157.02353048858714
+  },
+  {
+   "id": "m1.18",
+   "combined": -970.2540205538988,
+   "pessimistic": -3.8994933853174816,
+   "sniper": -174.831951364055
+  },
+  {
+   "id": "m1.23",
+   "combined": -1031.916930496928,
+   "pessimistic": 3.5244644386342485,
+   "sniper": -196.75582443835498
+  },
+  {
+   "id": "m0.6",
+   "combined": -1072.2453132486492,
+   "pessimistic": 0.8498549106399789,
+   "sniper": -137.56961879497254
+  },
+  {
+   "id": "m0.14",
+   "combined": -1080.1527056866757,
+   "pessimistic": 0.8506341543497384,
+   "sniper": -140.6770797187658
+  },
+  {
+   "id": "m0.13",
+   "combined": -1092.997678888147,
+   "pessimistic": 0.8506414112486169,
+   "sniper": -140.2691183071498
+  },
+  {
+   "id": "m0.16",
+   "combined": -1092.997678888147,
+   "pessimistic": 0.8506414112486169,
+   "sniper": -140.2691183071498
+  },
+  {
+   "id": "m0.18",
+   "combined": -1092.997678888147,
+   "pessimistic": 0.8506414112486169,
+   "sniper": -140.2691183071498
+  },
+  {
+   "id": "m0.7",
+   "combined": -1092.997678888147,
+   "pessimistic": 0.8506414112486169,
+   "sniper": -140.2691183071498
+  },
+  {
+   "id": "r86",
+   "combined": -1092.997678888147,
+   "pessimistic": 0.8506414112486169,
+   "sniper": -140.2691183071498
+  },
+  {
+   "id": "m0.9",
+   "combined": -1094.6055139129153,
+   "pessimistic": 0.8497166083999229,
+   "sniper": -140.29381142428733
+  },
+  {
+   "id": "m1.6",
+   "combined": -1101.219792205203,
+   "pessimistic": -1.761181624246845,
+   "sniper": -196.14290602614875
+  },
+  {
+   "id": "m0.23",
+   "combined": -1114.9822303354028,
+   "pessimistic": -6.632802322479492,
+   "sniper": -146.75506917294138
+  },
+  {
+   "id": "m1.10",
+   "combined": -1127.247244419004,
+   "pessimistic": -1.7687949973338135,
+   "sniper": -193.61930627818396
+  },
+  {
+   "id": "m1.2",
+   "combined": -1127.247244419004,
+   "pessimistic": -1.7687949973338135,
+   "sniper": -193.61930627818396
+  },
+  {
+   "id": "m1.9",
+   "combined": -1127.247244419004,
+   "pessimistic": -1.7687949973338135,
+   "sniper": -193.61930627818396
+  },
+  {
+   "id": "r87",
+   "combined": -1127.247244419004,
+   "pessimistic": -1.7687949973338135,
+   "sniper": -193.61930627818396
+  },
+  {
+   "id": "m1.15",
+   "combined": -1127.480654743929,
+   "pessimistic": -1.757353566515293,
+   "sniper": -196.449841814647
+  },
+  {
+   "id": "m0.5",
+   "combined": -1131.2873651161337,
+   "pessimistic": 0.8473460264198696,
+   "sniper": -140.20383169669898
+  },
+  {
+   "id": "r74",
+   "combined": -1151.0952022440756,
+   "pessimistic": 7.523678540883916,
+   "sniper": -185.57200048586986
+  },
+  {
+   "id": "m0.3",
+   "combined": -1178.3998568624415,
+   "pessimistic": -6.631924168705433,
+   "sniper": -144.71055339438553
+  },
+  {
+   "id": "m0.2",
+   "combined": -1208.8257382501606,
+   "pessimistic": 0.8505146259512006,
+   "sniper": -142.89409113869957
+  },
+  {
+   "id": "m1.13",
+   "combined": -1316.039801938923,
+   "pessimistic": -2.180663398156689,
+   "sniper": -223.80239038602517
+  },
+  {
+   "id": "m1.14",
+   "combined": -1322.2363041241952,
+   "pessimistic": 0.9441298029353107,
+   "sniper": -250.68428159226437
+  },
+  {
+   "id": "m1.5",
+   "combined": -1322.2363041241952,
+   "pessimistic": 0.9441298029353107,
+   "sniper": -250.68428159226437
+  },
+  {
+   "id": "m1.21",
+   "combined": -1347.931392418065,
+   "pessimistic": -1.7905790581511098,
+   "sniper": -164.45118907992554
+  },
+  {
+   "id": "r62",
+   "combined": -1364.9894478040083,
+   "pessimistic": 8.335112266555555,
+   "sniper": -272.6675230831088
+  },
+  {
+   "id": "m1.3",
+   "combined": -1514.0712083371398,
+   "pessimistic": -3.5309228640101056,
+   "sniper": -259.98718321339254
+  },
+  {
+   "id": "m1.7",
+   "combined": -1524.3607738410874,
+   "pessimistic": 0.6304616554624317,
+   "sniper": -285.230499838586
+  },
+  {
+   "id": "m0.10",
+   "combined": -1553.889134763665,
+   "pessimistic": 0.1301957517745521,
+   "sniper": -225.4308108272444
+  },
+  {
+   "id": "m1.17",
+   "combined": -1570.8389003902685,
+   "pessimistic": -3.8741038439954023,
+   "sniper": -263.18809298268764
+  },
+  {
+   "id": "m0.21",
+   "combined": -1594.7515142146158,
+   "pessimistic": -0.2046001021451147,
+   "sniper": -253.5089486743202
+  },
+  {
+   "id": "m1.0",
+   "combined": -1645.186183790174,
+   "pessimistic": -7.481544354324312,
+   "sniper": -260.9133813192854
+  },
+  {
+   "id": "r88",
+   "combined": -1651.4507411224934,
+   "pessimistic": -7.868262870428941,
+   "sniper": -280.06138598778057
+  },
+  {
+   "id": "m0.22",
+   "combined": -1657.8843038615603,
+   "pessimistic": 2.6457298240222693,
+   "sniper": -225.05830001112184
+  },
+  {
+   "id": "m0.20",
+   "combined": -1663.9963800162575,
+   "pessimistic": 2.644804370524338,
+   "sniper": -225.44615306269628
+  },
+  {
+   "id": "m0.4",
+   "combined": -1663.9971336578758,
+   "pessimistic": 2.6440251851427368,
+   "sniper": -225.4465394236379
+  },
+  {
+   "id": "r70",
+   "combined": -1674.1705208988071,
+   "pessimistic": -1.3292857898629251,
+   "sniper": -200.65190696993724
+  },
+  {
+   "id": "m1.20",
+   "combined": -1738.1186941403496,
+   "pessimistic": -1.8239897237105367,
+   "sniper": -204.57503561979715
+  },
+  {
+   "id": "r71",
+   "combined": -1751.4218847621853,
+   "pessimistic": 9.95540108403156,
+   "sniper": -162.63949405894797
+  },
+  {
+   "id": "m1.19",
+   "combined": -1762.872334759952,
+   "pessimistic": -0.35334584547246095,
+   "sniper": -235.80851888252627
+  },
+  {
+   "id": "r41",
+   "combined": -1839.9117075834474,
+   "pessimistic": 2.547428813368447,
+   "sniper": -173.19440496861964
+  },
+  {
+   "id": "r84",
+   "combined": -1864.1371225484654,
+   "pessimistic": 25.453139823970577,
+   "sniper": -179.34229301670328
+  },
+  {
+   "id": "m1.16",
+   "combined": -1864.9549403475653,
+   "pessimistic": -3.8045819646734484,
+   "sniper": -251.28565332713873
+  },
+  {
+   "id": "r7",
+   "combined": -1867.8911059493835,
+   "pessimistic": 1.4941430426846396,
+   "sniper": -287.74162780288316
+  },
+  {
+   "id": "r45",
+   "combined": -1887.3664241283714,
+   "pessimistic": 17.68054561014461,
+   "sniper": -171.36872290145942
+  },
+  {
+   "id": "r75",
+   "combined": -1912.8605168646104,
+   "pessimistic": 22.304852746570546,
+   "sniper": -165.30971490124318
+  },
+  {
+   "id": "r4",
+   "combined": -1942.7331035135944,
+   "pessimistic": 18.53286774354465,
+   "sniper": -152.85531581914208
+  },
+  {
+   "id": "r33",
+   "combined": -1962.6984377434987,
+   "pessimistic": 32.10508912780843,
+   "sniper": -171.24742601453835
+  },
+  {
+   "id": "r3",
+   "combined": -1967.3053243168874,
+   "pessimistic": 26.30413773168247,
+   "sniper": -154.1981534663667
+  },
+  {
+   "id": "r53",
+   "combined": -1974.8182738494015,
+   "pessimistic": 19.578801752509232,
+   "sniper": -162.6428079657339
+  },
+  {
+   "id": "r16",
+   "combined": -1975.3794549778588,
+   "pessimistic": 26.387863347677058,
+   "sniper": -168.37385939603573
+  },
+  {
+   "id": "r26",
+   "combined": -1980.1632157079355,
+   "pessimistic": -7.309506329596308,
+   "sniper": -243.70282361458808
+  },
+  {
+   "id": "r54",
+   "combined": -1998.62025830825,
+   "pessimistic": 11.206989761563465,
+   "sniper": -181.99570438172435
+  },
+  {
+   "id": "r37",
+   "combined": -2008.845515304044,
+   "pessimistic": 12.17136391337404,
+   "sniper": -131.71313092517954
+  },
+  {
+   "id": "r83",
+   "combined": -2026.6811676149962,
+   "pessimistic": -12.974512861103994,
+   "sniper": -191.90451523305077
+  },
+  {
+   "id": "r23",
+   "combined": -2027.5586081762476,
+   "pessimistic": 20.64261129755954,
+   "sniper": -146.37183597706286
+  },
+  {
+   "id": "r82",
+   "combined": -2036.948835194871,
+   "pessimistic": 26.470527045506394,
+   "sniper": -154.2336353128674
+  },
+  {
+   "id": "m1.22",
+   "combined": -2064.630996051542,
+   "pessimistic": 0.8880050762052975,
+   "sniper": -279.374650386436
+  },
+  {
+   "id": "r44",
+   "combined": -2070.8466828833953,
+   "pessimistic": 11.190139741875054,
+   "sniper": -181.08572964222833
+  },
+  {
+   "id": "r36",
+   "combined": -2095.905745018215,
+   "pessimistic": 6.792133407181875,
+   "sniper": -196.9467457437585
+  },
+  {
+   "id": "r25",
+   "combined": -2105.122684437411,
+   "pessimistic": 22.1002654669559,
+   "sniper": -136.29036712836782
+  },
+  {
+   "id": "r67",
+   "combined": -2117.520818883154,
+   "pessimistic": 14.801474666986547,
+   "sniper": -237.50017343057866
+  },
+  {
+   "id": "r90",
+   "combined": -2124.1162930847977,
+   "pessimistic": 20.651611487083898,
+   "sniper": -129.42924514960566
+  },
+  {
+   "id": "r60",
+   "combined": -2127.268861662057,
+   "pessimistic": 17.601284579892432,
+   "sniper": -136.0735858285663
+  },
+  {
+   "id": "r1",
+   "combined": -2130.2109418536584,
+   "pessimistic": 26.558486215450728,
+   "sniper": -146.97508772610595
+  },
+  {
+   "id": "r21",
+   "combined": -2131.9071233641107,
+   "pessimistic": 21.107103166217758,
+   "sniper": -284.7653562748391
+  },
+  {
+   "id": "r65",
+   "combined": -2134.2577862862972,
+   "pessimistic": 11.292813779219497,
+   "sniper": -144.7254406283927
+  },
+  {
+   "id": "r18",
+   "combined": -2134.874293589611,
+   "pessimistic": 24.529225181882783,
+   "sniper": -131.415768773511
+  },
+  {
+   "id": "r20",
+   "combined": -2152.876384268469,
+   "pessimistic": 10.128236660810558,
+   "sniper": -152.72129260021225
+  },
+  {
+   "id": "r59",
+   "combined": -2164.1763420705875,
+   "pessimistic": 26.547588793915473,
+   "sniper": -126.35251360871362
+  },
+  {
+   "id": "r40",
+   "combined": -2168.1464646112713,
+   "pessimistic": -0.6531025019396978,
+   "sniper": -230.85517900496694
+  },
+  {
+   "id": "r29",
+   "combined": -2186.330796200513,
+   "pessimistic": 19.647330644011767,
+   "sniper": -151.51887121512078
+  },
+  {
+   "id": "r72",
+   "combined": -2186.3459152014825,
+   "pessimistic": 2.8097052372980533,
+   "sniper": -187.6741591657693
+  },
+  {
+   "id": "m1.12",
+   "combined": -2193.4894414705354,
+   "pessimistic": 18.555630577686024,
+   "sniper": -166.9833298074666
+  },
+  {
+   "id": "m1.4",
+   "combined": -2203.775643033457,
+   "pessimistic": 12.304371192017186,
+   "sniper": -217.4913167462631
+  },
+  {
+   "id": "r28",
+   "combined": -2225.5516299031883,
+   "pessimistic": 5.58563629217376,
+   "sniper": -160.37925837238748
+  },
+  {
+   "id": "r39",
+   "combined": -2234.313571208809,
+   "pessimistic": 25.29766569391986,
+   "sniper": -152.9370864499181
+  },
+  {
+   "id": "r8",
+   "combined": -2236.3792650286746,
+   "pessimistic": 19.52608996295218,
+   "sniper": -141.89342229328477
+  },
+  {
+   "id": "r24",
+   "combined": -2237.392060423472,
+   "pessimistic": 23.201358026861723,
+   "sniper": -134.05651585141055
+  },
+  {
+   "id": "r64",
+   "combined": -2242.960581561243,
+   "pessimistic": 10.682710481508039,
+   "sniper": -185.55227848026246
+  },
+  {
+   "id": "r68",
+   "combined": -2263.1655255628275,
+   "pessimistic": 2.014817426578753,
+   "sniper": -163.72519072159028
+  },
+  {
+   "id": "r47",
+   "combined": -2265.178261343069,
+   "pessimistic": 29.172807042920915,
+   "sniper": -168.2373148220005
+  },
+  {
+   "id": "r50",
+   "combined": -2269.6932316289212,
+   "pessimistic": 28.3414498854929,
+   "sniper": -136.58806554567946
+  },
+  {
+   "id": "r51",
+   "combined": -2271.972723647491,
+   "pessimistic": 24.17186682434181,
+   "sniper": -159.7749700406692
+  },
+  {
+   "id": "m1.11",
+   "combined": -2272.036879717699,
+   "pessimistic": -1.8236263063040652,
+   "sniper": -298.2565013627467
+  },
+  {
+   "id": "r12",
+   "combined": -2273.7506644350756,
+   "pessimistic": 26.86743416484662,
+   "sniper": -143.19260344115307
+  },
+  {
+   "id": "r42",
+   "combined": -2277.7923550691885,
+   "pessimistic": 30.183949299458277,
+   "sniper": -226.71086636404965
+  },
+  {
+   "id": "m1.8",
+   "combined": -2289.8587875690664,
+   "pessimistic": -5.561599555084307,
+   "sniper": -293.53445166289947
+  },
+  {
+   "id": "r94",
+   "combined": -2291.515495371131,
+   "pessimistic": 18.23022668225793,
+   "sniper": -160.86730807908418
+  },
+  {
+   "id": "r66",
+   "combined": -2296.3210225332946,
+   "pessimistic": 19.791343081640406,
+   "sniper": -152.99489562920957
+  },
+  {
+   "id": "r32",
+   "combined": -2302.2414118855145,
+   "pessimistic": 6.60506134505935,
+   "sniper": -122.38220014346965
+  },
+  {
+   "id": "r69",
+   "combined": -2303.1579943998163,
+   "pessimistic": 19.53346424947005,
+   "sniper": -222.2856139658808
+  },
+  {
+   "id": "m0.17",
+   "combined": -2307.0903928042653,
+   "pessimistic": 6.971049117297741,
+   "sniper": -310.49857521556936
+  },
+  {
+   "id": "r79",
+   "combined": -2308.156232569442,
+   "pessimistic": 19.66606408539612,
+   "sniper": -142.13957831056095
+  },
+  {
+   "id": "r10",
+   "combined": -2311.530803289475,
+   "pessimistic": -1.1627270174301743,
+   "sniper": -222.6619395657762
+  },
+  {
+   "id": "r6",
+   "combined": -2319.2504270821937,
+   "pessimistic": 20.502005289073473,
+   "sniper": -149.81811701820604
+  },
+  {
+   "id": "r55",
+   "combined": -2320.879342307201,
+   "pessimistic": 21.038092351412224,
+   "sniper": -144.41526183445237
+  },
+  {
+   "id": "r48",
+   "combined": -2336.8473421272492,
+   "pessimistic": 28.22239707927797,
+   "sniper": -126.55204187902939
+  },
+  {
+   "id": "r61",
+   "combined": -2376.360500336209,
+   "pessimistic": 2.9314659158734173,
+   "sniper": -287.35569598392254
+  },
+  {
+   "id": "r77",
+   "combined": -2397.7154643646722,
+   "pessimistic": 14.872396676741761,
+   "sniper": -167.444055945337
+  },
+  {
+   "id": "r13",
+   "combined": -2406.791376825412,
+   "pessimistic": 35.9544273616012,
+   "sniper": -131.78316813440682
+  },
+  {
+   "id": "r30",
+   "combined": -2422.0961805443717,
+   "pessimistic": 27.504610699659434,
+   "sniper": -146.12341332509075
+  },
+  {
+   "id": "r73",
+   "combined": -2436.2012365583114,
+   "pessimistic": 18.956731852573974,
+   "sniper": -124.40823509857486
+  },
+  {
+   "id": "r19",
+   "combined": -2438.941217312441,
+   "pessimistic": 15.209381997848272,
+   "sniper": -130.08140133449723
+  },
+  {
+   "id": "r95",
+   "combined": -2456.376519908667,
+   "pessimistic": 32.30363493627268,
+   "sniper": -133.25276603148595
+  },
+  {
+   "id": "r9",
+   "combined": -2489.5295202039833,
+   "pessimistic": 32.114666969207796,
+   "sniper": -155.27173697696176
+  },
+  {
+   "id": "r35",
+   "combined": -2494.55185677536,
+   "pessimistic": 11.034704380568048,
+   "sniper": -204.61391067392248
+  },
+  {
+   "id": "r89",
+   "combined": -2514.0810385520213,
+   "pessimistic": 11.989779020356822,
+   "sniper": -173.08004449067442
+  },
+  {
+   "id": "r22",
+   "combined": -2529.8813524443794,
+   "pessimistic": 27.33014032741473,
+   "sniper": -148.084761038303
+  },
+  {
+   "id": "r76",
+   "combined": -2553.2533128215377,
+   "pessimistic": 7.500941540527504,
+   "sniper": -229.89289413903202
+  },
+  {
+   "id": "r11",
+   "combined": -2587.2383141723067,
+   "pessimistic": 28.837772408716198,
+   "sniper": -216.33761935687102
+  },
+  {
+   "id": "r78",
+   "combined": -2611.7559859952967,
+   "pessimistic": 4.783634591064973,
+   "sniper": -297.7670148278454
+  },
+  {
+   "id": "r46",
+   "combined": -2617.941093071052,
+   "pessimistic": 14.564216031415807,
+   "sniper": -175.520071352695
+  },
+  {
+   "id": "r15",
+   "combined": -2681.1424955298826,
+   "pessimistic": 31.22516311049693,
+   "sniper": -199.85279890610332
+  },
+  {
+   "id": "r92",
+   "combined": -2711.2164494225626,
+   "pessimistic": 28.041741631597553,
+   "sniper": -192.3322224765065
+  },
+  {
+   "id": "r38",
+   "combined": -2775.9819466381173,
+   "pessimistic": 14.97444462495999,
+   "sniper": -434.70577167014955
+  },
+  {
+   "id": "r27",
+   "combined": -2788.71653408189,
+   "pessimistic": 25.353482346941327,
+   "sniper": -164.9684839267461
+  },
+  {
+   "id": "r49",
+   "combined": -2833.852781519701,
+   "pessimistic": 17.681739021195035,
+   "sniper": -136.31407028880975
+  },
+  {
+   "id": "m0.11",
+   "combined": -2877.062933772078,
+   "pessimistic": 25.18662008361673,
+   "sniper": -127.15601069191601
+  },
+  {
+   "id": "r14",
+   "combined": -3020.0494283861276,
+   "pessimistic": 5.647674182809732,
+   "sniper": -146.13706815405743
+  },
+  {
+   "id": "r63",
+   "combined": -3046.7863930418835,
+   "pessimistic": 2.9154855722833672,
+   "sniper": -154.09674235092183
+  },
+  {
+   "id": "r0",
+   "combined": -3084.4489011370615,
+   "pessimistic": 5.058851268880358,
+   "sniper": -362.4271821296163
+  },
+  {
+   "id": "m0.19",
+   "combined": -3105.4235989846316,
+   "pessimistic": 7.602501940606397,
+   "sniper": -109.99205597557807
+  },
+  {
+   "id": "r93",
+   "combined": -3126.9867260919973,
+   "pessimistic": 2.614358903459224,
+   "sniper": -364.58150041679124
+  },
+  {
+   "id": "r57",
+   "combined": -3153.002134137726,
+   "pessimistic": 1.5084754643749918,
+   "sniper": -287.7080289297513
+  },
+  {
+   "id": "r34",
+   "combined": -3160.1524416069988,
+   "pessimistic": 10.06159258564702,
+   "sniper": -131.31360175024065
+  },
+  {
+   "id": "r17",
+   "combined": -3176.241918374151,
+   "pessimistic": -10.291835282107275,
+   "sniper": -331.18497943210735
+  },
+  {
+   "id": "r81",
+   "combined": -3193.672816863492,
+   "pessimistic": 11.8092950175288,
+   "sniper": -138.55549428320225
+  },
+  {
+   "id": "r58",
+   "combined": -3325.4556194727093,
+   "pessimistic": 1.396459275834213,
+   "sniper": -165.7961375023897
+  },
+  {
+   "id": "r91",
+   "combined": -3333.9368973388173,
+   "pessimistic": 10.302973480771163,
+   "sniper": -124.97729676509866
+  },
+  {
+   "id": "r5",
+   "combined": -3446.468590880994,
+   "pessimistic": 4.817832627453063,
+   "sniper": -133.79350675859192
+  },
+  {
+   "id": "r31",
+   "combined": -3591.736482199577,
+   "pessimistic": 0.8871749721666532,
+   "sniper": -146.5259006366394
+  },
+  {
+   "id": "r80",
+   "combined": -3632.585380161053,
+   "pessimistic": 4.713654667350656,
+   "sniper": -416.8157038815927
+  },
+  {
+   "id": "r56",
+   "combined": -3783.4837815686287,
+   "pessimistic": -0.3308481554972104,
+   "sniper": -162.48003929566366
+  },
+  {
+   "id": "m0.0",
+   "combined": -3847.5126055116116,
+   "pessimistic": 14.52071574053232,
+   "sniper": -158.97961142411927
+  },
+  {
+   "id": "defaults",
+   "combined": -4036.40191813033,
+   "pessimistic": -20.303019915079656,
+   "sniper": -144.4335812725994
+  },
+  {
+   "id": "r52",
+   "combined": -4404.652960006394,
+   "pessimistic": -70.59118865869651,
+   "sniper": -199.57686176552798
+  },
+  {
+   "id": "r43",
+   "combined": -4440.180435964378,
+   "pessimistic": -34.08577775326974,
+   "sniper": -125.32448947869173
+  },
+  {
+   "id": "r2",
+   "combined": -4591.045445652626,
+   "pessimistic": -19.65458232773985,
+   "sniper": -165.53088221583715
+  },
+  {
+   "id": "r85",
+   "combined": -4724.251899887698,
+   "pessimistic": 18.027294918890348,
+   "sniper": -485.35374732765695
+  }
+ ],
+ "proposedAll": [
+  {
+   "id": "m0.17",
+   "combined": 129.42922954531775,
+   "pessimistic": 41.9152165137084,
+   "sniper": 211.34328981928053
+  },
+  {
+   "id": "m0.23",
+   "combined": 129.42922954531775,
+   "pessimistic": 41.9152165137084,
+   "sniper": 211.34328981928053
+  },
+  {
+   "id": "m0.7",
+   "combined": 129.42922954531775,
+   "pessimistic": 41.9152165137084,
+   "sniper": 211.34328981928053
+  },
+  {
+   "id": "m0.9",
+   "combined": 129.42922954531775,
+   "pessimistic": 41.9152165137084,
+   "sniper": 211.34328981928053
+  },
+  {
+   "id": "m0.0",
+   "combined": 125.60005828127242,
+   "pessimistic": 41.78095704195411,
+   "sniper": 211.5350649783427
+  },
+  {
+   "id": "m0.11",
+   "combined": 125.60005828127242,
+   "pessimistic": 41.78095704195411,
+   "sniper": 211.5350649783427
+  },
+  {
+   "id": "m0.15",
+   "combined": 125.60005828127242,
+   "pessimistic": 41.78095704195411,
+   "sniper": 211.5350649783427
+  },
+  {
+   "id": "r59",
+   "combined": 125.60005828127242,
+   "pessimistic": 41.78095704195411,
+   "sniper": 211.5350649783427
+  },
+  {
+   "id": "m0.16",
+   "combined": 123.93866717356408,
+   "pessimistic": 42.3597123400062,
+   "sniper": 209.89674163197554
+  },
+  {
+   "id": "m0.21",
+   "combined": 121.75711913869105,
+   "pessimistic": 38.064176343657564,
+   "sniper": 184.79421753119527
+  },
+  {
+   "id": "m0.8",
+   "combined": 121.49830421371733,
+   "pessimistic": 41.71727905125583,
+   "sniper": 209.55034369451974
+  },
+  {
+   "id": "m1.1",
+   "combined": 117.50813918975277,
+   "pessimistic": 37.75060710540865,
+   "sniper": 190.38988129479114
+  },
+  {
+   "id": "m0.1",
+   "combined": 115.51575270567358,
+   "pessimistic": 39.66427238118849,
+   "sniper": 189.93211274169272
+  },
+  {
+   "id": "m0.5",
+   "combined": 114.57301021247326,
+   "pessimistic": 40.626837072368104,
+   "sniper": 208.09701499093825
+  },
+  {
+   "id": "m0.2",
+   "combined": 107.86318294358489,
+   "pessimistic": 35.374860378626174,
+   "sniper": 169.3011557678169
+  },
+  {
+   "id": "m0.10",
+   "combined": 107.45261193649145,
+   "pessimistic": 39.72143177593007,
+   "sniper": 188.75910707618013
+  },
+  {
+   "id": "m0.4",
+   "combined": 107.31894308276593,
+   "pessimistic": 37.902342803494854,
+   "sniper": 182.58488460492143
+  },
+  {
+   "id": "m1.20",
+   "combined": 103.62145403770462,
+   "pessimistic": 28.233862469499122,
+   "sniper": 161.19089564335752
+  },
+  {
+   "id": "m0.13",
+   "combined": 101.89663944096576,
+   "pessimistic": 37.15610050619806,
+   "sniper": 171.51647462804095
+  },
+  {
+   "id": "m1.8",
+   "combined": 99.6815822089402,
+   "pessimistic": 28.4194102511263,
+   "sniper": 165.02316224232223
+  },
+  {
+   "id": "m1.6",
+   "combined": 99.48889857959658,
+   "pessimistic": 27.982065605579777,
+   "sniper": 157.18804358250438
+  },
+  {
+   "id": "m1.21",
+   "combined": 99.30403686260216,
+   "pessimistic": 28.175920550984273,
+   "sniper": 175.64521562123156
+  },
+  {
+   "id": "m1.22",
+   "combined": 99.2162381759986,
+   "pessimistic": 28.4194102511263,
+   "sniper": 164.4200808908606
+  },
+  {
+   "id": "m1.15",
+   "combined": 98.7535278542972,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.18929924841427
+  },
+  {
+   "id": "m1.0",
+   "combined": 98.71535735930266,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.15112875341973
+  },
+  {
+   "id": "m1.10",
+   "combined": 98.71535735930266,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.15112875341973
+  },
+  {
+   "id": "m1.14",
+   "combined": 98.71535735930266,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.15112875341973
+  },
+  {
+   "id": "m1.19",
+   "combined": 98.71535735930266,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.15112875341973
+  },
+  {
+   "id": "m1.23",
+   "combined": 98.71535735930266,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.15112875341973
+  },
+  {
+   "id": "m1.5",
+   "combined": 98.71535735930266,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.15112875341973
+  },
+  {
+   "id": "r50",
+   "combined": 98.71535735930266,
+   "pessimistic": 28.4194102511263,
+   "sniper": 161.15112875341973
+  },
+  {
+   "id": "m0.22",
+   "combined": 98.06541920800225,
+   "pessimistic": 30.479829888299186,
+   "sniper": 166.47721326695358
+  },
+  {
+   "id": "m0.19",
+   "combined": 97.94401359972278,
+   "pessimistic": 30.42534705804865,
+   "sniper": 166.45493574554237
+  },
+  {
+   "id": "m1.7",
+   "combined": 97.31105527786502,
+   "pessimistic": 28.18665765001375,
+   "sniper": 175.0828278328869
+  },
+  {
+   "id": "r7",
+   "combined": 97.04229282154854,
+   "pessimistic": 44.483927594592025,
+   "sniper": 203.24367650595528
+  },
+  {
+   "id": "m1.2",
+   "combined": 96.05707269378225,
+   "pessimistic": 28.175920550984273,
+   "sniper": 171.5497990750718
+  },
+  {
+   "id": "m1.12",
+   "combined": 91.84862815736493,
+   "pessimistic": 28.416064110383946,
+   "sniper": 160.56459592917037
+  },
+  {
+   "id": "m0.18",
+   "combined": 91.58283443207698,
+   "pessimistic": 30.275261613668185,
+   "sniper": 169.57460679672337
+  },
+  {
+   "id": "r62",
+   "combined": 91.12497467504681,
+   "pessimistic": 28.169887421799054,
+   "sniper": 138.8546214611084
+  },
+  {
+   "id": "r73",
+   "combined": 87.04495619538525,
+   "pessimistic": 29.05807848093034,
+   "sniper": 178.1328177316003
+  },
+  {
+   "id": "m1.3",
+   "combined": 85.43661040106477,
+   "pessimistic": 23.081384082560913,
+   "sniper": 132.55143302609298
+  },
+  {
+   "id": "m1.17",
+   "combined": 85.21792199808964,
+   "pessimistic": 27.109350609662204,
+   "sniper": 153.8674344588874
+  },
+  {
+   "id": "r30",
+   "combined": 84.28950457641702,
+   "pessimistic": 42.61859866798652,
+   "sniper": 177.9916447943322
+  },
+  {
+   "id": "r23",
+   "combined": 82.04891643339464,
+   "pessimistic": 35.32068052508606,
+   "sniper": 170.89830471643697
+  },
+  {
+   "id": "r67",
+   "combined": 80.68167192964451,
+   "pessimistic": 34.59447333112813,
+   "sniper": 168.62439312504088
+  },
+  {
+   "id": "r74",
+   "combined": 79.45837333420725,
+   "pessimistic": 27.946151768846295,
+   "sniper": 170.59351286758346
+  },
+  {
+   "id": "m0.20",
+   "combined": 78.45358455415277,
+   "pessimistic": 25.197819825548407,
+   "sniper": 131.13409467138334
+  },
+  {
+   "id": "m0.6",
+   "combined": 74.36635466221848,
+   "pessimistic": 24.0039077414228,
+   "sniper": 117.75496931557568
+  },
+  {
+   "id": "r70",
+   "combined": 73.9633423121263,
+   "pessimistic": 27.41926890364898,
+   "sniper": 121.17683669818851
+  },
+  {
+   "id": "m0.3",
+   "combined": 69.93866257393637,
+   "pessimistic": 31.503637584939742,
+   "sniper": 153.86492523261936
+  },
+  {
+   "id": "r60",
+   "combined": 69.5704603470305,
+   "pessimistic": 41.282914687191024,
+   "sniper": 188.94130605437633
+  },
+  {
+   "id": "r52",
+   "combined": 69.22634945634654,
+   "pessimistic": 24.37991964687186,
+   "sniper": 129.1630372709746
+  },
+  {
+   "id": "m1.11",
+   "combined": 67.03789370482042,
+   "pessimistic": 23.329927185956606,
+   "sniper": 127.67799497206553
+  },
+  {
+   "id": "m1.18",
+   "combined": 67.03789370482042,
+   "pessimistic": 23.329927185956606,
+   "sniper": 127.67799497206553
+  },
+  {
+   "id": "r14",
+   "combined": 66.90177441915648,
+   "pessimistic": 22.15997019594034,
+   "sniper": 112.25533110943357
+  },
+  {
+   "id": "r15",
+   "combined": 66.87748124776769,
+   "pessimistic": 34.36514637144363,
+   "sniper": 165.21987946237476
+  },
+  {
+   "id": "r81",
+   "combined": 65.9343486546981,
+   "pessimistic": 23.068424242176192,
+   "sniper": 125.78895994571096
+  },
+  {
+   "id": "r16",
+   "combined": 64.59440137948917,
+   "pessimistic": 21.252040638026095,
+   "sniper": 103.54778406914375
+  },
+  {
+   "id": "r40",
+   "combined": 63.99763077857828,
+   "pessimistic": 37.786779784650236,
+   "sniper": 192.0323874058824
+  },
+  {
+   "id": "r91",
+   "combined": 63.51535831753,
+   "pessimistic": 32.79338305531524,
+   "sniper": 129.02286270028407
+  },
+  {
+   "id": "m1.13",
+   "combined": 59.86824315212547,
+   "pessimistic": 15.35795330953419,
+   "sniper": 94.26684489061297
+  },
+  {
+   "id": "r84",
+   "combined": 58.19516568869952,
+   "pessimistic": 24.835953782582003,
+   "sniper": 133.0364259111215
+  },
+  {
+   "id": "r13",
+   "combined": 57.88776192279387,
+   "pessimistic": 25.592595322787485,
+   "sniper": 137.41212019866134
+  },
+  {
+   "id": "r10",
+   "combined": 57.31822696769354,
+   "pessimistic": 21.0163902186815,
+   "sniper": 107.80134214032626
+  },
+  {
+   "id": "r92",
+   "combined": 54.61791595070646,
+   "pessimistic": 34.17470628913541,
+   "sniper": 143.27541082455804
+  },
+  {
+   "id": "r54",
+   "combined": 54.44383366058072,
+   "pessimistic": 14.597512508711796,
+   "sniper": 111.91400141413772
+  },
+  {
+   "id": "r51",
+   "combined": 54.22066327056497,
+   "pessimistic": 27.2623450564878,
+   "sniper": 126.09041270607857
+  },
+  {
+   "id": "r56",
+   "combined": 52.840007253300286,
+   "pessimistic": 39.71698375892386,
+   "sniper": 181.4214737822246
+  },
+  {
+   "id": "r53",
+   "combined": 52.80195219422466,
+   "pessimistic": 21.161943802384748,
+   "sniper": 147.42985991099323
+  },
+  {
+   "id": "r32",
+   "combined": 51.30359652209969,
+   "pessimistic": 17.324396458247598,
+   "sniper": 124.64452720844652
+  },
+  {
+   "id": "r44",
+   "combined": 51.11226038380565,
+   "pessimistic": 15.05474384045802,
+   "sniper": 124.26186496932121
+  },
+  {
+   "id": "r79",
+   "combined": 46.87099504525581,
+   "pessimistic": 19.561606661591565,
+   "sniper": 89.78775869795582
+  },
+  {
+   "id": "r19",
+   "combined": 45.387760940356586,
+   "pessimistic": 23.308617116249554,
+   "sniper": 113.21482003101433
+  },
+  {
+   "id": "r83",
+   "combined": 44.38228636658705,
+   "pessimistic": 12.933964379668021,
+   "sniper": 69.11538894456942
+  },
+  {
+   "id": "r43",
+   "combined": 43.87921116560586,
+   "pessimistic": 16.682475034280365,
+   "sniper": 119.38022057102917
+  },
+  {
+   "id": "r9",
+   "combined": 43.48495480825882,
+   "pessimistic": 12.721719457347426,
+   "sniper": 86.83751471264233
+  },
+  {
+   "id": "r37",
+   "combined": 43.4328723996592,
+   "pessimistic": 48.31701587725203,
+   "sniper": 220.61981952688865
+  },
+  {
+   "id": "r46",
+   "combined": 43.32689605846016,
+   "pessimistic": 10.773735131096965,
+   "sniper": 85.96066873538196
+  },
+  {
+   "id": "r77",
+   "combined": 42.78916066242886,
+   "pessimistic": 30.909227777315756,
+   "sniper": 130.3152731505969
+  },
+  {
+   "id": "r22",
+   "combined": 42.42044150318675,
+   "pessimistic": 9.308413586877567,
+   "sniper": 80.47288893604687
+  },
+  {
+   "id": "r88",
+   "combined": 42.09680958622184,
+   "pessimistic": 13.805974340280297,
+   "sniper": 68.19352377177636
+  },
+  {
+   "id": "r27",
+   "combined": 41.96803383965832,
+   "pessimistic": 20.701260526165534,
+   "sniper": 134.00717082240007
+  },
+  {
+   "id": "r65",
+   "combined": 40.50129380503822,
+   "pessimistic": 13.218119168112787,
+   "sniper": 71.23694930102404
+  },
+  {
+   "id": "r25",
+   "combined": 39.439174237784314,
+   "pessimistic": 12.681509253071269,
+   "sniper": 67.66336100948861
+  },
+  {
+   "id": "m1.4",
+   "combined": 38.22424738190006,
+   "pessimistic": 44.18369078417104,
+   "sniper": 197.22971497457468
+  },
+  {
+   "id": "r63",
+   "combined": 37.55127485175627,
+   "pessimistic": 9.255190720350727,
+   "sniper": 80.17402584297548
+  },
+  {
+   "id": "r3",
+   "combined": 34.97902798720881,
+   "pessimistic": 42.80720279504531,
+   "sniper": 185.59383575272722
+  },
+  {
+   "id": "r38",
+   "combined": 32.449303628512226,
+   "pessimistic": 19.42613749621251,
+   "sniper": 85.46435341335356
+  },
+  {
+   "id": "r47",
+   "combined": 32.15434899491654,
+   "pessimistic": 7.929924775151006,
+   "sniper": 61.28780451060953
+  },
+  {
+   "id": "r42",
+   "combined": 30.544839789750192,
+   "pessimistic": 20.485479035245746,
+   "sniper": 126.70827068061188
+  },
+  {
+   "id": "r36",
+   "combined": 29.46938168142641,
+   "pessimistic": 6.66119539690884,
+   "sniper": 55.97901089970926
+  },
+  {
+   "id": "r21",
+   "combined": 29.19910867749361,
+   "pessimistic": 16.05857168108403,
+   "sniper": 133.6966780974803
+  },
+  {
+   "id": "r12",
+   "combined": 22.258136161251585,
+   "pessimistic": 42.5718836898201,
+   "sniper": 199.13276736004576
+  },
+  {
+   "id": "r8",
+   "combined": 21.068692427830538,
+   "pessimistic": 4.628590051292783,
+   "sniper": 39.971457889566025
+  },
+  {
+   "id": "r2",
+   "combined": 17.28297749153335,
+   "pessimistic": 16.653934230419217,
+   "sniper": 68.62098252219906
+  },
+  {
+   "id": "r75",
+   "combined": 17.033003389613526,
+   "pessimistic": 36.5424446662472,
+   "sniper": 216.5522680345232
+  },
+  {
+   "id": "r0",
+   "combined": 12.221210783133671,
+   "pessimistic": 43.76721889466204,
+   "sniper": 205.93097347079407
+  },
+  {
+   "id": "r6",
+   "combined": 11.864255710436822,
+   "pessimistic": 39.91536511831613,
+   "sniper": 163.99200911728957
+  },
+  {
+   "id": "r68",
+   "combined": 10.27956790814963,
+   "pessimistic": 28.28707938529314,
+   "sniper": 114.48562262630594
+  },
+  {
+   "id": "r29",
+   "combined": 1.4298705207387314,
+   "pessimistic": 48.97045863711632,
+   "sniper": 212.75185882350965
+  },
+  {
+   "id": "r76",
+   "combined": 0.7198289993156379,
+   "pessimistic": 41.13053694254735,
+   "sniper": 179.99526904834266
+  },
+  {
+   "id": "r82",
+   "combined": -0.1144933160505417,
+   "pessimistic": 40.17043953226076,
+   "sniper": 219.90360807517064
+  },
+  {
+   "id": "r35",
+   "combined": -3.705990024791838,
+   "pessimistic": 27.188834165417518,
+   "sniper": 106.64453389564781
+  },
+  {
+   "id": "r90",
+   "combined": -4.9005891906506065,
+   "pessimistic": 51.00371934991036,
+   "sniper": 234.29339263636584
+  },
+  {
+   "id": "r89",
+   "combined": -6.872648412182766,
+   "pessimistic": 23.314245744044317,
+   "sniper": 91.52296165141848
+  },
+  {
+   "id": "r93",
+   "combined": -17.62935674455707,
+   "pessimistic": 42.327055102085694,
+   "sniper": 192.8645434082178
+  },
+  {
+   "id": "r80",
+   "combined": -21.819899046546183,
+   "pessimistic": 36.83875851608685,
+   "sniper": 174.0579058578779
+  },
+  {
+   "id": "m1.9",
+   "combined": -23.207521219693177,
+   "pessimistic": 44.59332928920699,
+   "sniper": 203.83673238389875
+  },
+  {
+   "id": "r86",
+   "combined": -27.474209977292887,
+   "pessimistic": 33.4654768704985,
+   "sniper": 173.36727847966512
+  },
+  {
+   "id": "r71",
+   "combined": -31.996859931527652,
+   "pessimistic": 38.30417793087766,
+   "sniper": 178.10095427674543
+  },
+  {
+   "id": "r26",
+   "combined": -43.57752138334506,
+   "pessimistic": 40.805546185050304,
+   "sniper": 210.87521016202942
+  },
+  {
+   "id": "r87",
+   "combined": -47.69266525948545,
+   "pessimistic": 35.87576259611497,
+   "sniper": 145.25291796115286
+  },
+  {
+   "id": "r17",
+   "combined": -55.94152318456079,
+   "pessimistic": 34.87655404040963,
+   "sniper": 147.13292926063477
+  },
+  {
+   "id": "m0.12",
+   "combined": -64.64219064883139,
+   "pessimistic": 49.881358117977946,
+   "sniper": 217.98761333626254
+  },
+  {
+   "id": "r48",
+   "combined": -77.82495275020575,
+   "pessimistic": 41.32796013421218,
+   "sniper": 197.31229670650487
+  },
+  {
+   "id": "r31",
+   "combined": -85.95680788516871,
+   "pessimistic": 37.12216753892969,
+   "sniper": 141.92311709885536
+  },
+  {
+   "id": "m0.14",
+   "combined": -131.1303701599805,
+   "pessimistic": 55.102311937151924,
+   "sniper": 208.5145275540006
+  },
+  {
+   "id": "r69",
+   "combined": -159.9697570423166,
+   "pessimistic": 45.38967277809772,
+   "sniper": 201.95618899001647
+  },
+  {
+   "id": "r78",
+   "combined": -163.17650462364463,
+   "pessimistic": 39.7219265747927,
+   "sniper": 190.84187162059044
+  },
+  {
+   "id": "r5",
+   "combined": -232.3086019001437,
+   "pessimistic": 34.72558336077101,
+   "sniper": 168.25472763048862
+  },
+  {
+   "id": "r58",
+   "combined": -270.9948344872798,
+   "pessimistic": 48.71121565864165,
+   "sniper": 185.72858559843334
+  },
+  {
+   "id": "r72",
+   "combined": -312.77474193948296,
+   "pessimistic": 43.545989690429444,
+   "sniper": 165.70893221498304
+  },
+  {
+   "id": "r4",
+   "combined": -340.0871323447928,
+   "pessimistic": 55.4058198755845,
+   "sniper": 201.41854692612725
+  },
+  {
+   "id": "r11",
+   "combined": -361.79999787292564,
+   "pessimistic": 32.84025546161233,
+   "sniper": 139.96513508210148
+  },
+  {
+   "id": "r18",
+   "combined": -377.9745042699549,
+   "pessimistic": 45.8073947588919,
+   "sniper": 183.33527602846863
+  },
+  {
+   "id": "r45",
+   "combined": -398.50850290061214,
+   "pessimistic": 36.46214178113204,
+   "sniper": 152.63454976372904
+  },
+  {
+   "id": "m1.16",
+   "combined": -433.78522349280337,
+   "pessimistic": 54.65440268927722,
+   "sniper": 172.96970375407005
+  },
+  {
+   "id": "r66",
+   "combined": -537.6708079773254,
+   "pessimistic": 41.95811845166471,
+   "sniper": 127.44148000126725
+  },
+  {
+   "id": "r61",
+   "combined": -556.232826818352,
+   "pessimistic": 56.18942526615619,
+   "sniper": 202.7705801758687
+  },
+  {
+   "id": "r55",
+   "combined": -637.9281177453394,
+   "pessimistic": 54.7709175193914,
+   "sniper": 191.05845109371722
+  },
+  {
+   "id": "r34",
+   "combined": -837.9028158616908,
+   "pessimistic": 49.063453022499246,
+   "sniper": 208.31722333896158
+  },
+  {
+   "id": "r64",
+   "combined": -958.5264789177838,
+   "pessimistic": 56.97799995574219,
+   "sniper": 221.26594681538418
+  },
+  {
+   "id": "r28",
+   "combined": -959.8826546621879,
+   "pessimistic": 56.2795245684935,
+   "sniper": 216.2411357524186
+  },
+  {
+   "id": "r41",
+   "combined": -1047.962079638035,
+   "pessimistic": 63.13743881577052,
+   "sniper": 196.85305543502415
+  },
+  {
+   "id": "r20",
+   "combined": -1053.5932123313735,
+   "pessimistic": 53.95613351130195,
+   "sniper": 182.02363796941253
+  },
+  {
+   "id": "r49",
+   "combined": -1200.5333466001175,
+   "pessimistic": 51.72459618741144,
+   "sniper": 184.18797175290015
+  },
+  {
+   "id": "r33",
+   "combined": -1307.818440398813,
+   "pessimistic": 58.4145321977753,
+   "sniper": 223.7429429816321
+  },
+  {
+   "id": "r85",
+   "combined": -1876.8580129247168,
+   "pessimistic": 61.03923706155756,
+   "sniper": 138.24732485736874
+  },
+  {
+   "id": "r1",
+   "combined": -1896.047319962654,
+   "pessimistic": 56.67537515009195,
+   "sniper": 204.61711208267585
+  },
+  {
+   "id": "r39",
+   "combined": -2476.6102841517672,
+   "pessimistic": 65.64698292852113,
+   "sniper": 150.4540594253719
+  },
+  {
+   "id": "defaults",
+   "combined": -2604.201454400636,
+   "pessimistic": 56.195528764285584,
+   "sniper": 175.83407338538336
+  },
+  {
+   "id": "r57",
+   "combined": -2671.5031868895435,
+   "pessimistic": 56.61886439756464,
+   "sniper": 148.11038089496296
+  },
+  {
+   "id": "r24",
+   "combined": -3403.453185727548,
+   "pessimistic": 54.36805620370971,
+   "sniper": 165.00036808451037
+  },
+  {
+   "id": "r94",
+   "combined": -3670.6926829166796,
+   "pessimistic": 41.738816364089544,
+   "sniper": 111.24060459013405
+  },
+  {
+   "id": "r95",
+   "combined": -6017.994339564395,
+   "pessimistic": 59.137781876330834,
+   "sniper": 184.14906522180996
+  }
+ ]
+}

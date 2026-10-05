@@ -1,6 +1,6 @@
-import { clamp, normInv, normPdf } from "./math";
+import { clamp, normCdf, normInv, normPdf } from "./math";
 import type { StrategyParams } from "./params";
-import { d2, fairProbUp, SECONDS_PER_YEAR } from "./prob";
+import { d2, PROB_MAX, PROB_MIN, SECONDS_PER_YEAR } from "./prob";
 import { liquidityScale, rangeTicks } from "./liquidity";
 import { buyRoom, lossCeiling, sellRoom, type Position, type RiskLimits } from "./risk";
 
@@ -54,10 +54,8 @@ const floorTick = (x: number, tick: number) => round9(Math.floor(x / tick + 1e-9
 const ceilTick = (x: number, tick: number) => round9(Math.ceil(x / tick - 1e-9) * tick);
 const floorSize = (x: number) => Math.floor(x * 1e6) / 1e6;
 
-/** Half-spread: max(floor, volatility component) plus toxicity widening, capped. */
-export function halfSpread(state: MarketState, p: StrategyParams): number {
-  const tauYears = state.tauSec / SECONDS_PER_YEAR;
-  const x = d2({ spot: state.spot, strike: state.strike, sigma: state.sigma, tauYears });
+/** Half-spread given d2 of the digital: max(floor, volatility component) plus toxicity widening, capped. */
+function halfSpreadFromD2(x: number, state: MarketState, p: StrategyParams): number {
   // Staleness risk in probability terms: probability moves φ(d2)/√τ per √second (see prob.ts),
   // so a quote that is `stalenessSec` old is off by about φ(d2)·√(stalenessSec/τ).
   const stale =
@@ -71,6 +69,16 @@ export function halfSpread(state: MarketState, p: StrategyParams): number {
     h += p.toxicityWidenMax * w;
   }
   return clamp(h, p.minHalfSpread, p.maxHalfSpread);
+}
+
+/** Half-spread: max(floor, volatility component) plus toxicity widening, capped. */
+export function halfSpread(state: MarketState, p: StrategyParams): number {
+  const tauYears = state.tauSec / SECONDS_PER_YEAR;
+  return halfSpreadFromD2(
+    d2({ spot: state.spot, strike: state.strike, sigma: state.sigma, tauYears }),
+    state,
+    p,
+  );
 }
 
 /** Inventory skew: shifts the quote centre toward flattening the position (positive = up). */
@@ -109,12 +117,23 @@ export function generateQuotes(state: MarketState, p: StrategyParams): QuoteSet 
     Number.isFinite(state.recentRangeBps);
   if (!finite) return emptySet("invalid");
   const tauYears = Math.max(0, state.tauSec) / SECONDS_PER_YEAR;
-  const fair = fairProbUp(state.spot, state.strike, state.sigma, tauYears);
+  // d2 once: it gives both the fair value and the staleness term (same arithmetic as fairProbUp).
+  const x = d2({ spot: state.spot, strike: state.strike, sigma: state.sigma, tauYears });
+  const fair = clamp(normCdf(x), PROB_MIN, PROB_MAX);
   if (state.breakerTripped) return emptySet("breaker", fair);
   if (state.tauSec <= p.noQuoteWindowSec) return emptySet("no-quote-window", fair);
   if (state.recentRangeBps >= p.toxicityPullBps) return emptySet("toxic", fair);
 
-  const h = halfSpread(state, p);
+  const h = halfSpreadFromD2(
+    d2({
+      spot: state.spot,
+      strike: state.strike,
+      sigma: state.sigma,
+      tauYears: state.tauSec / SECONDS_PER_YEAR,
+    }),
+    state,
+    p,
+  );
   const skew = inventorySkew(state.position, state.nav, p, h);
   const center = fair + skew;
 
@@ -137,14 +156,23 @@ export function generateQuotes(state: MarketState, p: StrategyParams): QuoteSet 
   // Depth of level j is the pm-AMM reserve change over the j-th band of width `band` away from
   // fair value (independent of the half-spread, so widening the spread near expiry never adds
   // depth): shares = L_t · |Φ⁻¹(p_far) − Φ⁻¹(p_near)|. Bids: the vault buys UP.
+  // Φ⁻¹ at the band edges, shared by adjacent levels (computed on demand, once each).
+  const zCache = new Float64Array(2 * p.levels + 3).fill(NaN);
+  const z = (k: number): number => {
+    const i = k + p.levels + 1;
+    let v = zCache[i]!;
+    if (Number.isNaN(v)) {
+      v = normInv(bounded(anchor + k * band));
+      zCache[i] = v;
+    }
+    return v;
+  };
   let pos = state.position;
   for (let j = 0; j < p.levels; j++) {
     const price = floorTick(center - h - j * band, p.tick);
     if (price < p.priceMin) break;
     if (price > p.priceMax) continue; // fair value above the quote bounds: deeper levels may fit
-    const base =
-      lt *
-      Math.abs(normInv(bounded(anchor - j * band)) - normInv(bounded(anchor - (j + 1) * band)));
+    const base = lt * Math.abs(z(-j) - z(-(j + 1)));
     const size = floorSize(Math.min(base, buyRoom(pos, price, ceiling)));
     if (size >= Math.max(p.minLevelSize, 1e-6)) {
       bids.push({ price, size });
@@ -157,9 +185,7 @@ export function generateQuotes(state: MarketState, p: StrategyParams): QuoteSet 
     const price = ceilTick(center + h + j * band, p.tick);
     if (price > p.priceMax) break;
     if (price < p.priceMin) continue; // fair value below the quote bounds: deeper levels may fit
-    const base =
-      lt *
-      Math.abs(normInv(bounded(anchor + (j + 1) * band)) - normInv(bounded(anchor + j * band)));
+    const base = lt * Math.abs(z(j + 1) - z(j));
     const size = floorSize(Math.min(base, sellRoom(pos, price, ceiling)));
     if (size >= Math.max(p.minLevelSize, 1e-6)) {
       asks.push({ price, size });

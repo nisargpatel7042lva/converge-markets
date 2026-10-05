@@ -1,0 +1,1375 @@
+{
+  "source": "https://data.binance.vision (Binance Data Collection)",
+  "window": {
+    "start": "2026-07-06",
+    "end": "2026-10-03",
+    "warmupDays": 1
+  },
+  "files": {
+    "BTCUSDT-1s-2026-07-05": {
+      "sha256": "02edca99b5d6d171fd172bb4f51aac34d8e3f928349338bfc1e2f490b970cf28",
+      "bytes": 1966033,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-06": {
+      "sha256": "7a9c2cc7b61269cf0f0589366cb57c03742e0470b18e3d851d3a121d78417f6a",
+      "bytes": 2386792,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-07": {
+      "sha256": "3e6489c43814093988c6cb6b33272add948ab9b6fc80fc647ec1efbb2ece8e16",
+      "bytes": 2355367,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-08": {
+      "sha256": "e8ab0e2defe916a42f6f04170a129699031f070d0cfe5b0870a51504e04115d0",
+      "bytes": 2465803,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-09": {
+      "sha256": "ea29b86080d699c8379f32b3d1f9d963ebe4efbf500c3f2b3b0799f3a98921d0",
+      "bytes": 2503349,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-10": {
+      "sha256": "6f8d4e2a010349ef8bf6b5537aa090e9feeb197265f32dec6e8d4ee62c4370db",
+      "bytes": 2476144,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-11": {
+      "sha256": "dcd57e038cc67ada068e862e5db8850b62d2d0aa26718bcb25a6a198b590f98b",
+      "bytes": 2134609,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-12": {
+      "sha256": "5c71785e9c1b7b0e0fdf2bae512778699fcc6a1479cdb237262e5fe442d2e530",
+      "bytes": 2208231,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-13": {
+      "sha256": "de1ccbd88f141d4b6436da00b04d1b8964c6b1d403a12e1de1f5528411dd0154",
+      "bytes": 2461796,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-14": {
+      "sha256": "e9aa447e31c6c1a341ecd3d97d86bcfc3c08959901d999cc9b9088807846b515",
+      "bytes": 2389675,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-15": {
+      "sha256": "db6163cf1839468c202a3d9d2917f78552703d975e29ea94524751c306d639ec",
+      "bytes": 2327434,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-16": {
+      "sha256": "80af448994f63cea003e9427aa4e594d883720bf532d39d8801c23585cc43ffe",
+      "bytes": 2329148,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-17": {
+      "sha256": "7dd03d1726375dab3de8de32a2662fa8ad64583ae5034a44498da5863c90d290",
+      "bytes": 2387905,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-18": {
+      "sha256": "67631fda66d8c5cbfb2107ec147a21212a547026ee7608b11ef8263f9d472195",
+      "bytes": 1999383,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-19": {
+      "sha256": "349cf22e7d1cb789edb01014b74b990aca60d00b47d46471f367efa6c484cdb3",
+      "bytes": 2056412,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-20": {
+      "sha256": "563131ba5571c4fdf1f3e44d05700d0be2e15d263be584a481997adebe244b0d",
+      "bytes": 2385772,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-21": {
+      "sha256": "1694ba8f40bca35ae168fda4b96c3b754a62f380d8cb1af771ab03960ff05812",
+      "bytes": 2542619,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-22": {
+      "sha256": "7231c417223649b0530382a0f40b7c88df5569ef579a443c46c3b3b5bb9842db",
+      "bytes": 2447373,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-23": {
+      "sha256": "b8ac35d35f8db388c92f3413b43d9b9f13ad0e737bf9606d0c6d1c8f8c952029",
+      "bytes": 2308501,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-24": {
+      "sha256": "15b936dbb715a97d45f3915b14366c2af8e8f68b27a839cdedd872be63c7a981",
+      "bytes": 2316417,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-25": {
+      "sha256": "0427949770f74ab28bd80c062ffb6a3e1a7eefa1f5de49ec7816732823993b95",
+      "bytes": 2027877,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-26": {
+      "sha256": "a093f5e8abdd2740e814d4bd81f388d784b597fbe5e645c1812f53782eaa52c8",
+      "bytes": 2064160,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-27": {
+      "sha256": "662c3651fe32c61e747bc79f3abe856211babce20c3c2639d6cdaf2edaec8899",
+      "bytes": 2358715,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-28": {
+      "sha256": "1d246b7bddb00b7d45d9cc9b31f1886c4d636c6cd831d3db9a138dcdd9576434",
+      "bytes": 2357819,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-29": {
+      "sha256": "d5066d74aee53c8186b41c32121f32027524a56e732b22ae356f1f6a9c33dc40",
+      "bytes": 2623740,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-30": {
+      "sha256": "8c3f9ea29b39246a4d92eef6f0af2550e87b025a6914bae614626575301433fa",
+      "bytes": 2425958,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-07-31": {
+      "sha256": "59cdc9d1cb87bab2c2d90d6e2e91ba33884510b007a8c861f2eb578ebdada05b",
+      "bytes": 2226562,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-01": {
+      "sha256": "44b1f121070cd64a88224152178145fa481b239e0a847bdb7e9288cf6b7083a4",
+      "bytes": 1830670,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-02": {
+      "sha256": "f02286f54373c52f5e824269921a5b6d3c904a69076b29b7faef9808d2fc5fb6",
+      "bytes": 1876700,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-03": {
+      "sha256": "87b864420b166f9ffc0119e562ff81399c39a5df52abfeb0551660dccc466f49",
+      "bytes": 2140966,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-04": {
+      "sha256": "2e6c50f643252e7d1c466f94b97cc60ea057b14311ad1ab525a29e9c9128316d",
+      "bytes": 2062909,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-05": {
+      "sha256": "5275ede2d9f6f0122480e4265fdc86a7b4c9047fe3814ef1614bb5663e4634e8",
+      "bytes": 2082212,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-06": {
+      "sha256": "3bc425a2d23e6d320d3a9337a3d8a2a2da861442cb75f6a555d61a92893cf573",
+      "bytes": 2045010,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-07": {
+      "sha256": "acc3c8c2593e3495e753f0c8cfa20e86c83b498ad93d04213cd7f57c4513d8f4",
+      "bytes": 2107480,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-08": {
+      "sha256": "aa7d7d4a99738e98b99fc01cad2b99ac17f216aff7b1f630c4a0a46465d8b061",
+      "bytes": 1702786,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-09": {
+      "sha256": "5f680fbc9f6f75b66faf177c958dada6eec2c56f5bda81b693a8c3391c7e915d",
+      "bytes": 1761018,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-10": {
+      "sha256": "bc696f2203540f23b9a0ee1db6a7dac2300e02377b695fc0e3d4bde68f25f5ae",
+      "bytes": 2125303,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-11": {
+      "sha256": "8aa5e48734bef1766bc7646f4724208c086dae6fbfef0410b12c23d01e82a7b8",
+      "bytes": 1988483,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-12": {
+      "sha256": "e3c92a3b9ea21d8e7fd966b3460075c3b33769295bd052d735f14497723a2603",
+      "bytes": 2047742,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-13": {
+      "sha256": "2125833a80599f9bcc6fe2b14f9d5ff42d5bcf5b1c295343d001c8986d6f84dc",
+      "bytes": 2013690,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-14": {
+      "sha256": "1796fc21090748f5974bd83682867c602861ae70a567d0427a615dfb8f643e48",
+      "bytes": 2107411,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-15": {
+      "sha256": "144c484abbb9efb6f06b0349fe597ebdac3fae60ea04bfe9a15e3acc061b78ed",
+      "bytes": 1662997,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-16": {
+      "sha256": "e8a7ffa0f7d6c680d6614b7b405a82684d139f3fb6a11be2d455dcb69087823b",
+      "bytes": 1611159,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-17": {
+      "sha256": "47f9ca89dddaf0c4556db2e9ffcefc1873d25ae369609c8f8fe7d4948b711577",
+      "bytes": 2007158,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-18": {
+      "sha256": "577c494717216226cde9ab92d28c91b030e0b3a8b3e2c01ce741aa28898be063",
+      "bytes": 1973520,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-19": {
+      "sha256": "6edfb988f7046dfec391fd67993c7cdb84278606f54d492a9540d8b1bd8dbf79",
+      "bytes": 2289120,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-20": {
+      "sha256": "7d191ec820ffefa164e03d53601f8710812e003647d6132538236f7e1ce23096",
+      "bytes": 2823523,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-21": {
+      "sha256": "5af0c489c662b0ea86d1007a93f90f2b2ae427a816bdc985e5a2f86a5724e52d",
+      "bytes": 3058857,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-22": {
+      "sha256": "35ff51ce9cca228ffb2e7426765439037e702b5398a5f112063240232e95f300",
+      "bytes": 2480616,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-23": {
+      "sha256": "3f7d8a7b834b37febcd8404ea7e3f357e97eca16c9912ca441218d5a9d5fcaa8",
+      "bytes": 2398087,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-24": {
+      "sha256": "4a7b69938ec012a988b832026614945d11f9a161961df353292123415b495812",
+      "bytes": 2638799,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-25": {
+      "sha256": "b121be6800dbf1e3484bd1fab99759529c9e49111f02963d4719f2a4b4f0844b",
+      "bytes": 2711826,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-26": {
+      "sha256": "a0f333771b3cb9b097489e235e234a8f3a6754743dc6fc80f0bc51c3c01a41d9",
+      "bytes": 2528337,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-27": {
+      "sha256": "9a226970f3cd666543693bae449e83a8e4fbf8af3bdb16bb7e8eb5ae0a563d12",
+      "bytes": 2530362,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-28": {
+      "sha256": "e57826c70ac9040df4d41d82d132e6b03ab6083ba42a669dd783aaa768b81e40",
+      "bytes": 2592027,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-29": {
+      "sha256": "c3be1db72232b57882322e13f63581f8b1dcc64a541420a3bbd7f57c34988678",
+      "bytes": 2291403,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-30": {
+      "sha256": "4c987d82e1e8cb71d731bb6caf50d37e2ce96601fd5d5fcf6ce0fccf52be5e0d",
+      "bytes": 2273190,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-08-31": {
+      "sha256": "2e00fb60ab093f3bbebcea350aef8f5b17f60188c25b7e0ecd8886f984fe474e",
+      "bytes": 2603939,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-01": {
+      "sha256": "7ddb72cd803ce7d8f7e7e063d4c35e495411951337cb80802f42da3c4b5f9c22",
+      "bytes": 2460412,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-02": {
+      "sha256": "d5fbbe4af28949a86c31ea56b1fdd813c4d4a29dcd7e3599c47828d2f19bc4c2",
+      "bytes": 2391480,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-03": {
+      "sha256": "7a3f8f2aa2c722d544b145fce68b1cbd38c6f51843f11454726fb8df496e9686",
+      "bytes": 2581756,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-04": {
+      "sha256": "a2475d66986574efc3de430979d641764e6553f0e7e051d4428e7788131bbd22",
+      "bytes": 2480895,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-05": {
+      "sha256": "68aa57d929d971f22969e206417d47df4e6ca277f41c9c1b1ad1b905b3deed86",
+      "bytes": 2197502,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-06": {
+      "sha256": "e8eca373fdb21621c2c4a6bc493ece1c8110e038009c42266260c4f51360d328",
+      "bytes": 2291860,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-07": {
+      "sha256": "8a95b705c41c04741a42c8a5916d25ce145f3e053cf04262a5f38bd4baac89a5",
+      "bytes": 2563138,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-08": {
+      "sha256": "fb707eaa2d2138e945509a043220304b8f9a18e81490a11643697ece97e8f2be",
+      "bytes": 2502943,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-09": {
+      "sha256": "f4730567fbd80553569150dec1f914c74be8c3a05bd20196fb9378b8c0fa9219",
+      "bytes": 2263392,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-10": {
+      "sha256": "e7ec8eb344226a64751bd972feb7c304d74b57bd9ee2815b1d416165578456c3",
+      "bytes": 2290434,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-11": {
+      "sha256": "5f9a64c56c4c564e97be03789f6d8ce68f654b9c0e95bba26cba92d58247ce2e",
+      "bytes": 2311431,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-12": {
+      "sha256": "f409a7299259cf2753b371b1b7c212a98ad2c6fab703ba407f82c9ac750e8634",
+      "bytes": 1807735,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-13": {
+      "sha256": "71a561e81830bbb6243bbbef3c922bbc10f607bad4069980887160fcaf3fffed",
+      "bytes": 1946108,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-14": {
+      "sha256": "41e07e5f0cbcf5356f6331317b7b479322de83490119f789281b5cbf9eb0b4c5",
+      "bytes": 2343099,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-15": {
+      "sha256": "6bd053ce0eb555b28b4ed95eebb7957acead93908d2d950efa31a70d72122480",
+      "bytes": 2493573,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-16": {
+      "sha256": "ba879c914690e283b55179afee4a7a229e333294a0756fde24c92800e07606c3",
+      "bytes": 2380704,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-17": {
+      "sha256": "99f82fe7c69bb608e30e819b1f423f7c456736376c0f7c4f6b8566816ba6eeaf",
+      "bytes": 2182832,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-18": {
+      "sha256": "ad27ae1a39e92bbd932e4d609ce08f84fff0eba6b08e480e572136eb8612e217",
+      "bytes": 2449031,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-19": {
+      "sha256": "2b880e9a9ae33cfc169eb18181e61c681552d72b6ddc7a2215a2473a25b6accf",
+      "bytes": 2103169,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-20": {
+      "sha256": "9f2e4e6f9258d6eaccc8e261392f2d1a8456de4fc046447b9ccfaa9efb31b8ec",
+      "bytes": 2106356,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-21": {
+      "sha256": "0fafd88a30731e8eb0a8a50307320f1439b80b1053a85bcd251765faf05929ed",
+      "bytes": 2689508,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-22": {
+      "sha256": "cadf388cf7ae308307e809fe3927664fe2784fd662c8c91c975d3d0705075ecc",
+      "bytes": 2523128,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-23": {
+      "sha256": "535423b0679fd609035a096c70477d578597ca6cbffeb1ee2ecfdc7b399d8c67",
+      "bytes": 2498406,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-24": {
+      "sha256": "5c62058b85c2c1ff9508fc69f6d7dc5909e18ea5703e830cbbce912e49cbe29f",
+      "bytes": 2422871,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-25": {
+      "sha256": "9762b37f51ee30fd13db2ab7f14ba1c6c2b489fd1707800e8b31846100e8ca0d",
+      "bytes": 2383874,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-26": {
+      "sha256": "a59cd47701f7bd48aaacfa1a70d872ad06bbfc0e4c68712aef90b98f2bf389ff",
+      "bytes": 2142171,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-27": {
+      "sha256": "793fe4817af27dcce40112793651b5837b57541f1c46e6d8cd692098cafd14b4",
+      "bytes": 2084413,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-28": {
+      "sha256": "75ce72f8b4300a5efc147470202f5bc9880c8ddae754ce417bc8fc058549367d",
+      "bytes": 2551124,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-29": {
+      "sha256": "b107e0716a45e5c9945128605665383015a1f698bbc92c545d1113970c64c1f0",
+      "bytes": 2409885,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-09-30": {
+      "sha256": "fd5c91af03a4d8ccf8aa859eeef6f7751e58d1bd9eee62ec316bfa67d2c58e34",
+      "bytes": 2422222,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-10-01": {
+      "sha256": "d29aa76b65c6a826ce8b2d86e87f26eec143d909e3c56c7cbc32f9b7b894cab1",
+      "bytes": 2380143,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-10-02": {
+      "sha256": "5bc3ba1e3b1e8b16de65df33243faae43e64d0868cabae5f8f066f3f43bc4d0f",
+      "bytes": 2542809,
+      "rows": 86400
+    },
+    "BTCUSDT-1s-2026-10-03": {
+      "sha256": "e4377ad1e80680eb8d82fd6d77010761cde85828d745d63e9eb1158ca6a3a4f7",
+      "bytes": 1929382,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-05": {
+      "sha256": "410cb7fe6e324eaa3e1cb571cb33fbfae00ccc656654517ae912f3860097a4b6",
+      "bytes": 2108542,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-06": {
+      "sha256": "79427cf6dc6cecfa65bd00cd242c46f1cb718ee412b738a37591ca6732210041",
+      "bytes": 2001059,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-07": {
+      "sha256": "e0ef13e689a1e729f672db513bb50143c65f7b32fdd28e3c3f7fc4cc62a95da2",
+      "bytes": 1956324,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-08": {
+      "sha256": "55d2ecc750b750b65fbde8ef0b05eb65da2fdf9d0d1ff49a98d0d2eb2faa0bbe",
+      "bytes": 2040875,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-09": {
+      "sha256": "7b53c165a0d423089106f368a3851a8916899c7a933d4e146aa238b54939a338",
+      "bytes": 1939524,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-10": {
+      "sha256": "c231f42ea7e8e56a21f78038274aac1df30f8dcb1576bd27dfb4d0d058ae98c5",
+      "bytes": 1983755,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-11": {
+      "sha256": "1918a76ff484916726ca1394eccf0675edd298f8f7d39285ab50664fb7fd8aa3",
+      "bytes": 1745413,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-12": {
+      "sha256": "af17ba095dd675d5959eca2614d3e358d5aae516739aeec974497522ce0fbecc",
+      "bytes": 1746848,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-13": {
+      "sha256": "5f52ceaf01ba0f7136763a0bc75d8aa3103f2b73dd42de12da752c77479c8948",
+      "bytes": 2109440,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-14": {
+      "sha256": "9c03be17d38e32790038488e0f299dc8dea48a81aa6d0e1dd3ba80481227df4b",
+      "bytes": 2028187,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-15": {
+      "sha256": "116c0e6b51f1834bad7f9a42bd314cc33278d455d8beac8a598d703ee954a218",
+      "bytes": 2116113,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-16": {
+      "sha256": "da877d69dbb2d6d601ba89a139d16b42c528cbdc3af7724c12f1ae6541ce1218",
+      "bytes": 2071657,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-17": {
+      "sha256": "ec08b01a31acf48049656e4a74a867980b1197da813fde91776131007f8b6442",
+      "bytes": 2154271,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-18": {
+      "sha256": "96445f4c1b45b3cf273db30e71bda4f0dccf43ad5b33071d198c6ae6598edc01",
+      "bytes": 1604360,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-19": {
+      "sha256": "a780669a85ecabd84658832b44317a0fe397cc398051b290b3a022c8644cc35c",
+      "bytes": 1703076,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-20": {
+      "sha256": "f0609b1c8c76be3bb9d6af2913480cc8784ecddde8d24ff4614e99bb6ea70dbb",
+      "bytes": 2129335,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-21": {
+      "sha256": "c62a605c6ed2e5893e38131604780f3e87b4756c9e79c9b030595ccf9166489f",
+      "bytes": 2305982,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-22": {
+      "sha256": "2e7ae2ec198652d1aa8fcbb05bec94319fe0d6c943dbd0c4c4e5600b0fa0b10f",
+      "bytes": 2078948,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-23": {
+      "sha256": "f83a156ee36f336ee996c01e28661565bc89b1b2930546209383c33aacb81445",
+      "bytes": 1920515,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-24": {
+      "sha256": "682c26b41c4bfe8b3829046bb2ce972e14c956552ba53cc50bffa69e6d73c7cf",
+      "bytes": 1859208,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-25": {
+      "sha256": "da4555875f9aec5a3b472626ebb3f7d382382dbec6533e1b297853acea69f679",
+      "bytes": 1461884,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-26": {
+      "sha256": "7460048adfdc1b045d80bb3070b408eb24bfca62f1d31040d91e71fdd97e3d3f",
+      "bytes": 1613600,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-27": {
+      "sha256": "6a5f82d02d98d1180dcd39fdec9c3499f802aa7465d7da6d044be23f36a8e765",
+      "bytes": 2087990,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-28": {
+      "sha256": "321b47a65e6df12575468645c066d2f5b84016ccfdbcf89a0929a6a644479f96",
+      "bytes": 1994149,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-29": {
+      "sha256": "9c7140e911274424bb37ad96deaee5c619960bbd81e1aa53ec799c800af969d0",
+      "bytes": 2170913,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-30": {
+      "sha256": "40f20a8a17287fe2d557c46ad48aad59e709992cd0b25868ccb50bf6d6bb2ddf",
+      "bytes": 2076514,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-07-31": {
+      "sha256": "829be345dcd95837291d6c06593fa9373c47cf60c1bf4fe5ccc06ff5b74da5a0",
+      "bytes": 1852721,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-01": {
+      "sha256": "6e02aaaa3852661e89ec619727ec06e25d943d42b454b99cf13c026e23b41949",
+      "bytes": 1431233,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-02": {
+      "sha256": "8d298d510798f09e42077c363227fe2ea3206d06b43806dae3ff3db1fb6a548a",
+      "bytes": 1519282,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-03": {
+      "sha256": "3e836ced4b5328b357e3674b8e67d393a48db66ec7b0ddc76cc1f98b3955ef07",
+      "bytes": 1758891,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-04": {
+      "sha256": "466860f09e96e44b80101b7ae9ca8793bcd1a835f339eee1301b18de9e5e73df",
+      "bytes": 1707238,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-05": {
+      "sha256": "5ef90c9e79757041b436abda10a2b91ad8434a555cba38734c22acf8168d403f",
+      "bytes": 1760096,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-06": {
+      "sha256": "71f4cd4c933497c548416b63cfd5379490cf4465a657c5edc2905ce9721fad2f",
+      "bytes": 1747241,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-07": {
+      "sha256": "0675966d0d2fca4e4ebd5a4198afac4fa27dfec55a785a4a0da10ad8f69ca3a0",
+      "bytes": 1714625,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-08": {
+      "sha256": "520f1822cac110a41f871d04fbdc7e0540eeca2301fd9fca347991c0428664c7",
+      "bytes": 1281900,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-09": {
+      "sha256": "2ca1bd4bb223ad5c9fc55190bb8a6023643a74da357de9a6861aed97f0c9f29b",
+      "bytes": 1350200,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-10": {
+      "sha256": "304abe4ed43777d136eeb2d60bc766bde6f24e4f31af52f418ded56118bcef36",
+      "bytes": 1778249,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-11": {
+      "sha256": "9f2c6a55ae1f0479573a3a7dd51383da633c48caf65ec5d53336f57e32ff0984",
+      "bytes": 1737593,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-12": {
+      "sha256": "d2090fa474d3101b11d7e10d22ed88c43133f191b90cbc2f307774c3f7db943c",
+      "bytes": 1709354,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-13": {
+      "sha256": "a096a3761d92a41a90559fc8700620ec07a879e0296a009c8041719f0364c452",
+      "bytes": 1660198,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-14": {
+      "sha256": "c48c2c860edc881ceccd99718a035cb5319f3f73c19db0a3bcbf0836ec4b2b47",
+      "bytes": 1612665,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-15": {
+      "sha256": "ae21d40ff681d20f7e84c5642fe71b38438662b2353a4b0116f81a0df9276753",
+      "bytes": 1269240,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-16": {
+      "sha256": "c33da2a9f6baa5656022456f23fa5bdfdea30c3e2f313c42bd9286c6e680e21f",
+      "bytes": 1310854,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-17": {
+      "sha256": "656a7f416dba3406c9e04824e9c9b1f342b25c161869c909cd4ac6bafee26212",
+      "bytes": 1644924,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-18": {
+      "sha256": "820186fcd39e8de6ce7cf198a4776bf8db6fed93c3861ae2ea0c861cd2336131",
+      "bytes": 1668366,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-19": {
+      "sha256": "e55e5589f0f3c043215dbba403a661332de5949edfc8191b540f89e32cd85c96",
+      "bytes": 2156303,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-20": {
+      "sha256": "360f86931126df8f1b7256c6fd3383c9b49f624999d1d7d7ef4c948a2db4659b",
+      "bytes": 2559915,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-21": {
+      "sha256": "ba8c9f10281b16c2e30fbdfab416fe1122a76946dea7ccd3f65ea3c55b9f0964",
+      "bytes": 2757450,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-22": {
+      "sha256": "21b7e6e224296344b33c5fffbbb179fb6dda26e0c1d450edcc9e8a4fae16f54d",
+      "bytes": 2408077,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-23": {
+      "sha256": "bb40f594f271d84c75bf9cac8c33087f0bc57a26979378fd1429b3e5e136398d",
+      "bytes": 2209857,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-24": {
+      "sha256": "7c9ed6252b1fa4e187bc367e52cb206b8c66df2290e02ed49977c24401820846",
+      "bytes": 2356787,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-25": {
+      "sha256": "da8bdf01df501b7eda9fa6e96e87e8273e6120cc39bf037c0a7164453264b1b3",
+      "bytes": 2232643,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-26": {
+      "sha256": "b0a689a1830916b8e44cdfe4f87f4ec6399c234ec68075d65bf7a0d949af4b17",
+      "bytes": 2079795,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-27": {
+      "sha256": "7dceac7f67f3c8f87070a4ff3d979de63123afb76942272d5795473c7783e02c",
+      "bytes": 2167857,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-28": {
+      "sha256": "4e4eab1df115ac2b7d67a373c15c0317c591cbb2a5dbe31c589478fbf938afab",
+      "bytes": 2098726,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-29": {
+      "sha256": "6000cb4ff9636c3299e0d420aff80d3b1ec318d9590ffde06677c806f3403165",
+      "bytes": 1583301,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-30": {
+      "sha256": "6b2555ce894a0b936637cd467a86c90abb1c005e98197e486b5be279a57fd4b5",
+      "bytes": 1859187,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-08-31": {
+      "sha256": "fca260fb836996668075596fdd72e45781ebefd70fa6b207b5adebda21a59e0d",
+      "bytes": 2101999,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-01": {
+      "sha256": "17f3627d8d0a0bed12a8d7d8d24b31110a0109e85c20885d87f0689aca5ef9ef",
+      "bytes": 2064695,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-02": {
+      "sha256": "f566323c041688e8d7ef346ea171887e7c3a5213fe4a385c0ad8906ef348f377",
+      "bytes": 2046870,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-03": {
+      "sha256": "6dc452607c51a671a9a92709d2e99f7a942e59e88ad66b202b5cdd9ce7d7caf0",
+      "bytes": 2229704,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-04": {
+      "sha256": "c3c819265556007f9401b473b9cb4c6a7d1057df2b1310ddc89e850a72f2a397",
+      "bytes": 2149225,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-05": {
+      "sha256": "84afdd84a60f4290001d93358f8bf43d8f4e17e186e700e7cf82c7994fc4b33e",
+      "bytes": 1733746,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-06": {
+      "sha256": "ac992e436fb134743d696a283edec0607f8f4fbfc7f24fa7644baf8e6dd74928",
+      "bytes": 1960724,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-07": {
+      "sha256": "95f5089769e87152bcbc919987d1d61537ac1bbe27f88896d9c17a30fd46d83f",
+      "bytes": 2203564,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-08": {
+      "sha256": "f7d8a07cf236f0d6f3401292ce43127cfb6dbff54116fd2bde22058f4ac92dd8",
+      "bytes": 2045369,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-09": {
+      "sha256": "b0f5dd2b694adaa607cef535a781ab95b727c10b9e1b3391c0239bc50c6844f0",
+      "bytes": 2043775,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-10": {
+      "sha256": "8a1bbefdd74cbb82293a374ab6f4aa89d8cbc851db6b8b48417cead360493b99",
+      "bytes": 1974207,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-11": {
+      "sha256": "24fe7e543898921578a479680f5f8d51e40a23834953e3b8754e92f0c2b875db",
+      "bytes": 2189614,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-12": {
+      "sha256": "c9d1ddd7d7ddc3259c665fe46d496779ec4691ffe8990395877b77d20585beee",
+      "bytes": 1622359,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-13": {
+      "sha256": "bc391cb6423ae74811e6a8184a210e5bcedf4e0a0c66f2e5b415ed86c46de797",
+      "bytes": 1739890,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-14": {
+      "sha256": "887ce59fae250ccec12a77ab7a55c8ff984ebe835d7fcfc641d59e9a4e0db955",
+      "bytes": 2075788,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-15": {
+      "sha256": "589a066a08f0048f00a5a7ec4c6ea5d5f193e79d8a5002b844e00e2882ad538f",
+      "bytes": 2206944,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-16": {
+      "sha256": "55365df1f4081eb7318d1b8406637476c35c91e721656d221f443e7d72fbebb5",
+      "bytes": 2107216,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-17": {
+      "sha256": "1c04b152feea547fc979d45788205dabeea19654b7fefdd874afea6b8a2ec90c",
+      "bytes": 1943106,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-18": {
+      "sha256": "e54d9444d14328090c22fb09d2a6f026cc9de835eb3ce624db1e9fa0d33e5ade",
+      "bytes": 2294791,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-19": {
+      "sha256": "dc38dd129fd9176335bd50f471f11c669cd3be13ca2180dba0d31cef28b8588e",
+      "bytes": 1928084,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-20": {
+      "sha256": "d878ee385c03cf2a4869e46eefd2d1f045b18817624820b41edf64bcf95e87f3",
+      "bytes": 1995891,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-21": {
+      "sha256": "69fe045bfc258e35f97f5b11109680f5ddb451c99ab3d23495b94ba9ee7f9af1",
+      "bytes": 2543850,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-22": {
+      "sha256": "d86e6236271985c9698aae5f9c58d92fcb91cb5f92dda87b347d1aecac59704a",
+      "bytes": 2305339,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-23": {
+      "sha256": "c6a4113d5ce5fdc395b5abd91200bf1cb7ec65808e947b735300e018356921f5",
+      "bytes": 2194078,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-24": {
+      "sha256": "8fcd73d3270d1e93567fbf85ce89967d5b100bc6549f09cbac0cc291ebb432e0",
+      "bytes": 2100816,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-25": {
+      "sha256": "6b73123737882c9e243d2b310a6d4f30c8435809f1bb77f0f51fb6084c55b5ba",
+      "bytes": 1965738,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-26": {
+      "sha256": "471c147dcf3a21214a26a5c1c16c7614c1a25702ef128704d189aa19f4d19b1e",
+      "bytes": 1552913,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-27": {
+      "sha256": "e7e57c9c2c30f8317a0b14f987d7e2b9280c798408524533919f8e5db75304fd",
+      "bytes": 1682819,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-28": {
+      "sha256": "ded4dc3d4e7a2e2f45c3e343ca18a5dfcaa6df5331dc51af2dc7fca50e6f3c45",
+      "bytes": 2116242,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-29": {
+      "sha256": "e81e492817c45b605283083c9f5cdef3510ec7011f70e86963067f1cf3f7cbfc",
+      "bytes": 2048451,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-09-30": {
+      "sha256": "1a8e81906323d99b88819ae3d52e1883d2a23b30e6ca2fca2073fe5660ea64fb",
+      "bytes": 2028863,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-10-01": {
+      "sha256": "9672ee25ec2d7944c8ae86c267b729a92e84ae0e87d8021675b7d89d849a3a29",
+      "bytes": 1939134,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-10-02": {
+      "sha256": "6e9704edd4b755fa9f3480e62ba249a7b5773d1e7112e1219582fc6b9d61fee7",
+      "bytes": 2107739,
+      "rows": 86400
+    },
+    "ETHUSDT-1s-2026-10-03": {
+      "sha256": "c7b19c07bf4aa3d6f1a6b86a153716d6d1a0997501315665546498f9a9cfcbbf",
+      "bytes": 1441181,
+      "rows": 86400
+    },
+    "MONUSDT-1m-2026-07-05": {
+      "sha256": "25545b35a948b88789e3282afe758c47707311225f4de90a593dfdf99103d910",
+      "bytes": 43739,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-06": {
+      "sha256": "3b57356f6ef202f19b59759f54df70959afb2f46153fa9f32d42ad34de724f70",
+      "bytes": 53624,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-07": {
+      "sha256": "a7be2d6aa83a718a60a0126d5556da5822aa2c35d71f2f652b321f3f36342d34",
+      "bytes": 53796,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-08": {
+      "sha256": "12aecd721037042fc33250b3165318c9f26b40f52a18a1a37d6913ed13ee966f",
+      "bytes": 51704,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-09": {
+      "sha256": "d7233f14113ba5ffe82e0f9506379da4c4b2488d9dd0032958b538e8f4cccdf6",
+      "bytes": 48194,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-10": {
+      "sha256": "9ad6baeec85acf2f72a035e4e23ef704f93395db82dfd051d09a712e8bc0fd02",
+      "bytes": 46607,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-11": {
+      "sha256": "e6cf34f50aeec15aebf5d3aacfed8c58a6c62511c335fcac6844324aa2433a7d",
+      "bytes": 44750,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-12": {
+      "sha256": "8d47a8f022798cb510cef2b7046d67fe95b2dfdb78f2d974940e5403caedd44d",
+      "bytes": 45339,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-13": {
+      "sha256": "e8f8eddc8c223ee19b51cbc91aba24dfb4a5b778e287f55972d850f4bd88c828",
+      "bytes": 45598,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-14": {
+      "sha256": "3425f2ee78069393988539ae53b63406d7f02755c3c50b5b258c1a42affbbb79",
+      "bytes": 45665,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-15": {
+      "sha256": "3ddb72e879a4dcb078101d4102f61109cfb66a3649f10945a8f45c21964531b6",
+      "bytes": 45655,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-16": {
+      "sha256": "d8d02b212653ca434719406d89a03ad54273f0a9ea4643496d03e6ea96045d9e",
+      "bytes": 45199,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-17": {
+      "sha256": "0d5f35dcd4e381809fa36f3a37807bfce37255b9f9d5638ca5f766731b434c26",
+      "bytes": 44685,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-18": {
+      "sha256": "3391ced3602c260bb160f93cc6bb634fae2dc6a97bb7e249554b51921ce99bb8",
+      "bytes": 38806,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-19": {
+      "sha256": "ad5f549e07bc59d2da59280d116025340f59e1ed8265bb346a7381c6a75eda23",
+      "bytes": 38665,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-20": {
+      "sha256": "2b5839b60e299455c96806f7139f98b5b3ab014a1b5f74aead70364f8885fae6",
+      "bytes": 47886,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-21": {
+      "sha256": "10467b1e77165056b136721d938dc1219fb59440a53b8dacc1b2e0e05546e9a8",
+      "bytes": 47183,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-22": {
+      "sha256": "c3831780141ecef35db94b2f8542fbe2be6b3f6abd14f53213b2649977541632",
+      "bytes": 48775,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-23": {
+      "sha256": "0963fcdd36e2d96a3fa6ba05534a385b6592af81119ef8629048959a8cd1af79",
+      "bytes": 45796,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-24": {
+      "sha256": "01b1c306336a60848d8b0b4d5e2ab420ac72d36ca4ed8403438f4472adbfcdbc",
+      "bytes": 43926,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-25": {
+      "sha256": "88aa80fddd78722321c22f7060d40997af7cb5a571f1bfb1344597868104e27a",
+      "bytes": 42683,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-26": {
+      "sha256": "71057958399f47b3085ddd948567b737b8f18ad68997419350a22d7e0552024b",
+      "bytes": 42440,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-27": {
+      "sha256": "320b008a0303611ee88088cf0395b9cfc773ad2460c9961917ee71167d997a01",
+      "bytes": 45529,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-28": {
+      "sha256": "284ebf02000557f5dbd2b1a5bde1fdef6ca2e785e6792af9254ef3ae07c79ddb",
+      "bytes": 46732,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-29": {
+      "sha256": "b4908acfdb3ef300b1cb8b8d657674299a8bd50361ef35bd10ad40c188c413fe",
+      "bytes": 44751,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-30": {
+      "sha256": "e038baa63cc8d3c3600f88110fcb0f4f4a297fc7472322ef8e67b595d90ab877",
+      "bytes": 44690,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-07-31": {
+      "sha256": "6b66b79e4f7be49070f6610df4078d4ecfb65225cf4610d07369c0dd63e27840",
+      "bytes": 42977,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-01": {
+      "sha256": "57f2b0d0b85e1942ab373b80af04fb215cb0bba8c07eb62f0eefbf75a6b9be4f",
+      "bytes": 37919,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-02": {
+      "sha256": "070d8d710d9f94a84f1144e16414c4f133c05df5404f2d480f65fc3607a9cce1",
+      "bytes": 37291,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-03": {
+      "sha256": "8f09e573ca791c713e7de8ffa948fbe8a9d76350d4305b61b6417dc528564a70",
+      "bytes": 41286,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-04": {
+      "sha256": "d6185735d6ce57c1f06fb321e3a513c3e0923be9192c2435174e2dca8e6ca7cf",
+      "bytes": 40099,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-05": {
+      "sha256": "fe804d15374c4477270399f8dec8232a78b580826e6131eac6fb8e52c5219538",
+      "bytes": 41033,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-06": {
+      "sha256": "b287f50b466a866b9e87631234ab0b10416ed56bab20aa62c89bd3778045724f",
+      "bytes": 38383,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-07": {
+      "sha256": "6921962b0526a6c05a694d7c5d92c57fddcd1b392a12162b4462b8f031ceb9ea",
+      "bytes": 40818,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-08": {
+      "sha256": "a06ad5f52bdecb096e1aeca699b084a350a2276efbf095e423b12cca77c217a0",
+      "bytes": 35719,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-09": {
+      "sha256": "aaa2929923fea97f704d3f12d4fa6e670dc6f4397d76ed5c0b92916f68137683",
+      "bytes": 35604,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-10": {
+      "sha256": "abee5a0da0ca05e1523e21848986bf97cbe7a48b2f065ca3ba5645236d678897",
+      "bytes": 45767,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-11": {
+      "sha256": "b220cc6e3f0f8866d628769974ec67c226f940a4c01e15b08518436b1d604b88",
+      "bytes": 44033,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-12": {
+      "sha256": "9b35762b1ff7b18fef5732df60163c564d9223374d2de374bcb07a64faf87ea8",
+      "bytes": 40601,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-13": {
+      "sha256": "0cad35b68bfea9b0eb9b88f74c8341a2a55eb6dfcc015e301137501aa8ddd259",
+      "bytes": 39258,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-14": {
+      "sha256": "b65ef6b53681a2876fed0e43b1ad92916abe4165050f2d176c6e0f9471354539",
+      "bytes": 38092,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-15": {
+      "sha256": "57c352ffa42b0a1a3865b2a1bcf688b90a990d730eed008c13b663cfa2ca3c74",
+      "bytes": 35804,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-16": {
+      "sha256": "043d8e8156ff8f215205f4bc4fd7cb9f32e7af872db2862982cc7cf3cedad2a4",
+      "bytes": 33469,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-17": {
+      "sha256": "951326eca3819450b26ef3894ac992de0e418227385d037e53378cab37bef202",
+      "bytes": 47244,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-18": {
+      "sha256": "fabb44e6f23da2257b5f0cc9841f65ecb978ad1a41192c5262d4e59c0cd1f627",
+      "bytes": 45955,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-19": {
+      "sha256": "0b20683497a45eb1daf867c71c3c752370b5050bf8b97c28e41621a6793dd6af",
+      "bytes": 48784,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-20": {
+      "sha256": "95ca68f7a34431f27c823a0bb62d89ae0ec56ab2f0e40e5509463d95b6fb523f",
+      "bytes": 54024,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-21": {
+      "sha256": "888bac9294bc6901ed28d74aae0e850b16e02b8ca1ca51848b1a76db9a9e35af",
+      "bytes": 54476,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-22": {
+      "sha256": "0ed292f610af94a8f01830a6926cc5aa87cfbc6b3df59935d9a37fdfb61263cf",
+      "bytes": 54276,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-23": {
+      "sha256": "c32e3f435b16571b17696bc99b3c403f2c7f32efbdae15dea513ed156805616e",
+      "bytes": 53772,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-24": {
+      "sha256": "deb58530f16f58b53652c6559f840a443eff14018891fd39bb85f56a943bd95d",
+      "bytes": 54704,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-25": {
+      "sha256": "7d169db55d20fbc115257ba8615aef64791d9c41c355c366c3464d48fbfa3f16",
+      "bytes": 53395,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-26": {
+      "sha256": "4c411dbcf818e13a3ab467597960bb9a184889d5bb1a1f04abc5c0e45bfa7db6",
+      "bytes": 51715,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-27": {
+      "sha256": "8a14fd0eaf26026c6a37f39eb8cc948294335ae96956159bb51ea69be79354f5",
+      "bytes": 51338,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-28": {
+      "sha256": "9064a782e42117486b4b985b1a2873239436c06cd55456877ffd87260feae873",
+      "bytes": 51766,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-29": {
+      "sha256": "ac202fb747149a4636bc599a4125616e088cc3eac26e1d43f2de4b21fa8c93c0",
+      "bytes": 47052,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-30": {
+      "sha256": "cd4fa4b80f0375be37dccc6e6b499b71abeb5cc033755d5c472912faedfc95bd",
+      "bytes": 48400,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-08-31": {
+      "sha256": "c961e37a55749ec350de8d821261e93293aa18450407c77941c90f853928707b",
+      "bytes": 49799,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-01": {
+      "sha256": "d638ea8e218cb72e24802f89ba7a1d69b315147e3beaba98b17d22cdf7903d27",
+      "bytes": 49488,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-02": {
+      "sha256": "421e269f793a744eee65f3a6da9a6c6fe0c57a0f7e08cd0569bc5d9d3fe3fdd1",
+      "bytes": 48666,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-03": {
+      "sha256": "d25b743a9b57c9acbef53c6b53146c3d6d059584016c6d15a7f5535bfc914771",
+      "bytes": 50320,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-04": {
+      "sha256": "7ba980994ef5a79ff73d4d70453df960f185ce1eb3395b459df29e0b73b7749d",
+      "bytes": 51887,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-05": {
+      "sha256": "031560ce41f23f185f6ea02d9b6616201fdc971703bc6a0f7d90c6efff3f07e7",
+      "bytes": 50005,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-06": {
+      "sha256": "92c89ffb02e7995926be2d01006036c7ecfad8ff08bffb19d57573a24d953243",
+      "bytes": 51319,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-07": {
+      "sha256": "bcc6a84edc63c3d3f9aa12baf85bb7791fd5801566a04ae3610df5b2ed55ebb0",
+      "bytes": 51532,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-08": {
+      "sha256": "7def9755caa6192925f68953c9f47c74ed9e2490510ad65393a2608fc5c82b25",
+      "bytes": 50729,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-09": {
+      "sha256": "d2c4f5009db32e50dfffe80ceb1b85ada6f9aa8cfcc891ffc36780b008487e73",
+      "bytes": 50632,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-10": {
+      "sha256": "2ee753dac90ffc7a4811b7aa9907bf80a695a66e1eb2f06205dbcf7f6a41393b",
+      "bytes": 50269,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-11": {
+      "sha256": "46cbb0013d20eec9fd8748695eebb460cbe963e131eb8357c1e2d1151b88b3ad",
+      "bytes": 49654,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-12": {
+      "sha256": "4eea606c0df13d31fd8499bfafbfddb74ee1e493b1d737a455047fbec1e44f4e",
+      "bytes": 43651,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-13": {
+      "sha256": "36a135a8ec6e7f2d1a931c2027c50f34d82bc7719586b37ee1dfef832ef8c4c9",
+      "bytes": 45427,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-14": {
+      "sha256": "ae930ab94c14c36b4328f6771b2ef22f66129f46dbba275e360d7e457579f3e9",
+      "bytes": 48089,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-15": {
+      "sha256": "928ea7c73cd70603dfb37de51623f535b9d9a5c8fa1c91099847d4be2c629d14",
+      "bytes": 48778,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-16": {
+      "sha256": "6ca4e679c7f3d79f81e0a259e8ddb9a0057887b4d9bb92769cbe09c5bc000ae6",
+      "bytes": 50078,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-17": {
+      "sha256": "ce43536fcf9525530a2601d10124b19b7331f5ef0f800670112d581ec3230465",
+      "bytes": 48300,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-18": {
+      "sha256": "8bfc5dfa89d3cbb712c56f1b4dff1c78cc691aca50545006ca619a450d964f2d",
+      "bytes": 50269,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-19": {
+      "sha256": "4781740f37c6445686dfe8dd84aa4f79cd36542c4a4805cd2275f86cd289162f",
+      "bytes": 50913,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-20": {
+      "sha256": "ba787c0f3cd3fc7a4934e8f89e9f1969191ff9050354dde5c136e2b2849f3991",
+      "bytes": 50376,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-21": {
+      "sha256": "dd2a882be2799bc4beaeef919b9414788483412b9e85e7ed44ad2f33ca0bf6d7",
+      "bytes": 52109,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-22": {
+      "sha256": "d536bab51bf9d9b2e724759de02ff65d668a23e372a4b082b21dfd8c12956b3f",
+      "bytes": 52866,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-23": {
+      "sha256": "c2f53ba2f35771d8c622a8920dfc784d3e540059253291f766e018caa14724d3",
+      "bytes": 52063,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-24": {
+      "sha256": "8a61d91bd67ef8da4febd866eff83650720fdce359a1487b66eeeb43f4b61124",
+      "bytes": 50483,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-25": {
+      "sha256": "14016320310e871ddb68e4cc1c914e8c2f1ac6276eab68d4eb4bfb8029c6650d",
+      "bytes": 51227,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-26": {
+      "sha256": "70f8812f88857c212df56eceb3eb8d063e09baa66624ff1d60ceb9a163207969",
+      "bytes": 49613,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-27": {
+      "sha256": "32dd5fdb3de4c5b24c700bda3a206b93565d6e48a5b856d57e0528ad7c732056",
+      "bytes": 51016,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-28": {
+      "sha256": "89e7bb03181df885ca5c91d143d97a8ec9dbc264094ba11317ed6744babbe694",
+      "bytes": 56193,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-29": {
+      "sha256": "57e3197292c75fb01d5c187fb7ff1824bd09a12da4e47c9fca5de72eae7eeb80",
+      "bytes": 53624,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-09-30": {
+      "sha256": "6fa266c18e8974b94eeff86e6e3b73019a0ff98e79534803cf673397103d50f6",
+      "bytes": 53960,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-10-01": {
+      "sha256": "cad2bfd58682d6ac02b69db472fc5d55544ff3a660bdfd1a14c29dde48bd377f",
+      "bytes": 57714,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-10-02": {
+      "sha256": "c2ca2184ae517414c343c1157701546e75bf294fbff5b81994b3861167d89183",
+      "bytes": 55988,
+      "rows": 1440
+    },
+    "MONUSDT-1m-2026-10-03": {
+      "sha256": "68d1c94701de1c67d0e1cd072eeb037236083fdbb727c2a01e747b51dae8b9c7",
+      "bytes": 52961,
+      "rows": 1440
+    }
+  }
+}

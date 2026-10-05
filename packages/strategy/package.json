@@ -11,5 +11,9 @@
   "devDependencies": {
     "@vitest/coverage-v8": "2.1.9",
     "fast-check": "^4.10.2"
+  },
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
   }
 }

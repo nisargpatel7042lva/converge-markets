@@ -1,0 +1,7 @@
+DejaVu Sans (DejaVuSans.ttf, DejaVuSans-Bold.ttf) is bundled to render the report charts.
+
+Fonts are (c) Bitstream (Bitstream Vera Fonts); changes by Tavmjong Bah, Arev Fonts (c) Tavmjong Bah.
+The Bitstream Vera / DejaVu license permits free use, copying, modification and redistribution of
+the font software, bundled or not with other software, provided the copyright notice and license
+text are retained and the fonts are not sold by themselves. Full text:
+https://dejavu-fonts.github.io/License.html

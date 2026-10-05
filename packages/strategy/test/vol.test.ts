@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { annualizationFactor, EwmaVol, RollingRange, SECONDS_PER_YEAR } from "../src";
 import { gauss, rng } from "./helpers";
 
-const cfg = { halfLifeSec: 600, priorAnnualVol: 0.5, minAnnualVol: 0.05, maxAnnualVol: 5 };
+const cfg = {
+  halfLifeSec: 600,
+  priorAnnualVol: 0.5,
+  minAnnualVol: 0.05,
+  maxAnnualVol: 5,
+  scale: 1,
+};
 
 /** GBM path at 1 s resolution with annual vol `sigma`. */
 function path(sigma: number, seconds: number, seed: number): number[] {
@@ -74,11 +80,26 @@ describe("EwmaVol", () => {
     expect(lo.annualVol).toBe(0.4);
   });
 
+  it("scales the estimate before clamping (fat-tail adjustment)", () => {
+    const a = new EwmaVol(cfg);
+    const b = new EwmaVol({ ...cfg, scale: 1.25 });
+    expect(b.annualVol).toBeCloseTo(1.25 * a.annualVol, 12);
+    const p = path(0.8, 3600, 21);
+    p.forEach((x, i) => {
+      a.update(x, i);
+      b.update(x, i);
+    });
+    expect(b.annualVol).toBeCloseTo(1.25 * a.annualVol, 9);
+    const capped = new EwmaVol({ ...cfg, scale: 100, maxAnnualVol: 2 });
+    expect(capped.annualVol).toBe(2);
+  });
+
   it("validates its config", () => {
     expect(() => new EwmaVol({ ...cfg, halfLifeSec: 0 })).toThrow(RangeError);
     expect(() => new EwmaVol({ ...cfg, minAnnualVol: 0 })).toThrow(RangeError);
     expect(() => new EwmaVol({ ...cfg, maxAnnualVol: 0.01 })).toThrow(RangeError);
     expect(() => new EwmaVol({ ...cfg, priorAnnualVol: 0 })).toThrow(RangeError);
+    expect(() => new EwmaVol({ ...cfg, scale: 0 })).toThrow(RangeError);
   });
 });
 

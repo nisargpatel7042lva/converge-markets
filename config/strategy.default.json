@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "note": "Launch parameters chosen by `pnpm backtest` (see backtest/report/REPORT.md, section 'Launch parameters'). Valid for the forward-priced execution design only.",
+  "design": {
+    "quoteMode": "swapTime",
+    "execDelayBlocks": 5,
+    "blockMs": 400
+  },
+  "params": {
+    "minHalfSpread": 0.05,
+    "maxHalfSpread": 0.2,
+    "volSpreadK": 1,
+    "stalenessSec": 4,
+    "inventorySkewMax": 0.1,
+    "inventorySkewK": 2,
+    "toxicityPullBps": 12,
+    "toxicityWindowSec": 5,
+    "toxicityWidenMax": 0,
+    "noQuoteWindowSec": 30,
+    "priceMin": 0.02,
+    "priceMax": 0.98,
+    "tick": 0.01,
+    "levels": 2,
+    "baseRangeTicks": 8,
+    "minRangeTicks": 2,
+    "liquidityNavFraction": 0.12,
+    "minLevelSize": 1,
+    "perMarketMaxFraction": 0.01,
+    "totalAtRiskMaxFraction": 0.08,
+    "drawdownBreakerFraction": 0.05,
+    "vol": {
+      "halfLifeSec": 1800,
+      "priorAnnualVol": 0.5,
+      "minAnnualVol": 0.1,
+      "maxAnnualVol": 3,
+      "scale": 1.1
+    },
+    "refreshTicks": 2,
+    "maxQuoteAgeBlocks": 25
+  },
+  "provenance": {
+    "report": "backtest/report/REPORT.md",
+    "dataManifestSha256": "46e8307e4228bf063e6397b09c304984f6b2da616db3b6e3e378a89f93a2f7ea",
+    "seed": 20261004,
+    "trainWindow": {
+      "start": "2026-07-06",
+      "end": "2026-09-04"
+    },
+    "holdoutWindow": {
+      "start": "2026-09-04",
+      "end": "2026-10-04"
+    }
+  }
+}

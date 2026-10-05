@@ -1,0 +1,24 @@
+Phase 3 determinism evidence: `pnpm backtest` run twice from the pinned data (full pipeline: calibration, search, hold-out restarts, sweeps, charts).
+
+Data manifest sha256: 46e8307e4228bf063e6397b09c304984f6b2da616db3b6e3e378a89f93a2f7ea
+Run 1 started 2026-10-05T11:26:21+03:00; run 2 started 2026-10-05T12:38:02+03:00 (both about 70 minutes on an 8-core machine, 14 workers).
+
+sha256 of the outputs, run 1:
+  6cef21010a4d5a2447b4591e343a717b8ecb8a11c78340f839d436815e6929ec  results.json
+  e7da711a06d7904be0be166618ad57fe1f003b6b41965c635cf3401c297c972a  tuning.json
+  b107b663722a5f1b9363a431ce37f8fde7433260bfc356d8bdf64a079ca35f3b  REPORT.md
+  f75717da5628cb782cc3ce37a71080ba0006bb7117df742b4abea27cd0c77625  strategy.default.json
+sha256 of the outputs, run 2:
+  6cef21010a4d5a2447b4591e343a717b8ecb8a11c78340f839d436815e6929ec  results.json
+  e7da711a06d7904be0be166618ad57fe1f003b6b41965c635cf3401c297c972a  tuning.json
+  b107b663722a5f1b9363a431ce37f8fde7433260bfc356d8bdf64a079ca35f3b  REPORT.md
+  f75717da5628cb782cc3ce37a71080ba0006bb7117df742b4abea27cd0c77625  strategy.default.json
+
+cmp results.json: identical
+cmp tuning.json: identical
+cmp REPORT.md: identical
+cmp strategy.default.json: identical
+
+Note: after run 2, wording-only fixes to the report builder were applied and REPORT.md was rebuilt from the saved results.json with `pnpm --filter @converge/backtest backtest -- --report-only`
+(same builder function, same results.json; no number changed). The committed REPORT.md is that rebuild; results.json, tuning.json and config/strategy.default.json are the run outputs.
+A worker-pool determinism check (different pool sizes, byte-identical results) also runs in `make check-3` (`pnpm --filter @converge/backtest determinism`).

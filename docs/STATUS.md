@@ -5,8 +5,8 @@
 | 0 | Foundation + Kuru feasibility spike | **COMPLETE WITH CAVEATS** (live-testnet spike blocked on testnet MON) | [PHASE-0-report](phases/PHASE-0-report.md) |
 | 1 | Outcome market contracts | **COMPLETE WITH CAVEATS** (testnet lifecycle blocked on testnet MON) | [PHASE-1-report](phases/PHASE-1-report.md) |
 | 2 | Scheduler + settlement (CRE) | **COMPLETE WITH CAVEATS** (testnet soak blocked on testnet MON; CRE simulation/deploy blocked on CRE account; CRE DON latency unmeasured) | [PHASE-2-report](phases/PHASE-2-report.md) |
-| 3 | Strategy library + backtest | **Next** (waiting for go-ahead) | |
-| 4 | Converge Vault contracts | not started | |
+| 3 | Strategy library + backtest | **COMPLETE WITH CAVEATS.** Verdict: UNPROFITABLE as specified (keeper-posted quotes lose to latency snipers); PROFITABLE UNDER PESSIMISTIC ASSUMPTIONS with forward-priced execution (ADR-004, Proposed), not robust to leads above the delay; the lead is unmeasured | [PHASE-3-report](phases/PHASE-3-report.md), [REPORT](../backtest/report/REPORT.md) |
+| 4 | Converge Vault contracts | **Next, venue design needs a decision** (ADR-004) | |
 | 5 | Keeper / market-maker | not started | |
 | 6 | Envio indexer | not started | |
 | 7 | Mobile app (Mera) | not started | |
@@ -20,6 +20,7 @@
 - ADR-002: resolve with Chainlink Data Streams reports verified onchain (canonical = the report whose window contains T, 20 s finalization window), delivered by CRE plus a fallback submitter, void = 0.5 USDC per token. MON resolves via push-feed round proofs (current phase only), 1h only, SLA ≤ ~150 s.
 - Scheduler: onchain leader flag on `SchedulerReceiver` (CRE = 0, FALLBACK = 1); both paths read state through `SchedulerLens` in one call.
 - ADR-003: USDC (6 dp) collateral.
+- ADR-004 (**Proposed**): forward-priced two-step execution replacing keeper-posted quotes with immediate fills. Phase 3 evidence; awaiting Nisarg.
 
 ## Open blockers
 
@@ -29,5 +30,6 @@
 4. Kuru: mainnet `deployProxy` is owner-gated. Need creation rights (question #1 in `docs/evidence/phase-0/kuru-spike.md`).
 5. Envio HyperSync API token.
 6. Alert webhook (Discord or Telegram) for the fallback scheduler.
+7. Chainlink Data Streams key and secret: measures the Binance-to-Streams lead that decides whether ADR-004's 2 s delay is enough (Phase 3).
 
 Repo: https://github.com/nisargpatel7042lva/converge-markets (CI green on `main`).

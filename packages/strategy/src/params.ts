@@ -88,7 +88,7 @@ export const DEFAULT_PARAMS: StrategyParams = {
   perMarketMaxFraction: 0.05,
   totalAtRiskMaxFraction: 0.4,
   drawdownBreakerFraction: 0.05,
-  vol: { halfLifeSec: 1800, priorAnnualVol: 0.5, minAnnualVol: 0.1, maxAnnualVol: 3 },
+  vol: { halfLifeSec: 1800, priorAnnualVol: 0.5, minAnnualVol: 0.1, maxAnnualVol: 3, scale: 1 },
   refreshTicks: 1,
   maxQuoteAgeBlocks: 25,
 };
@@ -134,6 +134,7 @@ export function validateParams(p: StrategyParams): StrategyParams {
   pos(p.vol.priorAnnualVol, "vol.priorAnnualVol");
   if (!(p.vol.minAnnualVol > 0 && p.vol.maxAnnualVol >= p.vol.minAnnualVol))
     bad("vol clamp invalid");
+  pos(p.vol.scale, "vol.scale");
   nonneg(p.refreshTicks, "refreshTicks");
   if (!(Number.isInteger(p.maxQuoteAgeBlocks) && p.maxQuoteAgeBlocks >= 1))
     bad("maxQuoteAgeBlocks must be an integer >= 1");

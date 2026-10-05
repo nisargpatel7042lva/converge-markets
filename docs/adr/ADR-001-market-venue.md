@@ -2,6 +2,7 @@
 
 - Status: **Accepted for the in-vault pool. The Kuru (1h) leg is pending one named answer from Kuru**: will they grant Converge mainnet market-creation rights?
 - Date: 2026-10-04 (revised twice the same day after hostile review)
+- **Phase 3 update (2026-10-05):** the backtest quantified the adverse selection this ADR left open. With keeper-posted quotes and immediate fills (decisions 1 and 2 as written), the vault loses money to a trader whose price leads the vault's by about a second, whatever the parameters (`backtest/report/REPORT.md`, section 4). [ADR-004](ADR-004-forward-priced-execution.md) (Proposed) amends the execution model. This ADR is unchanged until Nisarg decides.
 - Evidence: `docs/evidence/phase-0/kuru-spike.md`, `kuru-spike-fork.json`, `kuru-cost-model.txt`, `monad-gas-estimates.txt` (script: `scripts/spike/monad-gas-estimates.sh`), `external-onchain-checks.txt`
 
 ## Context: what we measured

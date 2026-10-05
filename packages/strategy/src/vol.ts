@@ -8,6 +8,12 @@ export type EwmaVolConfig = {
   /** The estimate is clamped to this annualized range. */
   minAnnualVol: number;
   maxAnnualVol: number;
+  /**
+   * Multiplier applied to the raw estimate before clamping. Real returns have fat tails, so a plain
+   * EWMA is over-confident in the probability tails; a scale above 1 widens the distribution
+   * (Phase 3 backtest: BTC 15m rounds are best calibrated near 1.2). 1 = no adjustment.
+   */
+  scale: number;
 };
 
 /**
@@ -38,6 +44,7 @@ export class EwmaVol {
     if (!(cfg.minAnnualVol > 0 && cfg.maxAnnualVol >= cfg.minAnnualVol))
       throw new RangeError("invalid vol clamp");
     if (!(cfg.priorAnnualVol > 0)) throw new RangeError("priorAnnualVol must be > 0");
+    if (!(cfg.scale > 0)) throw new RangeError("scale must be > 0");
     this.variancePerSec = (cfg.priorAnnualVol * cfg.priorAnnualVol) / SECONDS_PER_YEAR;
   }
 
@@ -61,7 +68,7 @@ export class EwmaVol {
 
   /** Current annualized σ, clamped to the configured range. */
   get annualVol(): number {
-    const raw = Math.sqrt(this.variancePerSec * SECONDS_PER_YEAR);
+    const raw = this.cfg.scale * Math.sqrt(this.variancePerSec * SECONDS_PER_YEAR);
     return Math.min(this.cfg.maxAnnualVol, Math.max(this.cfg.minAnnualVol, raw));
   }
 }
