@@ -5539,6 +5539,19 @@ export const convergeVaultAbi = [
   },
   {
     "type": "function",
+    "name": "haltQuoting",
+    "inputs": [
+      {
+        "name": "reason",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "hwmPps",
     "inputs": [],
     "outputs": [
@@ -5578,6 +5591,19 @@ export const convergeVaultAbi = [
         "name": "",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "keeperHalt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -6679,6 +6705,13 @@ export const convergeVaultAbi = [
   },
   {
     "type": "function",
+    "name": "unhaltQuoting",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "unitScale",
     "inputs": [],
     "outputs": [
@@ -7423,6 +7456,25 @@ export const convergeVaultAbi = [
   },
   {
     "type": "event",
+    "name": "QuotingHalted",
+    "inputs": [
+      {
+        "name": "keeper",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "reason",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "QuotingPaused",
     "inputs": [
       {
@@ -7440,6 +7492,19 @@ export const convergeVaultAbi = [
     "inputs": [
       {
         "name": "by",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "QuotingUnhalted",
+    "inputs": [
+      {
+        "name": "keeper",
         "type": "address",
         "indexed": true,
         "internalType": "address"
@@ -8161,6 +8226,11 @@ export const convergeVaultAbi = [
         "internalType": "uint256"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "QuotingHalt",
+    "inputs": []
   },
   {
     "type": "error",

@@ -125,7 +125,7 @@ export class VaultReader {
   }
 
   async read(): Promise<VaultState> {
-    const { vault, venue, factory, usdc } = this.a;
+    const { vault, venue, usdc } = this.a;
     const v = <T>(fn: string, args: unknown[] = []) =>
       this.rd<T>(vault, convergeVaultAbi, fn, args);
     const block = await tracked(this.c, () => this.pub.getBlock());
