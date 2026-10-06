@@ -167,7 +167,15 @@ export function viemChainTx(
       const t = now();
       if (cachedFees && t - cachedFees.at < 3_000)
         return { baseFee: cachedFees.baseFee, tip: cachedFees.tip };
-      const block = await tracked(c, () => c.pub.getBlock());
+      let block: Awaited<ReturnType<typeof c.pub.getBlock>>;
+      try {
+        block = await tracked(c, () => c.pub.getBlock());
+      } catch (e) {
+        // a halt must not fail because a read was refused: a base fee a few seconds old will do
+        if (cachedFees && t - cachedFees.at < 60_000)
+          return { baseFee: cachedFees.baseFee, tip: cachedFees.tip };
+        throw e;
+      }
       let tip = cachedFees?.tip ?? defaultTipWei;
       let tipAt = cachedFees?.tipAt ?? 0;
       if (t - tipAt > 60_000) {

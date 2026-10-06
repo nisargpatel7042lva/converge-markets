@@ -177,7 +177,7 @@ export const KeeperFileSchema = z.object({
     })
     .default({}),
   /** Below this wallet balance (MON) only halts are sent: gas to pull quotes is never spent on anything else. */
-  reserveMon: z.number().min(0).default(0.03),
+  reserveMon: z.number().min(0).default(0.15),
   /** Paper/live: execute orders even when the simulation shows no fill (the taker is refunded). */
   executeUnfilled: z.boolean().default(true),
 });

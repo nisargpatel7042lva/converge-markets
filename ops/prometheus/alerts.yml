@@ -45,7 +45,9 @@ groups:
         expr: increase(keeper_errors_total{kind=~"unhandled_rejection|uncaught_exception"}[10m]) > 0
         labels: { severity: page }
       - alert: QuoteAgeHigh
-        expr: histogram_quantile(0.95, sum(rate(keeper_quote_age_blocks_bucket[10m])) by (le)) > 2
+        # Monad includes a transaction in 0.5 to 1.5 s, so 4 to 6 blocks is normal; the venue's
+        # maxLateness is 10 blocks (4 s): above 8 an order is about to be missed
+        expr: histogram_quantile(0.95, sum(rate(keeper_quote_age_blocks_bucket[10m])) by (le)) > 8
         for: 10m
         labels: { severity: warn }
       - alert: QuoteViolation

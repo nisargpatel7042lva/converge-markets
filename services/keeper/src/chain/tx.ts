@@ -77,6 +77,11 @@ export type TxOpts = {
    * (a stuck transaction can never queue a halt behind it).
    */
   critical?: boolean;
+  /**
+   * Take the lowest unconfirmed nonce and replace what is there. Only a halt does this: it is the
+   * one transaction that must not wait, and the one for which losing another is acceptable.
+   */
+  supersede?: boolean;
   value?: bigint;
   /** Use this gas limit instead of estimating (a measured value for a known call). */
   gas?: bigint;
@@ -174,13 +179,14 @@ export class TxManager {
 
     let nonce: number;
     let supersede = false;
-    if (opts.critical && this.nonces.pendingCount > 0) {
+    if (opts.supersede && this.nonces.pendingCount > 0) {
       // something is in flight (possibly stuck): replace the lowest unconfirmed transaction
       nonce = await this.chain.confirmedNonce();
       this.nonces.adopt(nonce);
       supersede = true;
       // 30 % over what was sent there (the replacement rule asks for 10 % on both fields)
-      const old = this.feeAt.get(nonce) ?? { maxFee: cap, tip };
+      // unknown (sent by an earlier life of this process): the ordinary cap, not the halt cap
+      const old = this.feeAt.get(nonce) ?? { maxFee: this.cfg.maxFeePerGasWei, tip };
       const beatFee = (old.maxFee * 13n) / 10n;
       const beatTip = (old.tip * 13n) / 10n + 1n;
       if (maxFee < beatFee) maxFee = beatFee;
@@ -205,6 +211,13 @@ export class TxManager {
       try {
         return await this.chain.sendTx(req);
       } catch (e) {
+        if (isNonceTooLow(e) && hashes.length === 0 && supersede) {
+          // what sat at this nonce mined while we were building the replacement: take the next one
+          this.nonces.settle(nonce);
+          nonce = await this.chain.confirmedNonce();
+          this.nonces.adopt(nonce);
+          return this.chain.sendTx({ ...req, nonce });
+        }
         if (isNonceTooLow(e) && hashes.length === 0 && !supersede) {
           // somebody else (or an earlier life of this process) used it: trust the chain again
           this.nonces.settle(nonce);
@@ -227,7 +240,8 @@ export class TxManager {
     let replacements = 0;
     for (;;) {
       for (const h of hashes) {
-        const r = await this.chain.receipt(h);
+        // a receipt read that is refused or fails is a miss, not the end of the submission
+        const r = await this.chain.receipt(h).catch(() => null);
         if (r) return this.finish(kind, nonce, attempts, sentAtMs, gas as bigint, r);
       }
       if (this.now() - lastSent >= this.cfg.stuckMs) {

@@ -275,7 +275,11 @@ describe("TxManager", () => {
     );
     await new Promise((r) => setImmediate(r));
     expect(tm.nonces.pendingCount).toBe(1);
-    const halt = await tm.submit("haltQuoting", TO, "0x1234", { critical: true, gas: 100_000n });
+    const halt = await tm.submit("haltQuoting", TO, "0x1234", {
+      critical: true,
+      supersede: true,
+      gas: 100_000n,
+    });
     expect(halt.status).toBe("success");
     expect(halt.nonce).toBe(0); // the same nonce: it replaced the stuck one
     const hs = chain.sent.find((r) => r.data === "0x1234") as TxRequest;
@@ -292,5 +296,57 @@ describe("TxManager", () => {
     const tm = make(chain);
     const r = await tm.submit("haltQuoting", TO, DATA, { critical: true, gas: 100_000n });
     expect(r.nonce).toBe(9);
+  });
+
+  it("an unhalt is critical (fee) but never replaces a transaction in flight", async () => {
+    const chain = new FakeChain();
+    chain.behaviour = (req) => (req.data === DATA ? Number.POSITIVE_INFINITY : 0);
+    const tm = new TxManager(
+      chain,
+      { ...cfg, maxReplacements: 5 },
+      {
+        now: () => chain.nowMs,
+        sleep: async (ms) => {
+          chain.nowMs += ms;
+          await new Promise((r) => setImmediate(r));
+        },
+      },
+    );
+    void tm.submit("executeOrder", TO, DATA).catch(() => undefined);
+    await new Promise((r) => setImmediate(r));
+    const r = await tm.submit("unhaltQuoting", TO, "0x5678", { critical: true, gas: 100_000n });
+    expect(r.nonce).toBe(1); // behind the executeOrder, not on top of it
+  });
+
+  it("a halt whose target nonce mined meanwhile takes the next one instead of failing", async () => {
+    const chain = new FakeChain();
+    chain.behaviour = (req) => (req.data === DATA ? Number.POSITIVE_INFINITY : 0);
+    const tm = new TxManager(
+      chain,
+      { ...cfg, maxReplacements: 5 },
+      {
+        now: () => chain.nowMs,
+        sleep: async (ms) => {
+          chain.nowMs += ms;
+          await new Promise((r) => setImmediate(r));
+        },
+      },
+    );
+    void tm.submit("executeOrder", TO, DATA).catch(() => undefined);
+    await new Promise((r) => setImmediate(r));
+    // the stuck one gets mined by someone else just before our replacement is accepted
+    chain.failSend = (req, n) => {
+      if (req.data === "0x1234" && req.nonce === 0 && n < 100) {
+        chain.confirmed = 1;
+        return new Error("nonce too low");
+      }
+      return null;
+    };
+    const halt = await tm.submit("haltQuoting", TO, "0x1234", {
+      critical: true,
+      supersede: true,
+      gas: 100_000n,
+    });
+    expect(halt.nonce).toBe(1);
   });
 });

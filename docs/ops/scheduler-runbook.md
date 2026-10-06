@@ -4,12 +4,12 @@ The scheduler keeps markets created 3 rounds ahead, opens them at start and reso
 
 ## Components
 
-| Component | Where | Role |
-|---|---|---|
-| **CRE workflow** | `services/scheduler/cre/scheduler` | Primary orchestrator. Runs at second :05 and :35 of every minute (the CRE cron minimum is 30 s; the 5 s offset lands just after each boundary). Reads state with 2 EVM reads (leader + `SchedulerLens`; the CRE quota is 15) and delivers one DON-signed report per run (settlement first, ≤ 4 creates, 9M gas) to `SchedulerReceiver` through the Chainlink KeystoneForwarder. |
-| **Fallback service** | `services/scheduler/fallback` | The same planner in a long-lived Node process (Docker). It sends transactions from an EOA that holds `CREATOR_ROLE`. |
-| **`SchedulerReceiver`** | `contracts/src/scheduler/SchedulerReceiver.sol` | Onchain end of the CRE path. Holds `CREATOR_ROLE` and the **leader flag** (`leader()`: 0 = CRE, 1 = FALLBACK). It skips (never reverts) trailing actions when gas runs low (`ActionsSkipped`); they are retried on the next run. |
-| **`SchedulerLens`** | `contracts/src/scheduler/SchedulerLens.sol` | View-only. Returns every actionable slot, including MON round proofs, in one `eth_call`. Used by both schedulers. |
+| Component               | Where                                           | Role                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CRE workflow**        | `services/scheduler/cre/scheduler`              | Primary orchestrator. Runs at second :05 and :35 of every minute (the CRE cron minimum is 30 s; the 5 s offset lands just after each boundary). Reads state with 2 EVM reads (leader + `SchedulerLens`; the CRE quota is 15) and delivers one DON-signed report per run (settlement first, ≤ 4 creates, 9M gas) to `SchedulerReceiver` through the Chainlink KeystoneForwarder. |
+| **Fallback service**    | `services/scheduler/fallback`                   | The same planner in a long-lived Node process (Docker). It sends transactions from an EOA that holds `CREATOR_ROLE`.                                                                                                                                                                                                                                                            |
+| **`SchedulerReceiver`** | `contracts/src/scheduler/SchedulerReceiver.sol` | Onchain end of the CRE path. Holds `CREATOR_ROLE` and the **leader flag** (`leader()`: 0 = CRE, 1 = FALLBACK). It skips (never reverts) trailing actions when gas runs low (`ActionsSkipped`); they are retried on the next run.                                                                                                                                                |
+| **`SchedulerLens`**     | `contracts/src/scheduler/SchedulerLens.sol`     | View-only. Returns every actionable slot, including MON round proofs, in one `eth_call`. Used by both schedulers.                                                                                                                                                                                                                                                               |
 
 The leader flag decides which scheduler acts:
 
@@ -32,6 +32,7 @@ The leader flag decides which scheduler acts:
   Oracle errors and degraded reads make `/health` go 503 **even while passive**, although the fallback cannot fix them. The 503 is a signal to investigate the oracle or the lens, not to restart the container.
 
   Otherwise it returns 503. The Docker `HEALTHCHECK` uses it. The JSON body includes `leader`, `lateCount`, `consecutiveBad` and `lastError` (redacted).
+
 - **Fallback logs** are pino JSON:
   - `event: "tick"` once per loop, with planned, waiting, late and missed counts;
   - `event: "action"` for each action, with `status`, `delaySeconds` and `tx`.
@@ -95,7 +96,7 @@ Both schedulers read the flag on every run, so the switch takes effect on the fa
 
 To switch to the fallback:
 
-1. Start the fallback container *before* flipping the flag.
+1. Start the fallback container _before_ flipping the flag.
 2. Confirm `/health` is 200.
 3. Flip the flag.
 4. Watch for `acting: true` in the tick logs.
@@ -153,7 +154,7 @@ The fallback broadcasts each action once and waits at most 60 s for the receipt.
    ```
 
 4. **Restart the fallback** (`docker compose restart scheduler`) so its nonce manager re-reads the chain nonce.
-5. **If the cause is "insufficient funds",** top up the scheduler EOA. Monad bills the gas *limit*, not the gas used (`docs/EXTERNAL.md`).
+5. **If the cause is "insufficient funds",** top up the scheduler EOA. Monad bills the gas _limit_, not the gas used (`docs/EXTERNAL.md`).
 
 ## Oracle outage
 
@@ -177,9 +178,9 @@ The fallback broadcasts each action once and waits at most 60 s for the receipt.
 
 ## Keys and roles
 
-| Key / role | Holder | Notes |
-|---|---|---|
-| `MarketFactory` `CREATOR_ROLE` | `SchedulerReceiver` (CRE path) and the fallback EOA | Revoke the fallback EOA if it is compromised; it can only create markets, never settle them wrongly. |
-| `SchedulerReceiver` `OPERATOR_ROLE` | Ops | Leader switch only. |
-| `SchedulerReceiver` `DEFAULT_ADMIN_ROLE` | Safe | `setWorkflow`, `setMaxReportAge`. |
-| Fallback EOA | Ops | Keep it funded with MON for gas. Its key is in the fallback `.env`, alongside the Data Streams credentials and the webhook URL. |
+| Key / role                               | Holder                                              | Notes                                                                                                                           |
+| ---------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `MarketFactory` `CREATOR_ROLE`           | `SchedulerReceiver` (CRE path) and the fallback EOA | Revoke the fallback EOA if it is compromised; it can only create markets, never settle them wrongly.                            |
+| `SchedulerReceiver` `OPERATOR_ROLE`      | Ops                                                 | Leader switch only.                                                                                                             |
+| `SchedulerReceiver` `DEFAULT_ADMIN_ROLE` | Safe                                                | `setWorkflow`, `setMaxReportAge`.                                                                                               |
+| Fallback EOA                             | Ops                                                 | Keep it funded with MON for gas. Its key is in the fallback `.env`, alongside the Data Streams credentials and the webhook URL. |

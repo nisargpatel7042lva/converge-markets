@@ -33,6 +33,27 @@ describe("kill switch", () => {
   });
 });
 
+describe("kill switch persistence", () => {
+  it("the HTTP kill is written to the file and survives a restart; /unkill removes only that file", () => {
+    const dir = mkdtempSync(join(tmpdir(), "kill-"));
+    const file = join(dir, "KILL");
+    const a = new KillSwitch(false, file);
+    expect(a.setHttp(true)).toBe(true);
+    expect(new KillSwitch(false, file).killed).toBe(true); // a restarted process
+    expect(a.setHttp(false)).toBe(true);
+    expect(new KillSwitch(false, file).killed).toBe(false);
+    // an operator's own file is not the endpoint's to remove
+    writeFileSync(file, "maintenance window\n");
+    a.setHttp(true);
+    a.setHttp(false);
+    expect(new KillSwitch(false, file).killed).toBe(true);
+    // a file that cannot be written is reported
+    writeFileSync(join(dir, "plain-file"), "x");
+    expect(new KillSwitch(false, join(dir, "plain-file", "KILL")).setHttp(true)).toBe(false);
+    rmSync(dir, { recursive: true });
+  });
+});
+
 describe("webhook alerter", () => {
   const make = (kind: "discord" | "telegram" | "none", t: { now: number }, calls: unknown[]) =>
     new WebhookAlerter(
@@ -133,7 +154,7 @@ describe("http server", () => {
   });
 
   const boot = async (status: Partial<Status>, token: string | undefined) => {
-    const kill = new KillSwitch(false, "/nonexistent/KILL");
+    const kill = new KillSwitch(false, join(mkdtempSync(join(tmpdir(), "kill-srv-")), "KILL"));
     const events: boolean[] = [];
     const s = startServer(0, "127.0.0.1", {
       status: () => ({
@@ -204,6 +225,21 @@ describe("http server", () => {
 
     const b = await boot({}, undefined);
     expect((await fetch(`${b.base}/kill`, { method: "POST" })).status).toBe(404);
+  });
+
+  it("/kill answers 500 when the kill could not be persisted (it holds now, not across a restart)", async () => {
+    const a = await boot({}, "s3cret");
+    const dir = mkdtempSync(join(tmpdir(), "kill-bad-"));
+    writeFileSync(join(dir, "f"), "x");
+    // swap in a kill switch whose file cannot be written
+    Object.assign(a.kill, { file: join(dir, "f", "KILL") });
+    const res = await fetch(`${a.base}/kill`, {
+      method: "POST",
+      headers: { authorization: "Bearer s3cret" },
+    });
+    expect(res.status).toBe(500);
+    expect(((await res.json()) as { persisted: boolean; killed: boolean }).persisted).toBe(false);
+    expect(a.kill.killed).toBe(true);
   });
 
   it("/metrics serves the Prometheus exposition", async () => {

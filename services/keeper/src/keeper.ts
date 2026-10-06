@@ -20,6 +20,7 @@ import { tracked, type Clients } from "./chain/clients";
 import {
   FeeCapExceeded,
   SimulationReverted,
+  TxSuperseded,
   TxTimeout,
   type TxManager,
   type TxResult,
@@ -393,6 +394,7 @@ export class Keeper {
       });
       const r = await this.d.tx.submit("haltQuoting", this.d.addrs.vault, data, {
         critical: true,
+        supersede: true,
         gas: this.d.haltGas ?? 100_000n,
       });
       this.account(r);
@@ -707,7 +709,11 @@ export class Keeper {
 
   private async housekeeping(): Promise<void> {
     const t = this.now();
-    if (t - this.lastBalanceCheck < 30_000) return;
+    // every 30 s, every 3 s once the wallet is within three reserves of its floor
+    const near =
+      this.balanceWei !== null &&
+      this.balanceWei < BigInt(Math.round(this.d.cfg.reserveMon * 3e18));
+    if (t - this.lastBalanceCheck < (near ? 3_000 : 30_000)) return;
     this.lastBalanceCheck = t;
     const bal = await tracked(this.d.clients, () =>
       this.d.clients.pub.getBalance({ address: this.d.clients.account.address }),
@@ -769,6 +775,7 @@ export class Keeper {
     }
     try {
       const r = await this.d.tx.submit(kind, to, data, opts);
+      if (this.balanceWei !== null) this.balanceWei -= r.costWei; // until the next balance read
       this.account(r);
       return r;
     } catch (e) {
@@ -778,6 +785,10 @@ export class Keeper {
       } else if (e instanceof FeeCapExceeded) {
         this.d.metrics.errors.inc({ kind: "fee_cap" });
         void this.d.alerter.alert("fee-cap", `fee above the cap, not sending ${kind}`);
+      } else if (e instanceof TxSuperseded) {
+        // a halt took this transaction's nonce: expected, the work is retried by the planner
+        this.d.metrics.txSent.inc({ kind, result: "superseded" });
+        this.d.log.info({ kind }, "replaced by a halt");
       } else if (e instanceof TxTimeout) {
         this.d.metrics.errors.inc({ kind: "tx_timeout" });
         void this.d.alerter.alert("tx-timeout", `${kind} not mined after the replacements`);
