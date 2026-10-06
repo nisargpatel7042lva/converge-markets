@@ -102,8 +102,11 @@ export class Keeper {
   private head: Head | null = null;
   private readonly heads: Head[] = [];
   private startedAt = 0;
+  private firstHealthyAt: number | null = null;
   private lastTickAt: number | null = null;
   private halting = false;
+  private haltWanted = false;
+  private haltReasons: RiskReason[] = [];
   private triggerBlock: bigint | null = null;
   private localHalt = false; // dry-run / paper: what the halt would have been
   private readonly inflight = new Set<string>();
@@ -193,6 +196,28 @@ export class Keeper {
     void this.riskCheck("tick");
   }
 
+  /** The cached state with one more fill applied (kinds: 0 BUY_UP, 1 SELL_UP, 2 BUY_DOWN, 3 SELL_DOWN). */
+  private withFill(st: VaultState, o: OrderRow, filled: bigint, premium: bigint): VaultState {
+    const markets = st.markets.map((m) => {
+      if (m.address.toLowerCase() !== o.market.toLowerCase()) return m;
+      const up = o.kind === 0 ? -filled : o.kind === 1 ? filled : 0n;
+      const down = o.kind === 2 ? -filled : o.kind === 3 ? filled : 0n;
+      const sells = o.kind === 0 || o.kind === 2; // the vault sells tokens, receives premium
+      return {
+        ...m,
+        upBal: m.upBal + up,
+        downBal: m.downBal + down,
+        cash: m.cash + (sells ? premium : -premium),
+      };
+    });
+    return { ...st, markets };
+  }
+
+  /** Chain time minus this machine's clock, in ms (from the latest block). */
+  chainOffsetMs(): number {
+    return this.head ? Number(this.head.timestamp) * 1000 - this.head.seenAtMs : 0;
+  }
+
   // ------------------------------------------------------------------ fast path
 
   private onHead(h: Head): void {
@@ -217,14 +242,22 @@ export class Keeper {
   /** Risk evaluation + the halt/unhalt decision. Cheap: no I/O unless it acts. */
   private async riskCheck(why: string): Promise<void> {
     const nowMs = this.now();
+    let prices = this.snapshots(nowMs);
+    if (this.firstHealthyAt === null && prices.every((p) => p.healthy)) this.firstHealthyAt = nowMs;
+    // Start-up: the sockets are still connecting. Until the price has been healthy once, a missing
+    // price is not an alarm for the first `startupGraceMs` (nothing is quoted without a price anyway).
+    if (this.firstHealthyAt === null && nowMs - this.startedAt < this.d.cfg.startupGraceMs) {
+      prices = prices.filter((p) => !(p.reasons.includes("NO_PRICE") || p.reasons.includes("FEW_SOURCES")));
+    }
     const risk = evaluateRisk(
       {
         nowMs,
-        prices: this.snapshots(nowMs),
+        prices,
         rpc: { consecutiveErrors: this.d.clients.rpcErrors.consecutive },
         blockLagMs: this.head ? nowMs - this.head.seenAtMs : null,
         inventory: this.inventory,
         killed: this.d.kill.killed,
+        halted: this.vaultFlags().keeperHalt || this.halting,
       },
       this.d.cfg.risk,
     );
@@ -236,9 +269,15 @@ export class Keeper {
       { keeperHalt: flags.keeperHalt || this.halting, quotingPaused: flags.quotingPaused },
       nowMs,
     );
-    if (decision.kind === "halt" && !this.halting) {
-      this.triggerBlock = this.head?.number ?? null;
-      await this.pullAll(decision.reasons, why);
+    if (decision.kind === "halt") {
+      this.haltWanted = true;
+      this.haltReasons = decision.reasons;
+    }
+    // A halt that could not be sent (RPC down) stays wanted until it has gone through.
+    if (flags.keeperHalt) this.haltWanted = false;
+    if (this.haltWanted && !this.halting) {
+      this.triggerBlock ??= this.head?.number ?? null;
+      await this.pullAll(this.haltReasons, why);
     } else if (decision.kind === "unhalt" && !this.halting) {
       await this.unhalt();
     }
@@ -277,6 +316,7 @@ export class Keeper {
     try {
       if (this.d.mode !== "live" || !this.d.tx) {
         this.localHalt = true;
+        this.haltWanted = false;
         this.d.log.info({ mode: this.d.mode }, "would send haltQuoting");
         return;
       }
@@ -292,6 +332,7 @@ export class Keeper {
       this.account(r);
       if (r.status === "success") {
         if (this.state) this.state = { ...this.state, keeperHalt: true };
+        this.haltWanted = false;
         const lat = this.triggerBlock !== null ? Number(r.blockNumber - this.triggerBlock) : 0;
         this.d.metrics.haltBlocks.observe(lat);
         this.d.log.warn(
@@ -317,7 +358,8 @@ export class Keeper {
       );
     } finally {
       this.halting = false;
-      this.d.metrics.halted.set(1);
+      this.triggerBlock = null;
+      this.d.metrics.halted.set(this.haltWanted ? 0 : 1);
     }
   }
 
@@ -794,6 +836,22 @@ export class Keeper {
     }
     if (filled === 0n && !this.d.cfg.executeUnfilled) return;
 
+    // Pull BEFORE the vault's own ceiling is reached: if this fill would take the inventory past the
+    // keeper's cap, halt instead of executing (the order expires and the taker is refunded).
+    if (filled > 0n && this.d.mode !== "dry-run") {
+      const proj = inventoryView(this.withFill(st, o, filled, premium));
+      const cap = this.d.cfg.risk.inventoryLossRatioCap;
+      if (proj && (proj.maxLossRatio >= cap || proj.totalLossRatio >= cap)) {
+        this.inventory = proj;
+        this.haltWanted = true;
+        this.haltReasons = ["INVENTORY_LOSS"];
+        this.triggerBlock ??= this.head?.number ?? null;
+        this.d.log.warn({ id: o.id.toString(), maxLossRatio: proj.maxLossRatio }, "this fill would pass the inventory cap");
+        if (!this.halting) await this.pullAll(this.haltReasons, "projected-fill");
+        return;
+      }
+    }
+
     if (this.d.mode === "paper") {
       if (this.simulated.has(o.id)) return;
       this.simulated.add(o.id);
@@ -839,6 +897,10 @@ export class Keeper {
           },
           "order executed",
         );
+      }
+      if (filled > 0n && this.state) {
+        this.state = this.withFill(this.state, o, filled, premium);
+        this.inventory = inventoryView(this.state);
       }
       void this.confirmExecution(r.hash, o.id);
     }

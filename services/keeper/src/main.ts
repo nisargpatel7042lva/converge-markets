@@ -88,6 +88,7 @@ async function main(): Promise<void> {
       })
     : null;
 
+  let keeperRef: Keeper | null = null;
   const keeper = new Keeper({
     mode: env.MODE,
     cfg,
@@ -98,12 +99,13 @@ async function main(): Promise<void> {
     clients,
     addrs: { vault, venue: env.VENUE as Address, factory, usdc },
     assets,
-    reports: makeReportSource(env, refs),
+    reports: makeReportSource(env, refs, () => keeperRef?.chainOffsetMs() ?? 0),
     tx,
     ledger: new CostLedger(resolve(env.OUT_DIR, "costs.jsonl")),
     wsUrl: env.WS_URL,
   });
 
+  keeperRef = keeper;
   // price sources, one pair per asset
   const sources: { stop(): void }[] = [];
   for (const a of assets) {

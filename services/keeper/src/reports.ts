@@ -27,6 +27,8 @@ export function makeReportSource(
     | "DATA_STREAMS_API_SECRET"
   >,
   refs: ReadonlyMap<string, ReferencePrice>,
+  /** chain time minus wall-clock time in ms (a chain whose clock differs from this machine's). */
+  offsetMs: () => number = () => 0,
 ): (feedId: Hex) => StreamsReportSource {
   if (env.STREAMS_SOURCE === "data-streams") {
     const src = new DataStreamsRestSource(
@@ -44,7 +46,7 @@ export function makeReportSource(
     if (!s) {
       const ref = refs.get(k);
       s = new TestSignerStreamsSource(signer, async (ts) => {
-        const p = ref?.priceAt(Number(ts) * 1000);
+        const p = ref?.priceAt(Number(ts) * 1000 - offsetMs());
         return p === undefined || p === null ? null : price18(p);
       });
       cache.set(k, s);

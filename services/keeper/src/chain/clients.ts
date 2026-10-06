@@ -38,7 +38,7 @@ export function makeClients(opts: {
   const timeout = opts.timeoutMs ?? 4_000;
   const errors = { consecutive: 0, total: 0, lastOkMs: null as number | null };
   // JSON-RPC batching turns the many reads of one tick into one HTTP request per endpoint.
-  const transports = opts.rpcUrls.map((u) => http(u, { timeout, batch: true, retryCount: 0 }));
+  const transports = opts.rpcUrls.map((u) => http(u, { timeout, batch: true, retryCount: 2, retryDelay: 60 }));
   const transport =
     transports.length === 1
       ? (transports[0] as Transport)

@@ -92,6 +92,8 @@ export const RiskCfgSchema = z.object({
   maxBlockLagMs: z.number().int().positive().default(5_000),
   /** Pull when a market's worst-case loss reaches this share of its loss ceiling. */
   inventoryLossRatioCap: z.number().positive().max(1).default(0.9),
+  /** While halted, quotes come back only once the loss is below this share of the ceiling (hysteresis). */
+  inventoryResumeRatio: z.number().positive().max(1).default(0.75),
   /** Pull when the excess tokens of all markets are worth more than this share of the NAV. */
   excessNavFractionCap: z.number().positive().default(0.25),
   /** Quotes come back after the checks have been clean for this long (doubles after a flap). */
@@ -130,6 +132,8 @@ export const KeeperFileSchema = z.object({
   price: PriceCfgSchema.default({}),
   risk: RiskCfgSchema.default({}),
   assets: z.array(AssetCfgSchema).min(1),
+  /** After start the price sources get this long to connect before a missing price pulls quotes. */
+  startupGraceMs: z.number().int().min(0).default(8_000),
   /** How often the slow duties (state read, planner) run. */
   slowTickMs: z.number().int().min(200).default(2_000),
   /** Refresh sigma at least this often (the vault needs it fresher than 15 minutes). */
