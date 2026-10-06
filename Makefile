@@ -79,6 +79,8 @@ check-4: check-all
 	@echo "check-4 OK"
 
 check-5: check-all
+	# the keeper's anvil tests deploy the contracts from contracts/out, test mocks included
+	cd contracts && forge build
 	pnpm --filter @converge/keeper typecheck
 	pnpm --filter @converge/keeper test
 	pnpm --filter @converge/keeper test:integration

@@ -974,7 +974,9 @@ export class Keeper {
         { id: o.id.toString(), err: errText(e, 120) },
         "execution would revert: skipping",
       );
-      this.orders.forget(o.id);
+      // The order stays tracked: it may be valid at the next block (the window is a few
+      // seconds), and if it never is, it is expired once the window has passed. Dropping it
+      // here would leave it open on chain for ever, since new ids only come from the counter.
       return;
     }
     const tSim = this.now();

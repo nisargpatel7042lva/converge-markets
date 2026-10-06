@@ -67,7 +67,7 @@ export function makeRig(
 ): Rig {
   const mode = o.mode ?? "live";
   const cfg = o.cfg ?? testConfig();
-  const log = pino({ level: o.log ? "info" : "silent" });
+  const log = pino({ level: o.log ? (process.env.RIG_LEVEL ?? "info") : "silent" });
   const metrics = new Metrics();
   const clients = makeClients({
     rpcUrls: o.rpcUrls ?? [stack.url],
