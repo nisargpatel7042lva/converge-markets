@@ -41,7 +41,7 @@ export type Rig = {
 export function testConfig(over: Record<string, unknown> = {}): KeeperFile {
   return KeeperFileSchema.parse({
     price: { staleMs: 1500, shockBps: 100, shockWindowMs: 3000 },
-    risk: { hysteresisMs: 1500, maxHysteresisMs: 6000 },
+    risk: { hysteresisMs: 1500, maxHysteresisMs: 6000, warmupMs: 1500 },
     assets: [
       {
         label: TEST_LABEL,
@@ -63,7 +63,7 @@ let seq = 0;
 
 export function makeRig(
   stack: Stack,
-  o: { mode?: Mode; cfg?: KeeperFile; rpcUrls?: string[]; log?: boolean } = {},
+  o: { mode?: Mode; cfg?: KeeperFile; rpcUrls?: string[]; log?: boolean; killFile?: string } = {},
 ): Rig {
   const mode = o.mode ?? "live";
   const cfg = o.cfg ?? testConfig();
@@ -75,7 +75,7 @@ export function makeRig(
     chainId: stack.chain.id,
     timeoutMs: 2_000,
   });
-  const killFile = join(tmpdir(), `keeper-kill-${process.pid}-${++seq}`);
+  const killFile = o.killFile ?? join(tmpdir(), `keeper-kill-${process.pid}-${++seq}`);
   const kill = new KillSwitch(false, killFile);
   const alerter = new WebhookAlerter(
     "none",

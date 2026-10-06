@@ -36,12 +36,12 @@
     }
   ],
   "slowTickMs": 2000,
-  "sigmaRefreshSec": 240,
+  "sigmaRefreshSec": 600,
   "sigmaMoveFraction": 0.05,
   "targetPairFraction": 0.05,
   "topUpBelowFraction": 0.5,
   "minSecondsLeftToSplit": 120,
-  "checkpointEverySec": 300,
+  "checkpointEverySec": 600,
   "tx": {
     "stuckMs": 4000,
     "maxReplacements": 3,

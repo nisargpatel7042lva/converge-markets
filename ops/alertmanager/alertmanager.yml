@@ -1,0 +1,22 @@
+# Alertmanager: delivers the Prometheus rules in ops/prometheus/alerts.yml to Discord.
+# The webhook URL is a secret and lives in a file that is never committed (see docker-compose.yml):
+#   printf '%s' 'https://discord.com/api/webhooks/...' > ops/alertmanager/webhook_url
+# For Telegram replace discord_configs with telegram_configs (bot_token_file, chat_id).
+route:
+  receiver: ops
+  group_by: [alertname]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+  routes:
+    # the dead-man switch: this alert always fires; silence here means Prometheus or the path
+    # to the webhook is dead. Point it at an external heartbeat service in production.
+    - matchers: [alertname="Watchdog"]
+      receiver: "null"
+      repeat_interval: 5m
+receivers:
+  - name: ops
+    discord_configs:
+      - webhook_url_file: /run/secrets/alert_webhook
+        send_resolved: true
+  - name: "null"

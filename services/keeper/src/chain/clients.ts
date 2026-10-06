@@ -26,10 +26,26 @@ export type Clients = {
   rpcCalls: Map<string, number>;
 };
 
+/** The calls a halt depends on: they have their own allowance and never wait behind bulk reads. */
+const URGENT = new Set([
+  "eth_sendRawTransaction",
+  "eth_getTransactionReceipt",
+  "eth_getTransactionCount",
+  "eth_chainId",
+]);
+
+/** Thrown instead of waiting for a long time on the local limiter (not an RPC failure). */
+export class RateLimitedLocally extends Error {
+  constructor(waitMs: number) {
+    super(`RateLimitedLocally: the next call would wait ${waitMs} ms`);
+  }
+}
+
 /**
  * A fetch that counts the JSON-RPC calls and holds them to `maxRps` (the public Monad endpoints
- * answer HTTP 429 above 15 calls a second). Transaction submissions are never delayed: a pull-all
- * must not queue behind reads.
+ * answer HTTP 429 above 15 calls a second per IP). Two token buckets: bulk reads, and an urgent
+ * lane for what a halt needs (submission, receipts, nonces), so a flood of reads cannot starve a
+ * pull-all. A call that would wait longer than `maxWaitMs` fails at once instead.
  */
 export function limitedFetch(
   maxRps: number,
@@ -37,9 +53,28 @@ export function limitedFetch(
   now: () => number = Date.now,
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
   base: typeof fetch = fetch,
+  urgentRps = 5,
+  maxWaitMs = 2_000,
 ): typeof fetch {
-  let tokens = maxRps;
-  let last = now();
+  const bucket = (rps: number) => ({ rps, tokens: rps, last: now() });
+  const bulk = bucket(maxRps);
+  const urgent = bucket(urgentRps);
+  const take = async (b: ReturnType<typeof bucket>, n: number): Promise<void> => {
+    if (b.rps <= 0) return;
+    const need = Math.min(n, b.rps);
+    for (;;) {
+      const t = now();
+      b.tokens = Math.min(b.rps, b.tokens + ((t - b.last) / 1000) * b.rps);
+      b.last = t;
+      if (b.tokens >= need) {
+        b.tokens -= need;
+        return;
+      }
+      const wait = Math.ceil(((need - b.tokens) / b.rps) * 1000) + 5;
+      if (wait > maxWaitMs) throw new RateLimitedLocally(wait);
+      await sleep(wait);
+    }
+  };
   return async (input, init) => {
     let methods: string[] = [];
     try {
@@ -52,20 +87,10 @@ export function limitedFetch(
       methods = ["unknown"];
     }
     for (const m of methods) calls.set(m, (calls.get(m) ?? 0) + 1);
-    const urgent = methods.includes("eth_sendRawTransaction");
-    const need = Math.max(1, methods.length);
-    if (!urgent && maxRps > 0) {
-      for (;;) {
-        const t = now();
-        tokens = Math.min(maxRps, tokens + ((t - last) / 1000) * maxRps);
-        last = t;
-        if (tokens >= Math.min(need, maxRps)) {
-          tokens -= Math.min(need, maxRps);
-          break;
-        }
-        await sleep(Math.ceil(((Math.min(need, maxRps) - tokens) / maxRps) * 1000) + 5);
-      }
-    }
+    const nUrgent = methods.filter((m) => URGENT.has(m)).length;
+    const nBulk = Math.max(0, methods.length - nUrgent);
+    if (nUrgent > 0) await take(urgent, nUrgent);
+    if (nBulk > 0 || methods.length === 0) await take(bulk, Math.max(1, nBulk));
     return base(input, init);
   };
 }
@@ -117,24 +142,46 @@ export async function tracked<T>(c: Clients, fn: () => Promise<T>): Promise<T> {
     c.rpcErrors.lastOkMs = Date.now();
     return r;
   } catch (e) {
+    // waiting for our own limiter is not a sign that the node is down
+    if (/RateLimitedLocally/.test(String(e))) throw e;
     c.rpcErrors.consecutive += 1;
     c.rpcErrors.total += 1;
     throw e;
   }
 }
 
-/** The transaction manager's view of the chain, on viem. */
-export function viemChainTx(c: Clients, defaultTipWei = 2_000_000_000n): ChainTx {
+const min = (a: bigint, b: bigint) => (a < b ? a : b);
+
+/** The transaction manager's view of the chain, on viem. Signing is local: no node round trip. */
+export function viemChainTx(
+  c: Clients,
+  defaultTipWei = 2_000_000_000n,
+  now: () => number = Date.now,
+): ChainTx {
+  // The base fee moves by at most 12.5 % a block and the max fee carries a 2x headroom, so a base
+  // fee a few seconds old is fine: a halt does not wait for two extra round trips.
+  let cachedFees: { baseFee: bigint; tip: bigint; at: number; tipAt: number } | null = null;
   return {
+    address: c.account.address,
     async fees(): Promise<Fees> {
+      const t = now();
+      if (cachedFees && t - cachedFees.at < 3_000)
+        return { baseFee: cachedFees.baseFee, tip: cachedFees.tip };
       const block = await tracked(c, () => c.pub.getBlock());
-      let tip = defaultTipWei;
-      try {
-        tip = await c.pub.estimateMaxPriorityFeePerGas();
-      } catch {
-        // some nodes do not serve it
+      let tip = cachedFees?.tip ?? defaultTipWei;
+      let tipAt = cachedFees?.tipAt ?? 0;
+      if (t - tipAt > 60_000) {
+        try {
+          // the node's estimate follows recent tips, ours included: keep it within a sane bound
+          tip = min(await c.pub.estimateMaxPriorityFeePerGas(), 10_000_000_000n);
+          tipAt = t;
+        } catch {
+          // some nodes do not serve it
+        }
       }
-      return { baseFee: block.baseFeePerGas ?? 100_000_000_000n, tip };
+      const baseFee = block.baseFeePerGas ?? 100_000_000_000n;
+      cachedFees = { baseFee, tip, at: t, tipAt };
+      return { baseFee, tip };
     },
     estimateGas: (req) =>
       tracked(c, () =>
@@ -146,10 +193,10 @@ export function viemChainTx(c: Clients, defaultTipWei = 2_000_000_000n): ChainTx
         }),
       ),
     sendTx: (req: TxRequest) =>
-      tracked(c, () =>
-        c.wallet.sendTransaction({
-          account: c.account,
-          chain: c.chain,
+      tracked(c, async () => {
+        const serialized = await c.account.signTransaction?.({
+          type: "eip1559",
+          chainId: c.chain.id,
           to: req.to,
           data: req.data,
           ...(req.value === undefined ? {} : { value: req.value }),
@@ -157,8 +204,10 @@ export function viemChainTx(c: Clients, defaultTipWei = 2_000_000_000n): ChainTx
           nonce: req.nonce,
           maxFeePerGas: req.maxFeePerGas,
           maxPriorityFeePerGas: req.maxPriorityFeePerGas,
-        }),
-      ),
+        });
+        if (!serialized) throw new Error("the keeper account cannot sign locally");
+        return c.pub.sendRawTransaction({ serializedTransaction: serialized });
+      }),
     async receipt(hash: Hex): Promise<TxReceipt | null> {
       try {
         const r = await c.pub.getTransactionReceipt({ hash });
@@ -178,6 +227,10 @@ export function viemChainTx(c: Clients, defaultTipWei = 2_000_000_000n): ChainTx
     pendingNonce: () =>
       tracked(c, () =>
         c.pub.getTransactionCount({ address: c.account.address, blockTag: "pending" }),
+      ),
+    confirmedNonce: () =>
+      tracked(c, () =>
+        c.pub.getTransactionCount({ address: c.account.address, blockTag: "latest" }),
       ),
   };
 }

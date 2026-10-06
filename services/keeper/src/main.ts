@@ -30,10 +30,7 @@ import { errText } from "./errors";
 async function main(): Promise<void> {
   const env = loadEnv();
   const cfg = loadKeeperFile(env.KEEPER_CONFIG);
-  const log = pino({
-    level: env.LOG_LEVEL,
-    redact: ["*.KEEPER_PRIVATE_KEY", "*.STREAMS_TEST_SIGNER_KEY"],
-  });
+  const log = pino({ level: env.LOG_LEVEL });
   const metrics = new Metrics();
   const rpcUrls = env.RPC_URLS.split(",").map((s) => s.trim());
   const chainId = await createPublicClient({ transport: http(rpcUrls[0]) }).getChainId();
@@ -88,6 +85,13 @@ async function main(): Promise<void> {
   }));
   const refs = new Map(assets.map((a) => [a.feedId.toLowerCase(), a.ref]));
 
+  // test hooks and the test signer are for testnets: refuse them on mainnet
+  if (chainId === 143) {
+    if (env.STREAMS_SOURCE === "test-signer")
+      throw new Error("STREAMS_SOURCE=test-signer is not allowed on Monad mainnet");
+    if (env.BINANCE_WS_URL || env.COINBASE_WS_URL)
+      throw new Error("BINANCE_WS_URL / COINBASE_WS_URL are test hooks, not for mainnet");
+  }
   const live = env.MODE === "live";
   const tx = live
     ? new TxManager(viemChainTx(clients), {
@@ -194,6 +198,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((e: unknown) => {
-  console.error(e instanceof Error ? e.message : e);
+  console.error(errText(e, 400)); // never the raw message: RPC URLs can carry keys
   process.exit(1);
 });

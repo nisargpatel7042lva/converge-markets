@@ -108,6 +108,11 @@ export const RiskCfgSchema = z.object({
   inventoryResumeRatio: z.number().positive().max(1).default(0.75),
   /** Pull when the excess tokens of all markets are worth more than this share of the NAV. */
   excessNavFractionCap: z.number().positive().default(0.25),
+  /**
+   * After a start, quotes are not put back until the price has been healthy for this long (the
+   * shock detector needs its history; a restart in the middle of a crash must not unhalt).
+   */
+  warmupMs: z.number().int().min(0).default(15_000),
   /** Quotes come back after the checks have been clean for this long (doubles after a flap). */
   hysteresisMs: z.number().int().positive().default(15_000),
   maxHysteresisMs: z
@@ -171,6 +176,8 @@ export const KeeperFileSchema = z.object({
       haltFeeBoost: z.number().positive().default(3),
     })
     .default({}),
+  /** Below this wallet balance (MON) only halts are sent: gas to pull quotes is never spent on anything else. */
+  reserveMon: z.number().min(0).default(0.03),
   /** Paper/live: execute orders even when the simulation shows no fill (the taker is refunded). */
   executeUnfilled: z.boolean().default(true),
 });

@@ -23,3 +23,6 @@ docs/evidence/phase-4/invariant-paths.log
 ops/grafana/admin_password
 services/keeper/.env
 scripts/keeper-live/.taker-key
+docs/evidence/phase-5/kill.token
+ops/alertmanager/webhook_url
+.claude/

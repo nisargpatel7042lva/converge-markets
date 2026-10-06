@@ -98,6 +98,8 @@ export class HaltController {
     risk: Risk,
     vault: { keeperHalt: boolean; quotingPaused: boolean },
     nowMs: number,
+    /** The price history is long enough to trust "clean" (see Keeper.riskCheck). */
+    warm = true,
   ): Decision {
     if (risk.pull) {
       this.cleanSinceMs = null;
@@ -112,6 +114,10 @@ export class HaltController {
       return { kind: "none" };
     }
     if (vault.quotingPaused) return { kind: "none" }; // not ours to resume
+    if (!warm) {
+      this.cleanSinceMs = null;
+      return { kind: "none" };
+    }
     this.cleanSinceMs ??= nowMs;
     if (nowMs - this.cleanSinceMs < this.hysteresisMs) return { kind: "none" };
     // flap guard: a second unhalt soon after the last one doubles the wait

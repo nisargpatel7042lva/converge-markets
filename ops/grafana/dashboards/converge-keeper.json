@@ -1,9 +1,7 @@
 {
   "uid": "converge-keeper",
   "title": "Converge keeper",
-  "tags": [
-    "converge"
-  ],
+  "tags": ["converge"],
   "timezone": "utc",
   "schemaVersion": 39,
   "version": 1,

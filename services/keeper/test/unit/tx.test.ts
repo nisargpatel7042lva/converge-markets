@@ -64,6 +64,7 @@ class FakeChain implements ChainTx {
       return null;
     }
     // a replacement for the same nonce wins only if it pays more (we mine whatever is asked)
+    this.confirmed = Math.max(this.confirmed, d.req.nonce + 1);
     return {
       hash,
       status: "success",
@@ -74,6 +75,12 @@ class FakeChain implements ChainTx {
   }
   async pendingNonce() {
     return this.chainNonce;
+  }
+  /** Nonces the chain has consumed (mined transactions); tests move it as they mine. */
+  confirmed = 0;
+  readonly address = TO;
+  async confirmedNonce() {
+    return this.confirmed;
   }
 }
 
@@ -172,8 +179,13 @@ describe("TxManager", () => {
     chain.behaviour = () => Number.POSITIVE_INFINITY;
     const tm = make(chain);
     await expect(tm.submit("x", TO, DATA)).rejects.toBeInstanceOf(TxTimeout);
-    expect(chain.sent).toHaveLength(3); // the original and two replacements
-    expect(tm.nonces.pendingCount).toBe(1);
+    expect(chain.sent).toHaveLength(4); // the original, two replacements and the cancellation
+    const cancel = chain.sent[3] as TxRequest;
+    expect(cancel.to).toBe(chain.address);
+    expect(cancel.gas).toBe(21_000n);
+    expect(cancel.nonce).toBe(chain.sent[0]?.nonce);
+    expect(cancel.maxFeePerGas > (chain.sent[2]?.maxFeePerGas ?? 0n)).toBe(true);
+    expect(tm.nonces.pendingCount).toBe(1); // the cancellation did not mine either: still held
     chain.behaviour = () => 0;
     const next = await tm.submit("y", TO, DATA);
     expect(next.nonce).toBe(1); // not 0: that one is still pending
@@ -228,5 +240,57 @@ describe("TxManager", () => {
     const tm = make(chain);
     const r = await tm.submit("haltQuoting", TO, DATA, { gas: 60_000n, critical: true });
     expect(r.gasLimit).toBe(60_000n);
+  });
+
+  it("a cancellation that mines frees the stuck nonce", async () => {
+    const chain = new FakeChain();
+    chain.behaviour = (req) => (req.gas === 21_000n ? 0 : Number.POSITIVE_INFINITY);
+    const tm = make(chain);
+    await expect(tm.submit("executeOrder", TO, DATA)).rejects.toBeInstanceOf(TxTimeout);
+    expect(tm.nonces.pendingCount).toBe(0);
+    chain.behaviour = () => 0;
+    expect((await tm.submit("next", TO, DATA)).nonce).toBe(1);
+  });
+
+  it("a halt replaces a stuck transaction instead of queueing behind it", async () => {
+    const chain = new FakeChain();
+    // the executeOrder never mines; everything else mines at once
+    chain.behaviour = (req) =>
+      req.to === TO && req.data === DATA && req.gas !== 100_000n ? Number.POSITIVE_INFINITY : 0;
+    const tm = new TxManager(
+      chain,
+      { ...cfg, maxReplacements: 5 },
+      {
+        now: () => chain.nowMs,
+        sleep: async (ms) => {
+          chain.nowMs += ms;
+          await new Promise((r) => setImmediate(r)); // let the other call run
+        },
+      },
+    );
+    const stuck = tm.submit("executeOrder", TO, DATA);
+    const settled = stuck.then(
+      () => "mined",
+      (e: unknown) => (e as Error).constructor.name,
+    );
+    await new Promise((r) => setImmediate(r));
+    expect(tm.nonces.pendingCount).toBe(1);
+    const halt = await tm.submit("haltQuoting", TO, "0x1234", { critical: true, gas: 100_000n });
+    expect(halt.status).toBe("success");
+    expect(halt.nonce).toBe(0); // the same nonce: it replaced the stuck one
+    const hs = chain.sent.find((r) => r.data === "0x1234") as TxRequest;
+    const stuckSent = chain.sent.filter((r) => r.data === DATA);
+    const maxStuck = stuckSent.reduce((a, r) => (r.maxFeePerGas > a ? r.maxFeePerGas : a), 0n);
+    expect(hs.maxFeePerGas > maxStuck).toBe(true); // outbids whatever was sent there
+    expect(await settled).toBe("TxSuperseded");
+    expect(tm.nonces.pendingCount).toBe(0);
+  });
+
+  it("a halt with nothing in flight takes the next nonce as usual", async () => {
+    const chain = new FakeChain();
+    chain.chainNonce = 9;
+    const tm = make(chain);
+    const r = await tm.submit("haltQuoting", TO, DATA, { critical: true, gas: 100_000n });
+    expect(r.nonce).toBe(9);
   });
 });

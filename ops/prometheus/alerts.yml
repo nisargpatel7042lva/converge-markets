@@ -1,18 +1,48 @@
 groups:
   - name: converge-keeper
     rules:
+      - alert: Watchdog
+        expr: vector(1)
+        labels: { severity: none }
+        annotations: { summary: "dead-man switch: always firing" }
       - alert: KeeperDown
-        expr: up{job="converge-keeper"} == 0
+        expr: up{job="converge-keeper"} == 0 or absent(up{job="converge-keeper"})
         for: 30s
+        labels: { severity: page }
+        annotations:
+          {
+            summary: "the keeper is not scraped: quotes stay live until sigma goes stale (15 min) unless the guardian pauses",
+          }
+      - alert: KeeperLoopStalled
+        expr: time() - keeper_last_tick_timestamp_seconds > 30 or absent(keeper_last_tick_timestamp_seconds)
+        for: 15s
         labels: { severity: page }
       - alert: KeeperHalted
         expr: keeper_halted == 1
         for: 2m
         labels: { severity: warn }
         annotations: { summary: "quotes have been pulled for more than 2 minutes" }
-      - alert: KeeperLoopStalled
-        expr: time() - keeper_last_tick_timestamp_seconds > 30
-        for: 15s
+      - alert: KeeperKilled
+        expr: keeper_killed == 1
+        labels: { severity: warn }
+      - alert: EligibleMarketNotQuoted
+        expr: keeper_tradable_markets < keeper_eligible_markets
+        for: 1m
+        labels: { severity: warn }
+        annotations: { summary: "an open round is not tradable" }
+      - alert: PriceUnhealthy
+        expr: min(keeper_price_healthy) == 0
+        for: 30s
+        labels: { severity: warn }
+      - alert: RpcErrors
+        expr: keeper_rpc_consecutive_errors >= 3
+        for: 10s
+        labels: { severity: warn }
+      - alert: KeeperErrors
+        expr: sum(increase(keeper_errors_total{kind=~"halt_.*|unhalt_failed|slow|fast|perform|unhandled_rejection|uncaught_exception"}[5m])) > 5
+        labels: { severity: warn }
+      - alert: UnhandledRejection
+        expr: increase(keeper_errors_total{kind=~"unhandled_rejection|uncaught_exception"}[10m]) > 0
         labels: { severity: page }
       - alert: QuoteAgeHigh
         expr: histogram_quantile(0.95, sum(rate(keeper_quote_age_blocks_bucket[10m])) by (le)) > 2
@@ -21,6 +51,10 @@ groups:
       - alert: QuoteViolation
         expr: increase(keeper_quote_violations_total[5m]) > 0
         labels: { severity: page }
+      - alert: SigmaStale
+        expr: max(keeper_sigma_age_seconds) > 780
+        labels: { severity: warn }
+        annotations: { summary: "sigma is approaching the vault's 15 minute limit" }
       - alert: KeeperWalletLow
         expr: keeper_wallet_balance_mon < 0.5
         for: 1m

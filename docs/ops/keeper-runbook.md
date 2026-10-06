@@ -95,13 +95,13 @@ touch "$KILL_FILE"                                                              
 KILL=true                                                                           # env, at start
 ```
 
-A killed keeper pulls every quote (`haltQuoting`) and stays halted until all three are clear.
+A killed keeper pulls every quote (`haltQuoting`) and stays halted until all three are clear. `POST /kill` writes the kill file, so an HTTP kill survives a restart (`POST /unkill` removes the file). While killed the keeper adds no exposure (no executions, splits or sigma updates) but keeps settling epochs, resolving, redeeming, merging and expiring orders, so exits are never blocked.
 It still answers `/health` and `/metrics`. To stop everything at the vault level (not just the
 keeper), the guardian calls `pauseQuoting` on the vault; only the owner can resume that.
 
 ## What pulls the quotes
 
-The keeper sends `haltQuoting` (one transaction, priority fee boosted, no simulation delay) within
+The keeper sends `haltQuoting` (one transaction, fee cap raised 3×, fixed gas limit, signed locally; it takes the lowest unconfirmed nonce and replaces whatever is stuck there, so nothing can queue a halt behind it) within
 a block or two when any of these holds, then keeps checking:
 
 | Reason                          | Trigger (defaults)                                                                     |
@@ -111,10 +111,10 @@ a block or two when any of these holds, then keeps checking:
 | `SOURCE_DIVERGENCE`             | a source is more than 60 bps from the median                                            |
 | `CHAINLINK_MISMATCH`            | the median is more than 200 bps from the onchain Chainlink feed (when configured)        |
 | `RPC_ERRORS`, `BLOCK_LAG`       | 5 consecutive RPC failures; no new block for 5 s                                        |
-| `INVENTORY_LOSS`, `INVENTORY_EXCESS` | a market's worst-case loss reaches 90 % of its ceiling (or the next fill would); excess tokens exceed 25 % of the NAV |
+| `INVENTORY_LOSS`, `INVENTORY_EXCESS` | a market's worst-case loss reaches 90 % of its ceiling (or, for a fill this keeper is about to execute, would; anyone else can execute too, so the vault's ceilings are the real bound); excess tokens exceed 25 % of the NAV |
 | `KILL_SWITCH`                   | any kill switch                                                                         |
 
-It calls `unhaltQuoting` only after the checks have been clean for 15 s (inventory must be back
+It calls `unhaltQuoting` only after the price has been healthy for 15 s since the process started (`risk.warmupMs`: a restart in the middle of a crash must not unhalt) and the checks have been clean for 15 s (inventory must be back
 under 75 % of the ceiling). Each flap doubles the wait, up to 5 minutes, and a long calm resets it.
 A halt that could not be sent (RPC down) stays wanted and is retried until it goes through. The
 keeper never touches `quotingPaused` (guardian, owner, or the 5 %/day breaker): that is not its to
@@ -126,8 +126,20 @@ Sent to the Discord or Telegram webhook, de-duplicated per key for 5 minutes: `h
 `halt-failed`, `unhalt`, `drawdown` (lower share price beyond `risk.drawdownAlert`, 2 %, under its
 peak), `violation:<kind>` (a crossed, off-grid or out-of-bounds ladder), `low-balance`,
 `fee-cap` / `tx-timeout` (a transaction was not sent or not mined), `no-epoch-price:<id>` (an
-epoch will expire for lack of a price). Prometheus rules (`ops/prometheus/alerts.yml`) cover keeper down, halted > 2 min,
-loop stalled, p95 quote age > 2 blocks, any quote violation, low wallet.
+epoch will expire for lack of a price), `halt-reverted` and `reserve` (the wallet is at its halt reserve:
+below `reserveMon` only halts are sent).
+
+The in-process webhook cannot report a keeper that is dead, hung or cut off from the network.
+Prometheus can: `ops/prometheus/alerts.yml` (14 rules: keeper down or absent, loop stalled, halted
+> 2 min, killed, an eligible market not tradable, price unhealthy, RPC errors, error bursts,
+unhandled rejections, p95 quote age > 2 blocks, any quote violation, sigma near its 15 minute limit,
+low wallet, plus an always-firing `Watchdog`) goes to Alertmanager, which posts to Discord from the
+webhook URL in `ops/alertmanager/webhook_url` (a file, never committed). Point the `Watchdog` route
+at an external heartbeat service so that a dead Prometheus is noticed too.
+
+**There is no automatic pull when the keeper is dead.** The quotes stay live until sigma goes stale
+(15 minutes) or the guardian calls `pauseQuoting`. The vault's loss ceilings and the 5 %/day breaker
+bound what can happen meanwhile; `KeeperDown` is the page that tells a human to pause.
 
 ## Metrics worth watching
 
@@ -152,9 +164,10 @@ cost per re-quote and per day.
 | `FEW_SOURCES` for long                           | An exchange stream is down or blocked from the host; `keeper_source_age_ms`. The keeper stays halted (by design). |
 | `haltQuoting failed` alert                       | The key has no MON or the RPC refused. Fund the keeper; if it cannot be fixed fast, the guardian pauses the vault. |
 | Wallet below 0.5 MON                             | Top up `keeper` address. Each executed order costs about 0.06 MON at 100 gwei.                         |
+| Two keepers with one key (an old container, an overlapping start) | They fight over nonces and one can unhalt what the other halted. Run exactly one per key; check `docker ps` / the process list before a start. |
 | Keeper key suspected compromised                 | Guardian `pauseQuoting`, owner `setKeeper(new)`, then restart with the new key. |
-| Process crashed                                  | `restart: unless-stopped` brings it back; it rebuilds its state from the chain (orders by id, nonce from the pending count) and halts first if the checks fail. |
-| Stuck transaction                                | Automatic: same nonce, fee bumped 25 %, up to 3 replacements (`keeper_tx_sent_total{result}`).       |
+| Process crashed                                  | `restart: unless-stopped` brings it back; it rebuilds its state from the chain (orders by id, nonce from the pending count). It never unhalts before the price has been healthy for `risk.warmupMs`, and an HTTP kill persists in the kill file. |
+| Stuck transaction                                | Automatic: same nonce, fee bumped 25 %, up to 3 replacements, then a cancelling self-transfer that outbids it. A halt replaces whatever is at the lowest unconfirmed nonce. |
 
 ## Before pointing it at mainnet
 

@@ -29,6 +29,10 @@ export interface ChainTx {
   sendTx(req: TxRequest): Promise<Hex>;
   receipt(hash: Hex): Promise<TxReceipt | null>;
   pendingNonce(): Promise<number>;
+  /** Transactions the chain has mined for this account: the lowest nonce not yet confirmed. */
+  confirmedNonce(): Promise<number>;
+  /** This account (cancellations are self-transfers). */
+  readonly address: Address;
 }
 
 export class SimulationReverted extends Error {
@@ -56,8 +60,22 @@ export class TxTimeout extends Error {
   }
 }
 
+/** Another transaction took this nonce (a halt replaced it, or another process used it). */
+export class TxSuperseded extends Error {
+  constructor(
+    readonly kind: string,
+    readonly hashes: Hex[],
+  ) {
+    super(`${kind}: its nonce was used by another transaction`);
+  }
+}
+
 export type TxOpts = {
-  /** Halts: bypass the fee cap by `haltFeeBoost` and are never queued behind anything. */
+  /**
+   * Halts: may pay up to `haltFeeBoost` times the fee cap. When something else is in flight, a
+   * critical transaction takes the lowest unconfirmed nonce and replaces whatever sits there
+   * (a stuck transaction can never queue a halt behind it).
+   */
   critical?: boolean;
   value?: bigint;
   /** Use this gas limit instead of estimating (a measured value for a known call). */
@@ -106,6 +124,8 @@ export class TxManager {
   readonly nonces: NonceManager;
   private readonly now: () => number;
   private readonly sleep: (ms: number) => Promise<void>;
+  /** Highest max fee sent per nonce: what a replacement has to beat. */
+  private readonly feeAt = new Map<number, { maxFee: bigint; tip: bigint }>();
 
   constructor(
     private readonly chain: ChainTx,
@@ -139,12 +159,29 @@ export class TxManager {
       if (maxFee > cap) throw new FeeCapExceeded(maxFee, cap);
     }
 
-    let nonce = await this.nonces.acquire();
+    let nonce: number;
+    let supersede = false;
+    if (opts.critical && this.nonces.pendingCount > 0) {
+      // something is in flight (possibly stuck): replace the lowest unconfirmed transaction
+      nonce = await this.chain.confirmedNonce();
+      this.nonces.adopt(nonce);
+      supersede = true;
+      // 30 % over what was sent there (the replacement rule asks for 10 % on both fields)
+      const old = this.feeAt.get(nonce) ?? { maxFee: cap, tip };
+      const beatFee = (old.maxFee * 13n) / 10n;
+      const beatTip = (old.tip * 13n) / 10n + 1n;
+      if (maxFee < beatFee) maxFee = beatFee;
+      if (tip < beatTip) tip = beatTip;
+      if (tip > maxFee) tip = maxFee;
+    } else {
+      nonce = await this.nonces.acquire();
+    }
     const hashes: Hex[] = [];
     const sentAtMs = this.now();
     let attempts = 0;
     const send = async (): Promise<Hex> => {
       attempts += 1;
+      this.feeAt.set(nonce, { maxFee, tip });
       const req: TxRequest = {
         ...base,
         gas,
@@ -155,7 +192,7 @@ export class TxManager {
       try {
         return await this.chain.sendTx(req);
       } catch (e) {
-        if (isNonceTooLow(e) && hashes.length === 0) {
+        if (isNonceTooLow(e) && hashes.length === 0 && !supersede) {
           // somebody else (or an earlier life of this process) used it: trust the chain again
           this.nonces.settle(nonce);
           await this.nonces.resync();
@@ -178,27 +215,23 @@ export class TxManager {
     for (;;) {
       for (const h of hashes) {
         const r = await this.chain.receipt(h);
-        if (r) {
-          this.nonces.settle(nonce);
-          const minedAtMs = this.now();
-          const result: TxResult = {
-            ...r,
-            kind,
-            nonce,
-            attempts,
-            sentAtMs,
-            minedAtMs,
-            latencyMs: minedAtMs - sentAtMs,
-            gasLimit: gas,
-            costWei: gas * r.effectiveGasPrice,
-          };
-          this.hooks.onTx?.(result);
-          return result;
-        }
+        if (r) return this.finish(kind, nonce, attempts, sentAtMs, gas as bigint, r);
       }
       if (this.now() - lastSent >= this.cfg.stuckMs) {
+        if ((await this.chain.confirmedNonce()) > nonce) {
+          // the nonce is used: by us (mined a moment ago) or by a transaction that replaced ours
+          for (const h of hashes) {
+            const r = await this.chain.receipt(h);
+            if (r) return this.finish(kind, nonce, attempts, sentAtMs, gas as bigint, r);
+          }
+          this.nonces.settle(nonce);
+          this.feeAt.delete(nonce);
+          throw new TxSuperseded(kind, hashes);
+        }
         if (replacements >= this.cfg.maxReplacements) {
-          // leave the nonce reserved: it is still pending on the chain
+          // The nonce is still pending on the chain and would hold up everything behind it,
+          // halts included: cancel it with a self-transfer that outbids it.
+          if (!opts.critical) await this.cancel(nonce, maxFee);
           throw new TxTimeout(kind, hashes);
         }
         replacements += 1;
@@ -217,6 +250,60 @@ export class TxManager {
         lastSent = this.now();
       }
       await this.sleep(this.cfg.pollMs);
+    }
+  }
+
+  private finish(
+    kind: string,
+    nonce: number,
+    attempts: number,
+    sentAtMs: number,
+    gas: bigint,
+    r: TxReceipt,
+  ): TxResult {
+    this.nonces.settle(nonce);
+    this.feeAt.delete(nonce);
+    const minedAtMs = this.now();
+    const result: TxResult = {
+      ...r,
+      kind,
+      nonce,
+      attempts,
+      sentAtMs,
+      minedAtMs,
+      latencyMs: minedAtMs - sentAtMs,
+      gasLimit: gas,
+      costWei: gas * r.effectiveGasPrice,
+    };
+    this.hooks.onTx?.(result);
+    return result;
+  }
+
+  /** Frees a stuck nonce: a 21,000 gas self-transfer that pays 30 % more than anything sent there. */
+  private async cancel(nonce: number, lastMaxFee: bigint): Promise<void> {
+    const maxFee = (lastMaxFee * 13n) / 10n;
+    const tip = ((this.feeAt.get(nonce)?.tip ?? maxFee / 4n) * 13n) / 10n + 1n;
+    try {
+      const hash = await this.chain.sendTx({
+        to: this.chain.address,
+        data: "0x",
+        gas: 21_000n,
+        nonce,
+        maxFeePerGas: maxFee,
+        maxPriorityFeePerGas: tip > maxFee ? maxFee : tip,
+      });
+      const until = this.now() + this.cfg.stuckMs * 2;
+      while (this.now() < until) {
+        if (await this.chain.receipt(hash)) break;
+        if ((await this.chain.confirmedNonce()) > nonce) break;
+        await this.sleep(this.cfg.pollMs);
+      }
+      if ((await this.chain.confirmedNonce()) > nonce) {
+        this.nonces.settle(nonce);
+        this.feeAt.delete(nonce);
+      }
+    } catch {
+      // the cancel is best effort: the timeout is reported either way
     }
   }
 }

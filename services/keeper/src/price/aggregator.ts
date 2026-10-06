@@ -68,7 +68,11 @@ export class ReferencePrice {
     if (healthy.length >= 1) {
       this.history.push({ tsMs: t.tsMs, price: median(healthy.map((x) => x.price)) });
       const cutoff = t.tsMs - 3_600_000;
-      if (this.history.length > 50_000 || (this.history[0] && this.history[0].tsMs < cutoff)) {
+      // trim in batches (a minute of slack), not on every tick
+      if (
+        this.history.length > 50_000 ||
+        (this.history[0] && this.history[0].tsMs < cutoff - 60_000)
+      ) {
         this.history = this.history.filter((h) => h.tsMs >= cutoff).slice(-50_000);
       }
     }

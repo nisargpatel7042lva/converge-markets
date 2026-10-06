@@ -92,9 +92,12 @@ describe("keeper on anvil", () => {
     );
     expect(Number(cash) / 1e6).toBeGreaterThan(0.9); // premium received for 2 UP at about 0.5 to 0.6
     expect(Number(cash) / 1e6).toBeLessThan(1.4);
-    expect(
-      await counter(rig.metrics, "keeper_fills_total", { outcome: "filled" }),
-    ).toBeGreaterThanOrEqual(1);
+    // the keeper counts the fill when its own receipt poll sees the mined transaction
+    await waitFor(
+      async () => (await counter(rig.metrics, "keeper_fills_total", { outcome: "filled" })) >= 1,
+      5_000,
+      "the fill to be counted",
+    );
     const age = await histQuantile(rig.metrics, "keeper_quote_age_blocks", 0.95);
     expect(age.count).toBeGreaterThanOrEqual(1);
     expect(age.value).toBeLessThanOrEqual(2);

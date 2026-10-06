@@ -6,7 +6,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
-val() { grep "^$1=" .env | cut -d= -f2; }
+val() { grep "^$1=" .env | cut -d= -f2-; }
 export KEEPER_PRIVATE_KEY=$(val KEEPER_PRIVATE_KEY)
 export STREAMS_TEST_SIGNER_KEY=$(val STREAMS_TEST_SIGNER_KEY)
 export RPC_URLS=${RPC_URLS:-$(val MONAD_TESTNET_RPC_URL)}
@@ -19,7 +19,11 @@ export MODE=${MODE:-live}
 export OUT_DIR=${OUT_DIR:-$ROOT/docs/evidence/phase-5}
 export KILL_FILE=${KILL_FILE:-/tmp/converge-keeper.kill}
 export HTTP_PORT=${HTTP_PORT:-9100}
-export KILL_TOKEN=${KILL_TOKEN:-$(python3 -c "import secrets;print(secrets.token_hex(16))")}
+# the kill token lives in a 0600 file the operator can read (never printed here)
+mkdir -p "${OUT_DIR}"
+TOKEN_FILE="$OUT_DIR/kill.token"
+[ -s "$TOKEN_FILE" ] || (umask 077; python3 -c "import secrets;print(secrets.token_hex(16))" > "$TOKEN_FILE")
+export KILL_TOKEN=$(cat "$TOKEN_FILE")
 export KEEPER_CONFIG=${KEEPER_CONFIG:-$ROOT/config/keeper.testnet.json}
 mkdir -p "$OUT_DIR"
 cd services/keeper
