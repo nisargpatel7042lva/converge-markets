@@ -16,7 +16,7 @@ abstract contract VaultBase is Base {
     uint256 internal constant U = 1e6; // one USDC
     uint64 internal constant EPOCH = 900;
     uint32 internal constant DELAY = 2;
-    uint32 internal constant LATE = 30;
+    uint32 internal constant LATE = 6;
     uint256 internal constant SPOT = 3000e18;
 
     address internal vOwner = makeAddr("vOwner");

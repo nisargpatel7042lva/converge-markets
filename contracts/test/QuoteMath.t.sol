@@ -405,6 +405,16 @@ contract QuoteMathTest is Test {
         assertLe(Q.loss(d), ceiling + 1e6, "buy DOWN stays inside the ceiling");
     }
 
+    /// @dev Selling the surplus of one side (or buying the missing side) never adds risk, so it is
+    ///      allowed even with no ceiling left (audit F-07, mutants BB and BC).
+    function test_rooms_freeBranchesAreAllowedAtZeroCeiling() public pure {
+        assertEq(Q.sellRoom(100e18, 0, 100e18, 60e18, 0.5e18, 0), 40e18);
+        assertEq(Q.buyRoom(100e18, 0, 60e18, 100e18, 0.5e18, 0), 40e18);
+        // with a ceiling that is already used up nothing beyond the free part is allowed
+        assertEq(Q.sellRoom(100e18, 0, 100e18, 100e18, 0.5e18, 0), 0);
+        assertEq(Q.buyRoom(100e18, 0, 100e18, 100e18, 0.5e18, 0), 0);
+    }
+
     function test_lossAndCeilingBasics() public pure {
         Q.Pos memory p = Q.Pos(100e18, 30e18, 40e18, 40e18); // paid 100 into pairs, got 30 in premium
         assertEq(Q.loss(p), 30e18); // 100 - 30 - 40

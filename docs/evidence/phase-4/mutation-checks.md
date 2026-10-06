@@ -20,3 +20,20 @@ Each row breaks one protection in a scratch copy of the contracts and runs the n
 | M7 breaker never trips | KILLED |
 | M13 price bounds on fills removed | KILLED |
 15 of 15 mutations killed. Suites per mutation: M1 VaultFlows+VaultFuzz; M2/M5/M15 VaultInventory; M3 VaultFuzz; M4/M9/M10 VaultFlows; M6 VaultInventory+VaultInvariants; M7 VaultInventory+ForwardVenue; M8 VaultFuzz+VaultE2E; M11/M12/M13 ForwardVenue; M14 ForwardVenue+VaultInvariants.
+
+## Second round (after the independent review)
+
+| mutation | result |
+|---|---|
+| AE total at-risk cap ignores other markets | KILLED |
+| AX resolved losing excess valued at 1 | KILLED |
+| AW invalid round upper value = excess | KILLED |
+| AS realised loss forgotten on unregister | KILLED |
+| BB sellRoom free branch removed | KILLED |
+| BC buyRoom free branch removed | KILLED |
+| F01 venueFill not frozen while settlement pending | KILLED |
+| F01 venueView not frozen | KILLED |
+| F04 merge open to everyone | KILLED |
+| F03 TooLate removed | KILLED |
+
+The reviewer's own run of about 45 mutants found these survivors in the first version; all are now killed except `nonReentrant` on `venueFill` and the tau fallback in `_upBand`.

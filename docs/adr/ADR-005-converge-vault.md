@@ -45,7 +45,7 @@ All three are value-neutral for the NAV (a pair is always worth 1). `redeemResol
 
 ### 5. The venue boundary
 
-`ForwardVenue` holds only takers' escrow. The vault accepts fills only from the venue address and **re-checks everything**: price bounds [0.02, 0.98], the exact per-market and total loss ceilings (closed-form rooms from `QuoteMath`, plus an exact post-trade loss check), free liquidity, fresh NAV and sigma, quoting not paused. A faulty or replaced venue is therefore capped at the configured ceilings (1% per market, 8% in total at launch).
+`ForwardVenue` holds only takers' escrow. The vault accepts fills only from the venue address and **re-checks everything**: price bounds [0.02, 0.98], the exact per-market and total loss ceilings (closed-form rooms from `QuoteMath`; the ceiling is struck on the position before the trade and the exact loss after it must respect it), free liquidity, fresh NAV and sigma, quoting not paused, no settlement pending. **What the ceilings bound:** the worst-case loss of the positions the vault holds at that moment (1% per market, 8% in total at launch). A market's basis and cash survive pruning, so a loss already realised stays on record against that market and flattening and splitting again does not restore room. Across rounds each new market has its own ceiling: a hostile venue or a colluding keeper and taker can therefore still take about 1% per market per round, up to the 8% cap in a burst before the first automatic re-valuation (at most one minute), until the breaker pauses quoting.
 
 ### 6. Scope and deviations
 
@@ -54,13 +54,15 @@ Only **Data Streams assets** can be enabled (BTC, ETH): the venue needs a report
 ## Consequences
 
 - The vault is one 38 KB contract (Monad allows 128 KB, `docs/EXTERNAL.md`).
-- A fill walks the registry: **395k gas in the forge test with one registered market and 1.02M with 16** (`test_gas_executeOrder*`); **590,921 gas measured on Monad testnet** for the E2E fill with one registered market (tx `0xb39bb127...`, `docs/evidence/phase-4/testnet-e2e.md`). ADR-004 assumed 400k: the real figure is about 1.5x that with one market and will be higher with many. The executor reward (`minReward`, owner-set) must be set above gas price × ~1.2M gas; the testnet value (0.001 MON) is not a production value.
+- A fill walks the registry: **395k gas in the forge test with one registered market, 0.93M with 16 pair-only markets, 1.14M with 16 markets all holding excess** (including the automatic re-valuation), and `settleEpoch` 726k with 16 markets holding excess (`test_gas_*`, `test_audit_F14_worstCaseGas`); **590,921 gas measured on Monad testnet** for the E2E fill with one registered market (`docs/evidence/phase-4/testnet-e2e.md`). ADR-004 assumed 400k: the real figure is about 1.5x that with one market and higher with many. The executor reward (`minReward`, owner-set) must be set above gas price × ~1.2M gas; the testnet value (0.001 MON) is not a production value.
 - NAV staleness (30 min) or sigma staleness (15 min) stops quoting; both recover with `checkpoint` and `setSigma`.
 - The window-and-expiry rule means a Data Streams outage can delay LP flows (they roll over); it can not trap funds, and inventory made of pairs needs no mark.
 
 ## Known limits (see the threat model)
 
+0. **Owner changes are instant** except venue replacement (2 days). The owner must be a `TimelockController` behind the Safe on mainnet (Phase 9); the contract has a spread floor (0.02) and hard limits, not a timelock on parameters.
+
 1. Report contiguity is a Chainlink guarantee we rely on (a duplicate valid report for the same second would let an executor choose).
-2. A compromised keeper with a colluding taker can mis-price within the owner's sigma band; the loss is bounded per round by the loss ceilings and stopped by the breaker. Keep the band tight.
+2. A compromised keeper with a colluding taker can mis-price within the owner's sigma band (see section 5 for the rate); the testnet deploy uses a tight band (0.4 to 1.2). Keep the band tight and the keeper key off the funds path.
 3. Requests made in the last seconds of an epoch know the price at the epoch end almost exactly; the 5-point band is what pays for that.
 4. Collateral (USDC) freeze or blacklist of the vault address is outside our control.

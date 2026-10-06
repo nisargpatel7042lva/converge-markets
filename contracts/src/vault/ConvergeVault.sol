@@ -109,6 +109,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     ///      only from a venue report no older than AUTO_MARK_MAX_AGE.
     uint256 public constant AUTO_CHECKPOINT_INTERVAL = 60;
     uint256 public constant AUTO_MARK_MAX_AGE = 60;
+    /// @dev A last known mark older than this is no information (the breaker then values excess
+    ///      at 1/2 plus or minus the band instead of a stale price).
+    uint256 public constant MAX_LAST_MARK_AGE = 1 hours;
     /// @dev Shares permanently locked at the first settlement (donation-inflation defense).
     uint256 public constant DEAD_SHARES = 1_000;
     address internal constant DEAD = address(0xdEaD);
@@ -255,6 +258,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     event TreasurySet(address indexed treasury);
     event VenueProposed(address indexed venue, uint64 eta);
     event VenueSet(address indexed venue);
+    event VenueCancelled(address indexed venue);
     event ParamsSet(QuoteMath.Params params);
     event RiskConfigSet(
         uint256 maxMarkAge,
@@ -313,8 +317,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     error PriceOutOfBounds(uint256 price);
     error RiskLimitExceeded(uint256 units, uint256 room);
     error LossAboveCeiling(uint256 loss, uint256 ceiling);
+    error SettlementPending();
     error InsufficientLiquidity(uint256 need, uint256 free);
-    error NothingToRedeem();
+    error NotEmpty();
     error MarketUnresolved();
     error ZeroAmount();
 
@@ -845,7 +850,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         }
         if (mode == MarkMode.LAST_KNOWN) {
             LastMark memory lm = lastMark[a];
-            return (lm.price != 0, lm.price, lm.obsTs);
+            bool usable = lm.price != 0 && block.timestamp <= uint256(lm.obsTs) + MAX_LAST_MARK_AGE;
+            return (usable, lm.price, lm.obsTs);
         }
         // forge-lint: disable-next-line(require-revert-in-loop)
         revert MarkMissing(a);
@@ -1020,7 +1026,14 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     ///         resolution.
     // All entry points are nonReentrant; the external calls go to the factory's own Market clones, the immutable asset or the immutable verifier proxy.
     // slither-disable-next-line reentrancy-no-eth
-    function mergeInventory(Market m, uint256 amount) external nonReentrant onlyKeeper {
+    function mergeInventory(Market m, uint256 amount) external nonReentrant {
+        // Merging is value-neutral. The keeper, the owner and the guardian may always do it, and
+        // anyone may while quoting is paused, so a dead or hostile keeper can never keep
+        // liquidity locked in pairs while LPs wait to exit.
+        if (
+            msg.sender != keeper && msg.sender != owner() && msg.sender != guardian
+                && !quotingPaused
+        ) revert OnlyKeeper();
         if (amount == 0) revert ZeroAmount();
         if (_slot[address(m)] == 0) revert MarketNotRegistered(address(m));
         _merge(m, amount);
@@ -1062,8 +1075,6 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             payout = asset.balanceOf(address(this)) - before;
             // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
             // slither-disable-next-line incorrect-equality
-        } else if (pairs == 0) {
-            revert NothingToRedeem();
         }
         // forge-lint: disable-next-line(reentrancy-events)
         emit ResolvedRedeemed(address(m), pairs, payout);
@@ -1098,13 +1109,26 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         }
         _markets.pop();
         delete _slot[address(m)];
-        delete _pos[address(m)];
+        // The position (basis and cash) is kept on purpose: a market that is flattened and split
+        // again carries the loss it already realised, so room can not be restored by cycling.
         // forge-lint: disable-next-line(reentrancy-events)
         emit MarketUnregistered(address(m));
     }
 
     // Exact zero check on both balances is the intent.
     // slither-disable-start incorrect-equality
+    /// @notice Drops a registered market that holds no tokens from the registry (it frees a slot;
+    ///         its realised loss stays on record). Anyone may call.
+    function pruneEmpty(Market m) external nonReentrant {
+        if (_slot[address(m)] == 0) revert MarketNotRegistered(address(m));
+        uint256 u = IERC20(address(m.up())).balanceOf(address(this));
+        uint256 d = IERC20(address(m.down())).balanceOf(address(this));
+        // Exact zero check on both balances is the intent.
+        // forge-lint: disable-next-line(incorrect-strict-equality)
+        if (u + d != 0) revert NotEmpty();
+        _unregister(m);
+    }
+
     function _pruneIfEmpty(Market m) internal {
         uint256 u = IERC20(address(m.up())).balanceOf(address(this));
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
@@ -1158,12 +1182,29 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function venueView(Market m) external view returns (VenueView memory v) {
         if (_slot[address(m)] == 0 || quotingPaused || venue == address(0)) return v;
         if (block.timestamp > uint256(navUpdatedAt) + navMaxAge) return v;
+        if (_settlementPending()) return v;
         AssetCfg storage c = assetCfg[m.assetId()];
         if (c.sigma == 0 || block.timestamp > uint256(c.sigmaUpdatedAt) + sigmaMaxAge) return v;
         v.tradable = true;
         v.navWad = quoteNavLower * SCALE;
         v.sigma = c.sigma;
         v.pos = _posWad(address(m));
+    }
+
+    /// @dev True while the epoch that just ended has requests and can still be settled. The
+    ///      settlement values the inventory as it is when the epoch is settled, at the prices of
+    ///      the epoch end, so no fill may change it inside that window (a fill after the epoch
+    ///      end would be a trade at a later price valued at the earlier one).
+    function _settlementPending() internal view returns (bool) {
+        uint256 cur = currentEpoch();
+        // Exact comparison is intended: epoch 0 has no predecessor.
+        // slither-disable-next-line incorrect-equality
+        if (cur == 0) return false;
+        Epoch storage e = epochs[cur - 1];
+        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
+        // slither-disable-next-line incorrect-equality
+        if (e.settled || (e.depositAssets == 0 && e.redeemShares == 0)) return false;
+        return block.timestamp <= epochEnd(cur - 1) + settleWindow;
     }
 
     /// @dev Loss ceiling of market `m` given the other markets' current losses.
@@ -1186,7 +1227,16 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     {
         if (_slot[address(m)] == 0) return 0;
         QuoteMath.Pos memory p = _posWad(address(m));
-        uint256 ceiling = _ceiling(address(m), p);
+        return _roomAt(upToken, vaultSells, priceWad, p, _ceiling(address(m), p));
+    }
+
+    function _roomAt(
+        bool upToken,
+        bool vaultSells,
+        uint256 priceWad,
+        QuoteMath.Pos memory p,
+        uint256 ceiling
+    ) internal view returns (uint256 units) {
         uint256 own = upToken ? p.up : p.down;
         uint256 other = upToken ? p.down : p.up;
         uint256 room = vaultSells
@@ -1222,6 +1272,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (_slot[address(f.market)] == 0) revert MarketNotRegistered(address(f.market));
         if (quotingPaused) revert QuotingIsPaused();
         if (block.timestamp > uint256(navUpdatedAt) + navMaxAge) revert NotTradable();
+        if (_settlementPending()) revert SettlementPending();
 
         // Price bounds on amounts (premium and units share a scale), with rounding that lets the
         // venue's own rounding at the bound pass: floor at the minimum, ceiling at the maximum.
@@ -1232,7 +1283,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // Conservative implied price for the room: lower when the vault sells, higher when it buys.
         uint256 price =
             f.vaultSells ? F.mulDiv(f.premium, WAD, f.units) : F.mulDivUp(f.premium, WAD, f.units);
-        uint256 room = fillRoom(f.market, f.upToken, f.vaultSells, price);
+        // The ceiling is struck on the position BEFORE the trade and the exact loss after it must
+        // respect it: an independent check of the closed-form room.
+        QuoteMath.Pos memory pre = _posWad(address(f.market));
+        uint256 ceilingPre = _ceiling(address(f.market), pre);
+        uint256 room = _roomAt(f.upToken, f.vaultSells, price, pre, ceilingPre);
         if (f.units > room) revert RiskLimitExceeded(f.units, room);
 
         _moveFill(f);
@@ -1241,11 +1296,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (f.refObs > lastMark[a].obsTs && f.refObs <= block.timestamp) {
             lastMark[a] = LastMark(f.refPrice, f.refObs);
         }
-        // Belt and braces: the exact post-trade loss must respect the ceiling.
-        QuoteMath.Pos memory post = _posWad(address(f.market));
-        uint256 ceiling = _ceiling(address(f.market), post);
-        uint256 l = QuoteMath.loss(post);
-        if (l > ceiling) revert LossAboveCeiling(l, ceiling);
+        uint256 l = QuoteMath.loss(_posWad(address(f.market)));
+        if (l > ceilingPre) revert LossAboveCeiling(l, ceilingPre);
         Position storage pos = _pos[address(f.market)];
         // forge-lint: disable-start(reentrancy-events)
         emit Fill(
@@ -1327,10 +1379,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         emit QuotingPaused(msg.sender);
     }
 
-    /// @notice Resumes trading and restarts the breaker from the current share price.
+    /// @notice Resumes trading. The breaker keeps the UTC day's baseline: if the drawdown limit is
+    ///         still breached the next evaluation pauses again, so a tripped day resumes for real
+    ///         only at the next UTC day (or after the owner raises the limit).
     function resumeQuoting() external onlyOwner {
         quotingPaused = false;
-        dayStartPps = lastPpsLower;
         emit QuotingResumed(msg.sender);
     }
 
@@ -1409,7 +1462,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function _validateParams(QuoteMath.Params memory p) internal pure {
         if (
             p.tick == 0 || p.tick > 0.05e18 || p.levels == 0 || p.levels > QuoteMath.MAX_LEVELS
-                || p.minHalfSpread == 0 || p.minHalfSpread > p.maxHalfSpread
+                || p.minHalfSpread < 0.02e18 || p.minHalfSpread > p.maxHalfSpread
                 || p.maxHalfSpread > 0.5e18 || p.priceMin < 0.01e18 || p.priceMax > 0.99e18
                 || p.priceMin >= p.priceMax || p.minRangeTicks == 0
                 || p.minRangeTicks > p.baseRangeTicks || p.liquidityNavFraction > 0.5e18
@@ -1503,8 +1556,15 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     }
 
     function cancelVenue() external onlyOwner {
+        emit VenueCancelled(pendingVenue);
         delete pendingVenue;
         delete pendingVenueEta;
+    }
+
+    /// @dev One-step renouncing would strand a paused vault with no way to resume or to rotate
+    ///      the keeper.
+    function renounceOwnership() public view override onlyOwner {
+        revert InvalidConfig();
     }
 
     // ================================================================== helpers

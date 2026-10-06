@@ -51,8 +51,8 @@ contract DeployVault is Script {
             5_000 * U, // launch TVL cap (CLAUDE.md)
             _launchParams()
         );
-        ForwardVenue venue = new ForwardVenue(vault, 2, 30, 0.001 ether);
-        vault.enableAsset(TEST, 0.3e18, 2e18);
+        ForwardVenue venue = new ForwardVenue(vault, 2, 4, 0.001 ether);
+        vault.enableAsset(TEST, 0.4e18, 1.2e18); // a tight sigma band (threat model R3)
         vault.setInitialVenue(address(venue));
         vm.stopBroadcast();
 
@@ -66,7 +66,7 @@ contract DeployVault is Script {
         vm.serializeUint(k, "epochLength", EPOCH);
         vm.serializeUint(k, "tvlCap", 5_000 * U);
         vm.serializeUint(k, "execDelaySeconds", 2);
-        string memory out = vm.serializeUint(k, "maxLatenessSeconds", 30);
+        string memory out = vm.serializeUint(k, "maxLatenessSeconds", 4);
         string memory path =
             string.concat(vm.projectRoot(), "/../deployments/", network, ".vault.json");
         vm.writeJson(out, path);

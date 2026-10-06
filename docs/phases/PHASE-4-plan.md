@@ -51,3 +51,9 @@ Phase protocol: build/evaluate per task, then the evaluation loop (max 5 iterati
 4. **Gas measured** (ADR-004 asked for it): 395k per filled order with one registered market, 1.02M with 16.
 5. Only Data Streams assets can be enabled in the vault (BTC, ETH). MON (push-feed resolution) is not tradable in the vault.
 6. `DeployVault.s.sol` + `deploy-vault.sh`, `scripts/vault-e2e` (real wall-clock testnet run), `script/check-coverage-vault.sh`, `script/invariant-path-coverage-vault.sh`, `make check-4`.
+
+## After the independent review (see `docs/evidence/phase-4/hostile-review.md`)
+
+7. Fills are frozen between an epoch's end and its settlement (F-01); a market's realised loss survives pruning (F-02b); `resumeQuoting` keeps the day's baseline (F-02c); the execute-or-skip window is at most 10 s (4 s deployed) (F-03); merge is open to owner, guardian and, while paused, anyone (F-04); empty markets can be pruned by anyone (F-06); the post-trade loss check is independent of the room formula (F-08); a last known mark older than an hour is no information (F-10); `renounceOwnership` reverts (F-12); spread floor 0.02.
+8. The vault on testnet was **redeployed with the final code** and the E2E re-run (the first run, before the audit, is kept in `docs/evidence/phase-4/v1-pre-audit/`; `deployments/testnet.json` keeps the old addresses under `vault_v1_pre_audit`).
+9. Correction to the "unmarked excess is worth 0 / 1" statement above: unmarked excess is worth 1/2 plus or minus the band (settlement never proceeds without the canonical mark; the breaker uses the last mark, or 1/2 when it is older than an hour).

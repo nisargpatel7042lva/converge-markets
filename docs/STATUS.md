@@ -6,8 +6,8 @@
 | 1 | Outcome market contracts | **COMPLETE WITH CAVEATS** (testnet lifecycle blocked on testnet MON) | [PHASE-1-report](phases/PHASE-1-report.md) |
 | 2 | Scheduler + settlement (CRE) | **COMPLETE WITH CAVEATS** (testnet soak blocked on testnet MON; CRE simulation/deploy blocked on CRE account; CRE DON latency unmeasured) | [PHASE-2-report](phases/PHASE-2-report.md) |
 | 3 | Strategy library + backtest | **COMPLETE WITH CAVEATS.** Verdict: UNPROFITABLE as specified (keeper-posted quotes lose to latency snipers); PROFITABLE UNDER PESSIMISTIC ASSUMPTIONS with forward-priced execution (ADR-004, Proposed), not robust to leads above the delay; the lead is unmeasured | [PHASE-3-report](phases/PHASE-3-report.md), [REPORT](../backtest/report/REPORT.md) |
-| 4 | Converge Vault contracts | **Next, venue design needs a decision** (ADR-004) | |
-| 5 | Keeper / market-maker | not started | |
+| 4 | Converge Vault contracts | **COMPLETE WITH CAVEATS.** Vault + forward-priced venue built and deployed on Monad testnet, E2E with tx hashes. Residual risks stated plainly: a colluding keeper and taker can take about 1% per market per round inside the sigma band until the breaker trips (R3); owner changes have no timelock (needs a TimelockController behind the Safe); the Binance-to-Streams lead is still unmeasured | [PHASE-4-report](phases/PHASE-4-report.md), [threat model](security/threat-model.md) |
+| 5 | Keeper / market-maker | **Next** | |
 | 6 | Envio indexer | not started | |
 | 7 | Mobile app (Mera) | not started | |
 | 8 | Partner liquidity API + SDK (nice to have) | not started | |
@@ -20,7 +20,8 @@
 - ADR-002: resolve with Chainlink Data Streams reports verified onchain (canonical = the report whose window contains T, 20 s finalization window), delivered by CRE plus a fallback submitter, void = 0.5 USDC per token. MON resolves via push-feed round proofs (current phase only), 1h only, SLA ≤ ~150 s.
 - Scheduler: onchain leader flag on `SchedulerReceiver` (CRE = 0, FALLBACK = 1); both paths read state through `SchedulerLens` in one call.
 - ADR-003: USDC (6 dp) collateral.
-- ADR-004 (**Proposed**): forward-priced two-step execution replacing keeper-posted quotes with immediate fills. Phase 3 evidence; awaiting Nisarg.
+- ADR-004 (**Accepted** 2026-10-05, Known limits unresolved): forward-priced two-step execution replacing keeper-posted quotes with immediate fills.
+- ADR-005 (**Accepted**): the vault. ERC-7540-style epochs priced at the Data Streams report AT the epoch end inside a 10 minute window (else the epoch expires), fills frozen between the epoch end and its settlement, two-sided NAV, keeper limited to `setSigma` / `splitForInventory` / `mergeInventory`, venue behind a 2 day timelock, breaker that re-checks itself from fills.
 
 ## Open blockers
 

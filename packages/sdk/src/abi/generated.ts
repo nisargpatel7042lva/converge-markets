@@ -4989,6 +4989,19 @@ export const convergeVaultAbi = [
   },
   {
     "type": "function",
+    "name": "MAX_LAST_MARK_AGE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "MAX_MARKETS",
     "inputs": [],
     "outputs": [
@@ -5923,6 +5936,19 @@ export const convergeVaultAbi = [
   },
   {
     "type": "function",
+    "name": "pruneEmpty",
+    "inputs": [
+      {
+        "name": "m",
+        "type": "address",
+        "internalType": "contract Market"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "quoteNavLower",
     "inputs": [],
     "outputs": [
@@ -6089,7 +6115,7 @@ export const convergeVaultAbi = [
     "name": "renounceOwnership",
     "inputs": [],
     "outputs": [],
-    "stateMutability": "nonpayable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -7685,6 +7711,19 @@ export const convergeVaultAbi = [
   },
   {
     "type": "event",
+    "name": "VenueCancelled",
+    "inputs": [
+      {
+        "name": "venue",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "VenueProposed",
     "inputs": [
       {
@@ -7997,6 +8036,11 @@ export const convergeVaultAbi = [
   },
   {
     "type": "error",
+    "name": "NotEmpty",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotEnoughPairs",
     "inputs": [
       {
@@ -8041,11 +8085,6 @@ export const convergeVaultAbi = [
   {
     "type": "error",
     "name": "NothingToClaim",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NothingToRedeem",
     "inputs": []
   },
   {
@@ -8191,6 +8230,11 @@ export const convergeVaultAbi = [
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "SettlementPending",
+    "inputs": []
   },
   {
     "type": "error",
@@ -8401,6 +8445,19 @@ export const forwardVenueAbi = [
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "MAX_LATENESS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",

@@ -318,7 +318,7 @@ contract ForwardVenueTest is VaultBase {
     }
 
     function test_exec_laterCallSamePriceSameFill() public {
-        // Calling at T or at T + 20 s changes nothing: the price is the canonical report's.
+        // Calling at T or at T + LATE changes nothing: the price is the canonical report's.
         uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.99e18);
         uint64 at = _execAt(id);
         uint256 snap = vm.snapshotState();
@@ -327,7 +327,7 @@ contract ForwardVenueTest is VaultBase {
         (uint256 f1, uint256 p1) =
             venue.executeOrder(id, _repWindow(at - 1, at + 1, 3000e18, at + 1 days));
         vm.revertToState(snap);
-        vm.warp(at + 20);
+        vm.warp(at + LATE);
         vm.prank(executor);
         (uint256 f2, uint256 p2) =
             venue.executeOrder(id, _repWindow(at - 1, at + 1, 3000e18, at + 1 days));
@@ -644,6 +644,58 @@ contract ForwardVenueTest is VaultBase {
         uint256 used = g - gasleft();
         emit log_named_uint("gas: executeOrder with 16 registered markets (one level)", used);
         assertLt(used, 2_000_000);
+    }
+
+    // ------------------------------------------------------------------ audit F-02, F-03
+
+    /// @dev Flatten and split again must not restore risk room: the loss realised on a market
+    ///      stays on record (audit F-02b: three cycles realised 2.1% against a 1% ceiling).
+    function test_audit_F02_realisedLossSurvivesFlatteningAndResplit() public {
+        ConvergeVault.FillParams memory f = _fp(10 * U, 3 * U); // sells 10 UP at 0.30
+        _asVenueFill(f);
+        f.upToken = false;
+        _asVenueFill(f); // and 10 DOWN at 0.30: a pair sold for 0.60
+        vm.prank(vKeeper);
+        vault.mergeInventory(m, 90 * U); // the rest is flat: the market leaves the registry
+        assertFalse(vault.isRegistered(address(m)));
+        (int256 basis, int256 cash) = vault.positionOf(address(m));
+        assertEq(basis, int256(10 * U));
+        assertEq(cash, int256(6 * U)); // 4 USDC lost, still on record
+        vm.prank(vKeeper);
+        vault.splitForInventory(m, 100 * U);
+        // ceiling 10 USDC, 4 already lost: selling x UP at 0.30 loses 0.7x, so x <= 6 / 0.7
+        assertApproxEqAbs(vault.fillRoom(m, true, true, 0.3e18), 8_571_428, 2);
+    }
+
+    /// @dev The total at-risk cap limits a second market (audit F-07, mutant AE).
+    function test_audit_F07_totalAtRiskCapLimitsTheSecondMarket() public {
+        QuoteMath.Params memory p = _launchParams();
+        p.perMarketMaxFraction = 0.05e18; // 50 USDC per market, 80 in total
+        vm.prank(vOwner);
+        vault.setQuoteParams(p);
+        Market m2 = _create(ETH, M15, T0 + 900);
+        vm.startPrank(vKeeper);
+        vault.splitForInventory(m, 100 * U); // m already holds 100 pairs from setUp: 200 in all
+        vault.splitForInventory(m2, 200 * U);
+        vm.stopPrank();
+        vault.checkpoint(_noReports());
+        // lose 49.5 USDC in m: sell 99 UP at 0.50
+        _asVenueFill(_fp(99 * U, 49_500_000));
+        ConvergeVault.FillParams memory f = _fp(1 * U, 500_000);
+        f.market = m2;
+        // m2's room is what is left of the 80 USDC total (30.5), not its own 50: 30.5 / 0.5 = 61
+        uint256 room = vault.fillRoom(m2, true, true, 0.5e18);
+        assertApproxEqAbs(room, 61 * U, 2);
+    }
+
+    function test_audit_F03_executionAfterTheLatenessWindowReverts() public {
+        uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
+        uint64 at = _execAt(id);
+        bytes memory rep = _repWindow(at - 1, at, 3000e18, at + 1 days);
+        vm.warp(at + LATE + 1);
+        vm.prank(executor);
+        vm.expectRevert(abi.encodeWithSelector(ForwardVenue.TooLate.selector, at + LATE));
+        venue.executeOrder(id, rep);
     }
 
     function test_gas_executeOrderIsMeasured() public {

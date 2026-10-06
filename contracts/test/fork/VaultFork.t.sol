@@ -89,7 +89,7 @@ contract VaultForkTest is Test {
             1_000_000 * U,
             _params()
         );
-        venue = new ForwardVenue(vault, 2, 30, 0.001 ether);
+        venue = new ForwardVenue(vault, 2, 4, 0.001 ether);
         vm.startPrank(admin);
         vault.enableAsset(ETH, 0.3e18, 2e18);
         vault.setInitialVenue(address(venue));
@@ -104,6 +104,11 @@ contract VaultForkTest is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerKey, digest);
         bytes32[3] memory ctx;
         return abi.encode(ctx, data, abi.encodePacked(r, s, v));
+    }
+
+    /// @dev The real proxy's error for a payload whose config digest it does not know.
+    function _verifierNotFound() internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(bytes4(keccak256("VerifierNotFound(bytes32)")), bytes32(0));
     }
 
     function test_fork_realUsdcFacts() public view {
@@ -188,11 +193,11 @@ contract VaultForkTest is Test {
         _deploy(IVerifierProxy(REAL_VERIFIER));
         bytes memory forged = _report(1, 2, 3000e18);
         // direct: the real proxy refuses a payload that was not signed by the DON
-        vm.expectRevert();
+        vm.expectRevert(_verifierNotFound());
         IVerifierProxy(REAL_VERIFIER).verify(forged, "");
         // through the resolver the market lifecycle depends on
         vm.warp(block.timestamp + 1 hours);
-        vm.expectRevert();
+        vm.expectRevert(_verifierNotFound());
         resolver.submit(ETH, uint64(block.timestamp - 10), forged);
         // through the vault's mark path
         deal(USDC, lp, 100 * U);
@@ -204,7 +209,7 @@ contract VaultForkTest is Test {
         vault.settleEpoch(e, new bytes[](0)); // shares exist now, so checkpoint verifies reports
         bytes[] memory rs = new bytes[](1);
         rs[0] = forged;
-        vm.expectRevert();
+        vm.expectRevert(_verifierNotFound());
         vault.checkpoint(rs);
     }
 }

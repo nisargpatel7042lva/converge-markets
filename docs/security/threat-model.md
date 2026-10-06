@@ -27,9 +27,9 @@ Scope: `ConvergeVault`, `ForwardVenue`, `QuoteMath`, `ReportLib` (contracts/src/
 ## 3. Security properties we claim
 
 - **P1** The keeper can not move value out of the vault.
-- **P2** The vault can lose at most the configured per-market and total at-risk caps through the venue, even if the venue or the keeper's sigma is hostile.
-- **P3** Nobody gains by timing deposits or redemptions (no NAV sniping).
-- **P4** Exits are never blocked: pause, breaker and a dead feed can not stop requests, claims, merges or redemption of resolved rounds.
+- **P2** The worst-case loss of the positions the vault holds is capped per market and in total (1% and 8% at launch) through the venue, even if the venue or the keeper's sigma is hostile. The cap does not bound the rate across rounds: each market has its own ceiling, so a hostile venue or a colluding keeper and taker can take about 1% per market per round (up to 8% in a burst) until the breaker pauses quoting (R3). Realised loss stays on record per market.
+- **P3** Nobody gains by timing deposits or redemptions (no NAV sniping): the epoch is priced at the epoch-end report, and fills are frozen between the epoch end and its settlement.
+- **P4** Exits are never blocked: pause, breaker and a dead feed can not stop requests, claims, merges (the owner, the guardian and, while paused, anyone can merge) or redemption of resolved rounds. A dead keeper can not hold liquidity in pairs.
 - **P5** The sum of what is owed to LPs is always held by the vault.
 - **P6** Rounding always favours the vault.
 - **P7** An executor of a venue order can not choose the price (stop-ship requirement of ADR-004).
@@ -41,16 +41,16 @@ Scope: `ConvergeVault`, `ForwardVenue`, `QuoteMath`, `ReportLib` (contracts/src/
 ```
 steal or destroy LP value through the keeper key
 ├─ A1 call a function that sends funds out ...................... no such function (K1)
-├─ A2 move tokens/collateral with ERC-20 calls ................... vault grants no allowance (K7)
+├─ A2 move tokens/collateral with ERC-20 calls ................... vault grants no allowance (K6)
 ├─ A3 split into / merge from a market that is not ours .......... factory registry check (K3)
-├─ A4 split everything into pairs to lock liquidity ............. pair and inventory caps (K4); pairs stay mergeable
+├─ A4 split everything into pairs to lock liquidity ............. pair and inventory caps (K4); owner, guardian and (when paused) anyone can merge (K5, N13)
 ├─ A5 fill the registry with markets to make NAV loops expensive . registry <= 16 (G1)
 ├─ A6 set sigma to mis-price quotes and trade against it (colluding taker)
 │    ├─ A6a leave the owner band ................................... band check (K2)
 │    ├─ A6b jump sigma in one step or flap it ...................... step and rate limits (K2)
 │    └─ A6c mis-price inside the band ................................ loss ceilings + breaker (K10); residual risk R3
-├─ A7 move the NAV through sigma ............................................ NAV uses the whole band, not the keeper value (K9)
-├─ A8 pause, unpause, change parameters, change venue ........ owner/guardian only (K8, O1-O4)
+├─ A7 move the NAV through sigma ............................................ NAV uses the whole band, not the keeper value (K8)
+├─ A8 pause, unpause, change parameters, change venue ........ owner/guardian only (K7, O1-O4)
 └─ A9 stop quoting by letting sigma go stale ...................... liveness only; recovers on the next setSigma; exits unaffected
 ```
 
@@ -70,7 +70,7 @@ make the vault trade or settle at a wrong price
 
 ```
 get shares cheaply or redeem dearly by choosing when the price is struck
-├─ C1 request, then settle later after an outcome is known .... marks are the report AT the epoch end; window shorter than a round (N2)
+├─ C1 request, then settle later after an outcome is known .... marks are the report AT the epoch end; window shorter than a round (N2); no fills between the end and the settlement (N2b)
 ├─ C2 settle only when the exposed round is going your way ... same: price fixed at T, no round can end in the window (N2)
 ├─ C3 settle with an ended-but-unresolved round valued at 0/1 . settlement reverts until it is resolved (N3)
 ├─ C4 let nobody settle so the stale epoch is priced late ..... expiry: refund/requeue, no late price (N2)
@@ -82,7 +82,7 @@ get shares cheaply or redeem dearly by choosing when the price is struck
 ### D. Griefing via many markets, orders or calls (P4)
 
 ```
-├─ D1 many markets to blow up gas ............................... registry <= 16, assets <= 8 (G1); worst case measured (G2)
+├─ D1 many markets to blow up gas ............................... registry <= 16, assets <= 8, empty markets pruneable by anyone (G1, G6); worst case measured (G2)
 ├─ D2 many orders ............................................... orders are never iterated; the placer prepays the executor (V6)
 ├─ D3 trip the breaker with a report-less checkpoint .......... last verified mark, never zero (G3)
 ├─ D4 force epochs to expire by settling late ................... costs an epoch of delay, never funds (G4)
@@ -138,7 +138,7 @@ get shares cheaply or redeem dearly by choosing when the price is struck
 | V5 | A faulty venue is capped by the vault: bounds on price, room, liquidity, freshness, pause; timelocked replacement | `::test_vaultBounds_rejectBadFills`, `::test_vaultBounds_pausedAndStaleNav`, `::test_vaultBounds_buyNeedsFreeLiquidityAndAccountsCash`, `::test_vaultBounds_pullFailuresRevert`, `unit/VaultInventory::test_venue_initialOnceThenTimelocked`, `::test_setInitialVenue_zeroAndFirstUse` |
 | V6 | Placing costs the placer the prepaid reward; the venue never iterates orders; a rejecting executor can not wedge it | `::test_place_reverts`, `::test_place_buyEscrowsCollateralAndSellEscrowsTokens`, `::test_reward_rejectingExecutorReverts`, `::test_setMinReward_vaultOwnerOnly` |
 | V7 | Dust fills are skipped; price bounds are checked on amounts | `::test_exec_riskCeilingBindsTheFill`, `::test_vaultBounds_rejectBadFills` |
-| V8 | Gas measured: 395k (one market, forge), 1.02M (16 markets, forge), 590,921 on testnet (one market) | `::test_gas_executeOrderIsMeasured`, `::test_gas_executeOrderWithSixteenRegisteredMarkets` |
+| V8 | Gas measured: 395k (one market, forge), 0.93M (16 pair-only markets), 1.14M (16 markets with excess), 590,921 on testnet (one market) | `::test_gas_executeOrderIsMeasured`, `::test_gas_executeOrderWithSixteenRegisteredMarkets` |
 
 ### NAV, epochs, shares (N)
 
@@ -146,6 +146,7 @@ get shares cheaply or redeem dearly by choosing when the price is struck
 |---|---|---|
 | N1 | Two-sided NAV: deposits at the upper NAV, redemptions at the lower, rounding against the vault | `unit/VaultFuzz::testFuzz_roundTripCannotProfit`, `::testFuzz_flatNavRoundTripLosesOnlyRounding`, `unit/VaultInventory::test_nav_excessPricedFromReportWithBand`, `invariant::invariant_noViolation` (share price never falls from flows alone: `h_settle`) |
 | N2 | Settlement uses the report at the epoch end, within a window shorter than a round, else the epoch expires; the window and epoch grid are validated | `unit/VaultFlows::test_settle_revertsOnUnknownDuplicateOrNonCanonicalReport`, `::test_settle_laterInTheWindowGivesTheSameShares`, `::test_settle_expiresAfterTheWindow_refundsAndRequeues`, `::test_settle_lastSecondOfTheWindowStillSettles`, `::test_settle_eachEpochHasItsOwnDisjointWindow`, `::test_settleWindow_mustBeShorterThanARound_andEpochsOnTheRoundGrid`, `::test_settle_revertsBeforeEpochEnds`, `::test_settle_revertsTwiceAndWhenEmpty` |
+| N2b | **Fills are frozen** while the epoch that just ended has requests and can still be settled (audit F-01) | `unit/VaultAudit::test_audit_F01_fillsAreFrozenWhileAnEndedEpochAwaitsSettlement`, `::test_audit_F01_noFreezeWithoutRequests_orAfterTheWindow` |
 | N3 | Ended rounds must be resolved first; resolved rounds are exact net of fee | `unit/VaultFlows::test_settle_endedButUnresolvedRoundBlocksUntilResolved`, `unit/VaultInventory::test_nav_resolvedMarketsAreExactNetOfFee`, `::test_redeemResolved_pairsAndWinningExcess`, `::test_redeemResolved_losingExcessPaysNothingAndInvalidPaysHalf` |
 | N4 | A needed mark that is missing reverts | `unit/VaultInventory::test_nav_strictSettlementNeedsTheCanonicalMark`, `::test_nav_marksNeededEmptyWhenNoExcess`, `::test_nav_unopenedMarketIsHalfWithBand` |
 | N5 | The breaker re-values from verified marks only; omitted reports and ended-unresolved rounds can not trip it | `unit/VaultInventory::test_breaker_omittedReportCannotTripIt`, `::test_breaker_roundEndedButUnresolvedDoesNotTripIt`, `::test_breaker_withinLimitAndNewDayResets`, `unit/ForwardVenue::test_autoCheckpoint_neverRaisesTheNav`, `::test_autoCheckpoint_ignoresAVenueMarkOlderThanAMinute` |
@@ -157,6 +158,12 @@ get shares cheaply or redeem dearly by choosing when the price is struck
 | N11 | An unpriceable deposit (NAV wiped) is refunded, not minted | `unit/VaultFlows::test_deposit_refundedWhenNavIsWiped` |
 | N12 | End-to-end numbers derived by hand | `unit/VaultE2E::test_e2e_upWins_lpLosesFourFifty`, `::test_e2e_downWins_lpGainsFiveFifty_feeOnTheGain`, testnet run `docs/evidence/phase-4/testnet-e2e.md`, fork `fork/VaultFork::test_fork_lifecycleWithRealUsdc` |
 
+| N13 | Merging is open to keeper, owner, guardian and, while paused, anyone (audit F-04) | `unit/VaultAudit::test_audit_F04_mergeCanNeverBeKeptHostage` |
+| N14 | Realised loss stays on record per market (flatten-and-resplit does not restore room) and the total at-risk cap counts other markets (audit F-02b, F-07) | `unit/ForwardVenue::test_audit_F02_realisedLossSurvivesFlatteningAndResplit`, `::test_audit_F07_totalAtRiskCapLimitsTheSecondMarket` |
+| N15 | The breaker baseline survives `resumeQuoting` (audit F-02c) | `unit/VaultInventory::test_breaker_tripsOnDrawdownAndNeverBlocksExits` |
+| N16 | Losing excess is worth 0, an invalid round pays half (audit F-07) | `unit/VaultAudit::test_audit_F07_losingExcessIsWorthNothingOnceResolved`, `::test_audit_F07_invalidRoundPaysHalfOnTheExcess` |
+| V9 | An order can only be executed within `maxLateness` (at most 10 s, 4 s deployed) of its pricing time (audit F-03) | `unit/ForwardVenue::test_audit_F03_executionAfterTheLatenessWindowReverts`, `unit/VaultAudit::test_audit_spreadFloorAndLatenessCap` |
+
 ### Griefing (G), rounding and parity (R), owner and external (O, X)
 
 | ID | Mitigation | Tests |
@@ -165,11 +172,12 @@ get shares cheaply or redeem dearly by choosing when the price is struck
 | G2 | Worst-case gas of the registry walk is measured | `unit/ForwardVenue::test_gas_executeOrderWithSixteenRegisteredMarkets` |
 | G3 | A report-less checkpoint can not trip the breaker | `unit/VaultInventory::test_breaker_omittedReportCannotTripIt` |
 | G4 | A late settler can only expire an epoch (refund/requeue), never move funds | `unit/VaultFlows::test_settle_expiresAfterTheWindow_refundsAndRequeues` |
+| G6 | Empty registered markets are dropped (`redeemResolved`, `pruneEmpty`), so a taker can not burn registry slots (audit F-06) | `unit/VaultAudit::test_audit_F06_pruneEmptyFreesTheSlot`, `unit/VaultInventory::test_redeemResolved_reverts` |
 | G5 | Minimum request | `unit/VaultFlows::test_requestDeposit_revertsBelowMinimum` |
 | R1 | Floor rounding, in the vault's favour, everywhere | `unit/VaultFuzz::testFuzz_flatNavRoundTripLosesOnlyRounding`, `::testFuzz_claimsNeverExceedSettlement`, `unit/VaultE2E::test_e2e_upWins_lpLosesFourFifty` (995,499,004 derived by hand) |
 | R2 | On-chain pricing equals the research code on 600 golden vectors | `QuoteMath.t.sol::test_normCdf_matchesTypescript`, `::test_d2_matchesTypescript`, `::test_quote_matchesTypescript`, `::test_rooms_matchTypescript`, `::test_normPdf_matchesTypescript`, `::test_tanh_matchesTypescriptAndSaturates`; `packages/strategy/test/onchain.test.ts` |
 | R3 | The risk-room formulas are exact against the loss function | `QuoteMath.t.sol::testFuzz_rooms_areExactAgainstTheLossFunction`, `::testFuzz_quoteInvariants`, `::test_quote_skewLeansAgainstInventory` |
-| O1 | Two-step ownership | `unit/VaultInventory::test_ownership_isTwoStep` |
+| O1 | Two-step ownership, no renouncing (audit F-12) | `unit/VaultInventory::test_ownership_isTwoStep`, `unit/VaultAudit::test_audit_F12_ownershipCanNotBeRenounced` |
 | O2 | Hard limits on parameters | `unit/VaultInventory::test_quoteParams_hardLimits`, `::test_riskAndSigmaConfig_validation`, `::test_enableAsset_bandValidationAndSetBand`, `unit/VaultFlows::test_constructor_revertsOnBadConfig`, `::test_fee_capEnforced` |
 | O3 | Venue replacement is timelocked (2 days) and cancellable | `unit/VaultInventory::test_venue_initialOnceThenTimelocked` |
 | O4 | No function lets the owner take funds | structural (the ABI has none); `invariant::invariant_keeperAndGuardianHoldNothing` covers the roles it fuzzes |
@@ -202,10 +210,13 @@ Who can move it, and by how much:
 
 - **R1 Report contiguity.** If two valid reports for the same second existed, an executor could pick one. We rely on Chainlink's documented contiguous, non-overlapping windows (the same assumption as ADR-002). `test_exec_overlappingReports_isTheDocumentedTrustAssumption` pins the behaviour so the assumption is explicit.
 - **R2 Information lead.** ADR-004's protection holds only while the delay exceeds a trader's information lead; the lead is unmeasured (no Data Streams key) and the design has zero margin at 2 s.
-- **R3 Mis-pricing inside the sigma band.** A stolen keeper plus a colluding taker can buy mis-priced shares up to the loss ceilings each round (launch: 1% per market, 8% total) until the breaker (5% daily, evaluated automatically from fills) pauses quoting, after which the owner must resume. Keep the band tight (suggested ±35% around a measured volatility). This is the keeper's one economic lever and the main reason the keeper must not be a hot key with funds.
+- **R3 Mis-pricing inside the sigma band.** A stolen keeper plus a colluding taker can buy mis-priced shares up to the loss ceilings each round (launch: 1% per market, 8% total in a burst; the audit measured 0.99% of NAV in one market in one round) until the breaker (5% daily, evaluated automatically from fills at most once a minute) pauses quoting; the owner can resume only after the next UTC day or by raising the limit. Keep the band tight (suggested ±35% around a measured volatility). This is the keeper's one economic lever and the main reason the keeper must not be a hot key with funds.
 - **R4 Last-second requests.** A request made in the last seconds of an epoch knows the epoch-end price almost exactly. The band (5 points on exposed tokens, which are at most about 16% of NAV at launch limits) is the price of that; it is not zero.
 - **R5 Collateral issuer.** Circle can freeze the vault's address; nothing in this system can prevent that.
 - **R6 Test verifier on testnet.** Testnet prices are signed by a test key (`MockStreamsVerifierProxy`); mainnet uses the real VerifierProxy (fork test).
-- **R7 Gas of fills.** 590,921 gas measured on Monad testnet with one registered market (395k in the forge test, 1.02M with 16 markets in the forge test); the executor reward must be set from the gas price, the testnet value is not a production value.
+- **R7 Gas of fills.** 590,921 gas measured on Monad testnet with one registered market (395k in the forge test; 1.14M with 16 markets holding excess including the automatic re-valuation; `settleEpoch` 726k in the same case); the executor reward must be set from the gas price, the testnet value is not a production value.
 - **R8 Liveness.** A Data Streams outage can make epochs expire (requests roll over) and stops quoting; funds and exits are unaffected, and inventory made of complete pairs needs no mark.
 - **R9 Coverage of the venue by assets.** Only Data Streams assets can be enabled; MON (push-feed resolution) is not tradable in the vault.
+- **R10 Owner has no parameter timelock.** Only venue replacement is delayed (2 days). A compromised owner could widen the sigma band, raise the risk limits within the hard limits and rotate the keeper, then run R3. Mitigation is operational: the owner must be a `TimelockController` behind the Safe on mainnet (Phase 9). Spread floor (0.02) and hard limits are in the contract.
+- **R11 Venue-supplied marks.** The venue passes the report price it priced from; the vault stores it as the last known mark used by the breaker and the automatic re-valuation (which can only lower the sizing NAV). A hostile venue could poison that mark; the venue is already trusted to its caps and replacement is timelocked.
+- **R12 The executor's option.** Up to `maxLateness` (4 s deployed, 10 s maximum) after the pricing time the executor may decide whether to execute: a small option worth the price drift in those seconds.

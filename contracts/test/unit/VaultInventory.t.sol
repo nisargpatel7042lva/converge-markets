@@ -296,8 +296,9 @@ contract VaultInventoryTest is VaultBase {
         IERC20(address(m.up())).transfer(address(0xB0B), 10 * U);
         IERC20(address(m.down())).transfer(address(0xB0B), 10 * U);
         vm.stopPrank();
-        vm.expectRevert(ConvergeVault.NothingToRedeem.selector);
+        // an empty resolved market is dropped from the registry (it must never hold a slot)
         vault.redeemResolved(m);
+        assertFalse(vault.isRegistered(address(m)));
     }
 
     // ------------------------------------------------------------------ NAV valuation
@@ -428,7 +429,15 @@ contract VaultInventoryTest is VaultBase {
         vm.prank(alice);
         vault.claimRedeem(e, alice);
         assertGt(usdc.balanceOf(alice), 0);
-        // the owner resumes; the breaker restarts from the current price, so it does not re-trip
+        // the owner resumes: the day's baseline stays, so the breach is seen again at once
+        vm.prank(vOwner);
+        vault.resumeQuoting();
+        vault.checkpoint(_noReports());
+        assertTrue(vault.quotingPaused());
+        // the next UTC day starts a new baseline: a resume now holds
+        // forge-lint: disable-next-line(environment-read-across-mutation)
+        vm.warp(block.timestamp + 1 days);
+        vault.checkpoint(_noReports());
         vm.prank(vOwner);
         vault.resumeQuoting();
         vault.checkpoint(_noReports());

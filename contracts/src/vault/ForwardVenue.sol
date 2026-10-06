@@ -75,6 +75,10 @@ contract ForwardVenue is ReentrancyGuard {
     uint256 internal immutable SCALE;
 
     uint256 public constant MAX_REWARD = 1 ether;
+    /// @notice Longest allowed window after the pricing time in which an order may still be
+    ///         executed. Inside it the executor decides whether to execute (an option worth the
+    ///         price drift), so it is kept to a few seconds.
+    uint32 public constant MAX_LATENESS = 10;
     /// @notice Fills below this many asset units are skipped: at that size rounding the premium to a
     ///         whole unit would distort the implied price.
     uint256 public constant MIN_FILL = 1_000;
@@ -125,7 +129,7 @@ contract ForwardVenue is ReentrancyGuard {
         if (address(vault_) == address(0) || execDelay_ == 0 || maxLateness_ == 0) {
             revert InvalidConfig();
         }
-        if (minReward_ > MAX_REWARD) revert InvalidConfig();
+        if (minReward_ > MAX_REWARD || maxLateness_ > MAX_LATENESS) revert InvalidConfig();
         vault = vault_;
         asset = vault_.asset();
         streams = vault_.streams();

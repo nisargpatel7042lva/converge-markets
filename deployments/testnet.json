@@ -112,6 +112,44 @@
   ],
   "vault": {
     "chainId": 10143,
+    "deployBlock": 68615979,
+    "epochLength": 900,
+    "execDelaySeconds": 2,
+    "forwardVenue": "0xDf5958c9d759a97B7C3A9e49F8fB0924406698Aa",
+    "maxLatenessSeconds": 4,
+    "tvlCap": 5000000000,
+    "vault": "0xcd2072443D37397DbEa4e8eADbCcfB8cB1f10748",
+    "vaultKeeper": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4",
+    "vaultOwnerGuardianTreasury": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
+    "transactions": [
+      {
+        "hash": "0xd1df66f2c902fb3ad190357bb376295ad3abae98cf5eb3c8ad595f9bcbd6e989",
+        "contractName": "ConvergeVault",
+        "function": null,
+        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+      },
+      {
+        "hash": "0x4907fd465098f992e03f2a39f63cefc12a926ebbe96eb40e653f269347966692",
+        "contractName": "ForwardVenue",
+        "function": null,
+        "contractAddress": "0xdf5958c9d759a97b7c3a9e49f8fb0924406698aa"
+      },
+      {
+        "hash": "0xb4a7a8134dd26ef3d428697919db88d6f743311b7bd3dd841d28de16ba5bf4d1",
+        "contractName": "ConvergeVault",
+        "function": "enableAsset(bytes32,uint256,uint256)",
+        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+      },
+      {
+        "hash": "0x7c54eee16db1ea7fbfecc90de26b99a4322a13d6d216d6d3dc255d5765c84ba9",
+        "contractName": "ConvergeVault",
+        "function": "setInitialVenue(address)",
+        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+      }
+    ]
+  },
+  "vault_v1_pre_audit": {
+    "chainId": 10143,
     "deployBlock": 68426213,
     "epochLength": 900,
     "execDelaySeconds": 2,
