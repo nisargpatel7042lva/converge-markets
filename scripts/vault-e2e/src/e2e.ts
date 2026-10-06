@@ -192,6 +192,7 @@ async function main() {
   if ((await pub.getBalance({ address: keeper.address })) < parseEther("0.2"))
     await sendNative("fund keeper (0.5 MON)", keeper.address, parseEther("0.5"));
   const pastFill = resume && facts.filled !== undefined;
+  const pastResolution = resume && facts.vaultAssetsAfterResolution !== undefined;
   if (!pastFill) await sendNative("fund taker (0.3 MON)", taker.address, parseEther("0.3"));
   if (!resume) {
     // ---- 1. LP gets test USDC (open mint) and approves the vault
@@ -256,7 +257,7 @@ async function main() {
   }
 
   const strikePrice = 3000n * WAD;
-  const shares = BigInt(facts.lpShares ?? "0");
+  let shares = BigInt(facts.lpShares ?? "0");
   if (!pastFill) {
     // ---- 4. at the start: strike report, settle the deposit epoch, open the round
     await waitUntil(S, "the round start");
@@ -286,6 +287,7 @@ async function main() {
       args: [lp.address],
     });
     facts.lpShares = lpSharesNow.toString();
+    shares = lpSharesNow;
 
     if (lpSharesNow !== 1000n * U - 1000n) throw new Error(`unexpected LP shares ${lpSharesNow}`);
     await waitUntil(proposedAt + 21n, "the finalization window");
@@ -370,46 +372,49 @@ async function main() {
       );
   }
 
-  // ---- 7. the round ends, UP wins
-  await waitUntil(E, "the round end");
-  await send("anyone: submit end report (TEST price 3100)", lp, {
-    address: A.streams,
-    abi: dataStreamsResolverAbi,
-    functionName: "submit",
-    args: [TEST, E, report(E, 3100n * WAD)],
-  });
-  const endProposed = await chainTime();
-  await waitUntil(endProposed + 21n, "the finalization window");
-  await send("anyone: market.resolve()", lp, {
-    address: market,
-    abi: marketAbi,
-    functionName: "resolve",
-    args: ["0x"],
-  });
-  if (!pastFill) {
-    await send("taker: market.redeem() (10 UP -> 10 tUSDC)", taker, {
+  if (!pastResolution) {
+    // ---- 7. the round ends, UP wins
+    await waitUntil(E, "the round end");
+    await send("anyone: submit end report (TEST price 3100)", lp, {
+      address: A.streams,
+      abi: dataStreamsResolverAbi,
+      functionName: "submit",
+      args: [TEST, E, report(E, 3100n * WAD)],
+    });
+    const endProposed = await chainTime();
+    await waitUntil(endProposed + 21n, "the finalization window");
+    await send("anyone: market.resolve()", lp, {
       address: market,
       abi: marketAbi,
-      functionName: "redeem",
+      functionName: "resolve",
+      args: ["0x"],
     });
-  } else {
-    facts.takerRedeem = "skipped: the ephemeral taker key was lost when the run was resumed";
+    if (!pastFill) {
+      await send("taker: market.redeem() (10 UP -> 10 tUSDC)", taker, {
+        address: market,
+        abi: marketAbi,
+        functionName: "redeem",
+      });
+    } else {
+      facts.takerRedeem = "skipped: the ephemeral taker key was lost when the run was resumed";
+    }
+    await send("anyone: vault.redeemResolved()", lp, {
+      address: A.vault,
+      abi: convergeVaultAbi,
+      functionName: "redeemResolved",
+      args: [market],
+    });
+    const vaultBal = await read<bigint>({
+      address: A.tusdc,
+      abi: mockErc20Abi,
+      functionName: "balanceOf",
+      args: [A.vault],
+    });
+    facts.vaultAssetsAfterResolution = vaultBal.toString();
+    facts.vaultAssetsExpected = "995500000";
+    if (vaultBal !== 995_500_000n)
+      throw new Error(`vault holds ${vaultBal}, hand-checked 995500000`);
   }
-  await send("anyone: vault.redeemResolved()", lp, {
-    address: A.vault,
-    abi: convergeVaultAbi,
-    functionName: "redeemResolved",
-    args: [market],
-  });
-  const vaultBal = await read<bigint>({
-    address: A.tusdc,
-    abi: mockErc20Abi,
-    functionName: "balanceOf",
-    args: [A.vault],
-  });
-  facts.vaultAssetsAfterResolution = vaultBal.toString();
-  facts.vaultAssetsExpected = "995500000";
-  if (vaultBal !== 995_500_000n) throw new Error(`vault holds ${vaultBal}, hand-checked 995500000`);
 
   // ---- 8. the LP leaves in the next epoch
   epoch = await read<bigint>({

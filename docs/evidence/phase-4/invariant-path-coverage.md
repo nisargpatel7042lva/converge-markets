@@ -4,23 +4,23 @@ Runs logged: 257
 
 | path | calls |
 |---|---|
-| attacks | 1293 |
-| claims | 522 |
-| deposits | 1353 |
+| attacks | 2429 |
+| claims | 420 |
+| deposits | 1171 |
 | execfail | 0 |
-| expired | 164 |
-| filled | 259 |
+| expired | 146 |
+| filled | 172 |
 | invalidated | 0 |
-| merges | 333 |
-| orders | 527 |
-| partial | 3 |
-| pauses | 430 |
-| redeemResolved | 401 |
-| redeems | 785 |
-| resolved | 645 |
-| settles | 637 |
-| sigma | 1606 |
-| splits | 701 |
-| unfilled | 268 |
+| merges | 396 |
+| orders | 342 |
+| partial | 2 |
+| pauses | 381 |
+| redeemResolved | 357 |
+| redeems | 713 |
+| resolved | 542 |
+| settles | 513 |
+| sigma | 1408 |
+| splits | 737 |
+| unfilled | 170 |
 
 Missing required paths: none

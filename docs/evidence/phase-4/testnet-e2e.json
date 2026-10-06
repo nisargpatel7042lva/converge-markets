@@ -1,5 +1,5 @@
 {
-  "status": "running",
+  "status": "complete",
   "chainId": 10143,
   "addresses": {
     "tusdc": "0x9dedC1B054a0e53777df49722D1Aa20354edB100",
@@ -10,7 +10,22 @@
   },
   "facts": {
     "note": "TEST-ONLY: prices are signed by STREAMS_TEST_SIGNER_KEY via MockStreamsVerifierProxy",
-    "depositEpoch": "0"
+    "depositEpoch": "0",
+    "market": "0xD29aA3b73Abda1928B50Ab44819C05460Ddbe0D2",
+    "roundStart": "1791269100",
+    "roundEnd": "1791270000",
+    "lpShares": "999999000",
+    "orderId": "1",
+    "execAt": "1791269143",
+    "filled": "10000000",
+    "premium": "5500000",
+    "secondsLeftAtPricing": "857",
+    "premiumExpected": "5500000",
+    "vaultAssetsAfterResolution": "995500000",
+    "vaultAssetsExpected": "995500000",
+    "lpReceived": "995499004",
+    "lpReceivedExpected": "995499004",
+    "lpDeposited": "1000000000"
   },
   "steps": [
     {
@@ -46,6 +61,132 @@
       "hash": "0x6e96edc37178604df77fb188667df8288797916a23a0054d8cf5182b4fdbec0e",
       "block": "68616334",
       "gasUsed": "650610",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "anyone: submit strike report (TEST price 3000)",
+      "hash": "0x9de53b4b4cf5bb90477d376f201ad3c8c002098e0d0f554b5193d653fe99f477",
+      "block": "68617935",
+      "gasUsed": "167995",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "anyone: settleEpoch(deposit epoch)",
+      "hash": "0xe31ca6bd3c00c1e7705da82dd80d744e21e7693e0c0156052b6f0658ff127463",
+      "block": "68617940",
+      "gasUsed": "280792",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "LP: claimDeposit",
+      "hash": "0xe64401dd825ece4112554ececc600535c5d9a58a7de6331e441e0727f0240889",
+      "block": "68617945",
+      "gasUsed": "115017",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "anyone: market.open()",
+      "hash": "0x678f6e09c06b08b943d3ab6b2bb5cbe2b253c4cc54c5cfc95dbd40d90212547e",
+      "block": "68618014",
+      "gasUsed": "164208",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "keeper: setSigma(TEST, 0.6)",
+      "hash": "0x4f1ee8e21c0679e9349b69b85d050d0077b7ae609aa7fd3c310f258b45c215e0",
+      "block": "68618019",
+      "gasUsed": "70598",
+      "from": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4"
+    },
+    {
+      "label": "keeper: splitForInventory(100 USDC)",
+      "hash": "0x3258b16de810259af7d53ac4663d4695c9374c459f6807f24afa370f8e1c0008",
+      "block": "68618025",
+      "gasUsed": "529173",
+      "from": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4"
+    },
+    {
+      "label": "anyone: checkpoint()",
+      "hash": "0x4c9d5835fc93b66709e28bc87eb3c8a162f01e0a79c268c8adaba02f60f13def",
+      "block": "68618031",
+      "gasUsed": "191119",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "taker: mint 7 tUSDC",
+      "hash": "0x9484035ba8825ce52773449b2f380b9344810d384b911fa05b9a33ff349171c7",
+      "block": "68618036",
+      "gasUsed": "73585",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "taker: approve venue",
+      "hash": "0x0862c682c6f588321af7492606d9a4b40a9a498ef78eef6711f2bdac2fb9e10c",
+      "block": "68618053",
+      "gasUsed": "60843",
+      "from": "0xec44CE12D16bC3f50E4f5B40aFf4F900729A0B55"
+    },
+    {
+      "label": "taker: placeOrder(BUY_UP, 10 shares, limit 0.60)",
+      "hash": "0x142ace0b13765665283b6df848ab743a9ae28d3ea258f286df759d9787ef9393",
+      "block": "68618061",
+      "gasUsed": "245703",
+      "from": "0xec44CE12D16bC3f50E4f5B40aFf4F900729A0B55"
+    },
+    {
+      "label": "executor: executeOrder (report for T)",
+      "hash": "0x9f37d4f7284c6cda02f55f77fdf8d344886a437e71ef0314e4c67069a9172f72",
+      "block": "68618073",
+      "gasUsed": "597658",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "anyone: submit end report (TEST price 3100)",
+      "hash": "0x6dd960f2d0675617883fda26c22b79108be5c7bd9bb2acfd633e9c8ecdc1cd46",
+      "block": "68620868",
+      "gasUsed": "167995",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "anyone: market.resolve()",
+      "hash": "0xcc034f20255782029285ca3d318e4668951265873cffca1e78e4b2bab5ecfa89",
+      "block": "68620943",
+      "gasUsed": "145399",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "taker: market.redeem() (10 UP -> 10 tUSDC)",
+      "hash": "0xa8171c06b12fb34ac332dea7ce54730f65d458df0474bb411bfc712a62bd16c6",
+      "block": "68620948",
+      "gasUsed": "174864",
+      "from": "0xec44CE12D16bC3f50E4f5B40aFf4F900729A0B55"
+    },
+    {
+      "label": "anyone: vault.redeemResolved()",
+      "hash": "0xd465768feb4f09e9006c4c90636353f41164fccc8760e32e966cd89b10a2a617",
+      "block": "68620952",
+      "gasUsed": "285846",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "LP: requestRedeem(all shares)",
+      "hash": "0x9abc21a430fe8ef3b6ab9fc39a726b4da4a0631e4d7fbf1633ddaff048abf343",
+      "block": "68621355",
+      "gasUsed": "155963",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "anyone: settleEpoch(redemption epoch)",
+      "hash": "0xcc09fcd005583eeeade234f93d899dd26f16b45e8a59c574899ee6087ace40ca",
+      "block": "68623813",
+      "gasUsed": "189773",
+      "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
+    },
+    {
+      "label": "LP: claimRedeem",
+      "hash": "0x89b5a0b56d4227e70446d83db1a5cf0303c4a1e7847000a0ab270acc5bb08bab",
+      "block": "68623819",
+      "gasUsed": "108622",
       "from": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1"
     }
   ]

@@ -21,6 +21,7 @@ const usd = (raw: string | undefined) => (Number(raw ?? "0") / 1e6).toFixed(6);
 let md = `# Phase 4 testnet end-to-end (Monad testnet, chain ${j.chainId})\n\n`;
 md += `Status: **${j.status}**${j.error ? ` (${j.error})` : ""}\n\n`;
 md += `**TEST-ONLY prices.** Monad testnet has no live Data Streams verifier, so the vault's TEST/USD asset is verified by \`MockStreamsVerifierProxy\`; the reports are signed by a test key. The contracts, the epoch settlement, the forward-priced fill and the accounting are the production code. Source: \`scripts/vault-e2e/src/e2e.ts\` (real wall-clock time, about 40 minutes).\n\n`;
+md += `This run is the **final code** (after the independent review). It was resumed twice: once after an RPC timeout and once after a bug in the script's own resume logic at the last step (LP shares read as 0); every transaction below is on the final deployment, and the vault numbers are the ones hand-derived in \`VaultE2E.t.sol\`. The pre-audit run is in \`v1-pre-audit/\`.\n\n`;
 md += `## Addresses\n\n| | |\n|---|---|\n`;
 for (const [k, v] of Object.entries(j.addresses)) md += `| ${k} | \`${v}\` |\n`;
 md += `| round market | \`${j.facts.market}\` |\n\n`;

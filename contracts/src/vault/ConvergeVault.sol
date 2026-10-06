@@ -189,6 +189,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     uint256 public dayStartPps;
     uint64 public dayStart;
     bool public quotingPaused;
+    /// @notice The keeper's own off switch (Phase 5): it pulls every quote at once when its price
+    ///         sources or its risk checks fail and puts them back when they recover. It is
+    ///         independent of `quotingPaused` (guardian, owner and breaker), which the keeper can
+    ///         never clear.
+    bool public keeperHalt;
 
     address[] internal _markets;
     mapping(address => uint256) internal _slot; // index + 1
@@ -249,6 +254,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     event QuotingPaused(address indexed by);
     event BreakerTripped(uint256 ppsLower, uint256 dayStartPps);
     event QuotingResumed(address indexed by);
+    event QuotingHalted(address indexed keeper, bytes32 reason);
+    event QuotingUnhalted(address indexed keeper);
     event AssetEnabled(bytes32 indexed assetId, bytes32 feedId, uint256 sigmaMin, uint256 sigmaMax);
     event SigmaBandSet(bytes32 indexed assetId, uint256 sigmaMin, uint256 sigmaMax);
     event TvlCapSet(uint256 cap);
@@ -302,6 +309,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     error WrongMarketState(uint8 state);
     error InNoQuoteWindow();
     error QuotingIsPaused();
+    error QuotingHalt();
     error PairCapExceeded(uint256 basis, uint256 cap);
     error InventoryCapExceeded(uint256 total, uint256 cap);
     error NotEnoughPairs(uint256 have, uint256 want);
@@ -1180,7 +1188,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
 
     /// @notice Everything the venue needs to price one market.
     function venueView(Market m) external view returns (VenueView memory v) {
-        if (_slot[address(m)] == 0 || quotingPaused || venue == address(0)) return v;
+        if (_slot[address(m)] == 0 || quotingPaused || keeperHalt || venue == address(0)) return v;
         if (block.timestamp > uint256(navUpdatedAt) + navMaxAge) return v;
         if (_settlementPending()) return v;
         AssetCfg storage c = assetCfg[m.assetId()];
@@ -1271,6 +1279,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (f.taker == address(0) || f.taker == address(this)) revert ZeroAddress();
         if (_slot[address(f.market)] == 0) revert MarketNotRegistered(address(f.market));
         if (quotingPaused) revert QuotingIsPaused();
+        if (keeperHalt) revert QuotingHalt();
         if (block.timestamp > uint256(navUpdatedAt) + navMaxAge) revert NotTradable();
         if (_settlementPending()) revert SettlementPending();
 
@@ -1377,6 +1386,20 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (msg.sender != guardian && msg.sender != owner()) revert OnlyGuardianOrOwner();
         quotingPaused = true;
         emit QuotingPaused(msg.sender);
+    }
+
+    /// @notice The keeper pulls every quote: no fill happens until it calls `unhaltQuoting`.
+    ///         Requests, settlement, claims, merges and redemption are untouched. `reason` is a
+    ///         short code for the indexer and the alerts.
+    function haltQuoting(bytes32 reason) external onlyKeeper {
+        keeperHalt = true;
+        emit QuotingHalted(msg.sender, reason);
+    }
+
+    /// @notice The keeper puts its quotes back. It does not touch `quotingPaused`.
+    function unhaltQuoting() external onlyKeeper {
+        keeperHalt = false;
+        emit QuotingUnhalted(msg.sender);
     }
 
     /// @notice Resumes trading. The breaker keeps the UTC day's baseline: if the drawdown limit is

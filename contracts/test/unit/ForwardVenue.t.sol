@@ -698,6 +698,66 @@ contract ForwardVenueTest is VaultBase {
         venue.executeOrder(id, rep);
     }
 
+    // ------------------------------------------------------------------ the keeper's halt (Phase 5)
+
+    function test_halt_pullsEveryQuoteAndTheKeeperPutsThemBack() public {
+        vm.prank(vKeeper);
+        vault.haltQuoting("PRICE_SHOCK");
+        assertTrue(vault.keeperHalt());
+        assertFalse(vault.venueView(m).tradable);
+        // an order priced while halted comes back unfilled and refunded
+        uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
+        (uint256 filled,) = _exec(id, 3000e18);
+        assertEq(filled, 0);
+        assertEq(usdc.balanceOf(taker), 2 * U * 6 / 10 + 4);
+        // and the vault itself refuses a fill
+        vm.prank(address(venue));
+        vm.expectRevert(ConvergeVault.QuotingHalt.selector);
+        vault.venueFill(_fp(1 * U, 550_000));
+        // exits and inventory work while halted
+        vm.prank(vKeeper);
+        vault.mergeInventory(m, 10 * U);
+        vm.prank(vKeeper);
+        vault.unhaltQuoting();
+        assertFalse(vault.keeperHalt());
+        assertTrue(vault.venueView(m).tradable);
+        uint256 id2 = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
+        (filled,) = _exec(id2, 3000e18);
+        assertEq(filled, 2 * U);
+    }
+
+    function test_halt_onlyTheKeeperMayHaltOrUnhalt() public {
+        address[3] memory others = [vOwner, vGuardian, alice];
+        for (uint256 i = 0; i < 3; i++) {
+            vm.startPrank(others[i]);
+            vm.expectRevert(ConvergeVault.OnlyKeeper.selector);
+            vault.haltQuoting("X");
+            vm.expectRevert(ConvergeVault.OnlyKeeper.selector);
+            vault.unhaltQuoting();
+            vm.stopPrank();
+        }
+    }
+
+    /// @dev The keeper can never override the guardian, the owner or the breaker.
+    function test_halt_isIndependentOfThePause() public {
+        vm.prank(vGuardian);
+        vault.pauseQuoting();
+        vm.startPrank(vKeeper);
+        vault.haltQuoting("X");
+        vault.unhaltQuoting();
+        vm.stopPrank();
+        assertTrue(vault.quotingPaused()); // the keeper did not clear the pause
+        assertFalse(vault.venueView(m).tradable);
+        vm.prank(vOwner);
+        vault.resumeQuoting();
+        assertTrue(vault.venueView(m).tradable);
+        vm.prank(vKeeper);
+        vault.haltQuoting("X");
+        vm.prank(vOwner);
+        vault.resumeQuoting(); // the owner's resume does not clear the keeper's halt either
+        assertFalse(vault.venueView(m).tradable);
+    }
+
     function test_gas_executeOrderIsMeasured() public {
         uint256 id = _placeAs(taker, m, ForwardVenue.Kind.BUY_UP, 2 * U, 0.6e18);
         (,,, uint64 at,,,,,) = venue.orders(id);

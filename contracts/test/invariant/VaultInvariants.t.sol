@@ -69,7 +69,7 @@ contract VaultInvariants is VaultBase {
         _track();
 
         targetContract(address(this));
-        bytes4[] memory sel = new bytes4[](19);
+        bytes4[] memory sel = new bytes4[](21);
         sel[0] = this.h_warp.selector;
         sel[1] = this.h_move.selector;
         sel[2] = this.h_createOpen.selector;
@@ -89,6 +89,8 @@ contract VaultInvariants is VaultBase {
         sel[16] = this.h_settle.selector; // so do settlements and inventory moves
         sel[17] = this.h_split.selector;
         sel[18] = this.h_lpRedeem.selector;
+        sel[19] = this.h_halt.selector;
+        sel[20] = this.h_haltAttack.selector;
         targetSelector(FuzzSelector({addr: address(this), selectors: sel}));
     }
 
@@ -481,6 +483,29 @@ contract VaultInvariants is VaultBase {
             _violate("executeOrder reverted");
         }
         _track();
+    }
+
+    /// @dev The keeper's own off switch: a legitimate toggle (it never touches the pause).
+    function h_halt(uint256 x) external {
+        bool wasPaused = vault.quotingPaused();
+        vm.prank(vKeeper);
+        if (x % 2 == 0) vault.haltQuoting("FUZZ");
+        else vault.unhaltQuoting();
+        if (vault.quotingPaused() != wasPaused) _violate("the keeper changed the pause");
+    }
+
+    /// @dev Nobody but the keeper can halt or unhalt.
+    function h_haltAttack(uint256 who) external {
+        address a = who % 3 == 0 ? vOwner : (who % 3 == 1 ? vGuardian : alice);
+        vm.startPrank(a);
+        try vault.haltQuoting("ATTACK") {
+            _violate("a non-keeper halted the vault");
+        } catch {}
+        try vault.unhaltQuoting() {
+            _violate("a non-keeper unhalted the vault");
+        } catch {}
+        vm.stopPrank();
+        cAttacks++;
     }
 
     // ------------------------------------------------------------------ the malicious keeper
