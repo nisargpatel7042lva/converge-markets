@@ -126,6 +126,12 @@ export class Metrics {
     help: "Milliseconds since the last block",
     registers: [this.registry],
   });
+  readonly rpcRequests = new Counter({
+    name: "keeper_rpc_requests_total",
+    help: "JSON-RPC calls made, by method",
+    labelNames: ["method"],
+    registers: [this.registry],
+  });
   readonly rpcErrors = new Gauge({
     name: "keeper_rpc_consecutive_errors",
     help: "Consecutive failed RPC calls",

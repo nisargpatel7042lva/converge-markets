@@ -25,6 +25,7 @@ import {
 } from "./price/sources";
 import { makeReportSource } from "./reports";
 import { startServer } from "./server";
+import { errText } from "./errors";
 
 async function main(): Promise<void> {
   const env = loadEnv();
@@ -36,7 +37,19 @@ async function main(): Promise<void> {
   const metrics = new Metrics();
   const rpcUrls = env.RPC_URLS.split(",").map((s) => s.trim());
   const chainId = await createPublicClient({ transport: http(rpcUrls[0]) }).getChainId();
-  const clients = makeClients({ rpcUrls, keeperKey: env.KEEPER_PRIVATE_KEY as Hex, chainId });
+  const canonicalMulticall3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
+  const multicall3 =
+    env.MULTICALL3 === "none"
+      ? undefined
+      : ((env.MULTICALL3 ?? ([143, 10143].includes(chainId) ? canonicalMulticall3 : undefined)) as
+          Address | undefined);
+  const clients = makeClients({
+    rpcUrls,
+    keeperKey: env.KEEPER_PRIVATE_KEY as Hex,
+    chainId,
+    maxRps: env.MAX_RPS,
+    ...(multicall3 ? { multicall3 } : {}),
+  });
   mkdirSync(env.OUT_DIR, { recursive: true });
 
   const alerter = new WebhookAlerter(
@@ -112,14 +125,14 @@ async function main(): Promise<void> {
     const onTick = (t: Parameters<Keeper["onTick"]>[1]) => keeper.onTick(a.cfg.label, t);
     const b = new WsPriceSource({
       name: "binance",
-      url: BINANCE_URL(a.cfg.binance),
+      url: env.BINANCE_WS_URL ?? BINANCE_URL(a.cfg.binance),
       parse: parseBinance,
       onTick,
       log,
     });
     const c = new WsPriceSource({
       name: "coinbase",
-      url: COINBASE_URL,
+      url: env.COINBASE_WS_URL ?? COINBASE_URL,
       subscribe: coinbaseSubscribe(a.cfg.coinbase),
       parse: parseCoinbase,
       onTick,
@@ -165,11 +178,17 @@ async function main(): Promise<void> {
   process.on("SIGINT", shutdown);
   process.on("unhandledRejection", (e) => {
     metrics.errors.inc({ kind: "unhandled_rejection" });
-    log.error({ err: String(e).slice(0, 300) }, "UNHANDLED REJECTION");
+    log.error(
+      { err: errText(e, 300), stack: (e as Error)?.stack?.split("\n").slice(1, 5).join(" | ") },
+      "UNHANDLED REJECTION",
+    );
   });
   process.on("uncaughtException", (e) => {
     metrics.errors.inc({ kind: "uncaught_exception" });
-    log.fatal({ err: String(e).slice(0, 300) }, "UNCAUGHT EXCEPTION");
+    log.fatal(
+      { err: errText(e, 300), stack: (e as Error)?.stack?.split("\n").slice(1, 5).join(" | ") },
+      "UNCAUGHT EXCEPTION",
+    );
     process.exit(1);
   });
 }

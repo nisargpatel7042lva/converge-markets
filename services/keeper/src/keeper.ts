@@ -41,6 +41,7 @@ import { plan, type Action } from "./planner";
 import { ReferencePrice, type PriceSnapshot, type Tick } from "./price/aggregator";
 import { HaltController, evaluateRisk, type InventoryView, type RiskReason } from "./risk";
 import type { Status } from "./server";
+import { errText } from "./errors";
 
 export type AssetRuntime = {
   cfg: AssetCfg;
@@ -108,6 +109,7 @@ export class Keeper {
   private haltWanted = false;
   private haltReasons: RiskReason[] = [];
   private triggerBlock: bigint | null = null;
+  private haltSent = false; // live: a haltQuoting of ours went through (until an unhalt does)
   private localHalt = false; // dry-run / paper: what the halt would have been
   private readonly inflight = new Set<string>();
   private readonly lastAttempt = new Map<string, number>();
@@ -166,7 +168,7 @@ export class Keeper {
         this.venue = { execDelay: Number(delay), maxLateness: Number(late) };
       } catch (e) {
         this.d.log.warn(
-          { err: String(e).slice(0, 100) },
+          { err: errText(e, 100) },
           "could not read the venue's timing, using defaults",
         );
       }
@@ -234,7 +236,8 @@ export class Keeper {
 
   private vaultFlags() {
     return {
-      keeperHalt: this.d.mode === "live" ? (this.state?.keeperHalt ?? false) : this.localHalt,
+      // before the first state read the vault's flag is unknown: trust what this process did
+      keeperHalt: this.d.mode === "live" ? (this.state?.keeperHalt ?? this.haltSent) : this.localHalt,
       quotingPaused: this.state?.quotingPaused ?? false,
     };
   }
@@ -247,7 +250,9 @@ export class Keeper {
     // Start-up: the sockets are still connecting. Until the price has been healthy once, a missing
     // price is not an alarm for the first `startupGraceMs` (nothing is quoted without a price anyway).
     if (this.firstHealthyAt === null && nowMs - this.startedAt < this.d.cfg.startupGraceMs) {
-      prices = prices.filter((p) => !(p.reasons.includes("NO_PRICE") || p.reasons.includes("FEW_SOURCES")));
+      prices = prices.filter(
+        (p) => !(p.reasons.includes("NO_PRICE") || p.reasons.includes("FEW_SOURCES")),
+      );
     }
     const risk = evaluateRisk(
       {
@@ -262,6 +267,9 @@ export class Keeper {
       this.d.cfg.risk,
     );
     this.d.metrics.killed.set(this.d.kill.killed ? 1 : 0);
+    if (risk.reasons.join() !== this.lastRisk.reasons.join())
+      this.d.log.info({ reasons: risk.reasons, why }, "risk state changed");
+    this.lastRisk = risk;
     const flags = this.vaultFlags();
     // a halt already on its way counts as halted
     const decision = this.controller.decide(
@@ -296,7 +304,7 @@ export class Keeper {
       this.dispatch(acts);
     } catch (e) {
       this.d.metrics.errors.inc({ kind: "fast" });
-      this.d.log.warn({ err: String(e).slice(0, 160) }, "fast path failed");
+      this.d.log.warn({ err: errText(e, 160) }, "fast path failed");
     }
   }
 
@@ -332,6 +340,7 @@ export class Keeper {
       this.account(r);
       if (r.status === "success") {
         if (this.state) this.state = { ...this.state, keeperHalt: true };
+        this.haltSent = true;
         this.haltWanted = false;
         const lat = this.triggerBlock !== null ? Number(r.blockNumber - this.triggerBlock) : 0;
         this.d.metrics.haltBlocks.observe(lat);
@@ -351,11 +360,8 @@ export class Keeper {
       }
     } catch (e) {
       this.d.metrics.errors.inc({ kind: "halt_failed" });
-      this.d.log.error({ err: String(e).slice(0, 200) }, "haltQuoting failed");
-      void this.d.alerter.alert(
-        "halt-failed",
-        `could not send haltQuoting: ${String(e).slice(0, 120)}`,
-      );
+      this.d.log.error({ err: errText(e, 200) }, "haltQuoting failed");
+      void this.d.alerter.alert("halt-failed", `could not send haltQuoting: ${errText(e, 120)}`);
     } finally {
       this.halting = false;
       this.triggerBlock = null;
@@ -380,18 +386,30 @@ export class Keeper {
       this.account(r);
       if (r.status === "success") {
         if (this.state) this.state = { ...this.state, keeperHalt: false };
+        this.haltSent = false;
         this.d.metrics.halted.set(0);
         void this.d.alerter.alert("unhalt", "quotes are back (risk checks clean)");
       }
     } catch (e) {
       this.d.metrics.errors.inc({ kind: "unhalt_failed" });
-      this.d.log.error({ err: String(e).slice(0, 200) }, "unhaltQuoting failed");
+      this.d.log.error({ err: errText(e, 200) }, "unhaltQuoting failed");
     } finally {
       this.halting = false;
     }
   }
 
   // ------------------------------------------------------------------ slow path
+
+  private lastRisk: { pull: boolean; reasons: string[] } = { pull: false, reasons: [] };
+  private readonly rpcSeen = new Map<string, number>();
+
+  private flushRpcMetrics(): void {
+    for (const [method, n] of this.d.clients.rpcCalls) {
+      const delta = n - (this.rpcSeen.get(method) ?? 0);
+      if (delta > 0) this.d.metrics.rpcRequests.inc({ method }, delta);
+      this.rpcSeen.set(method, n);
+    }
+  }
 
   async slowTick(): Promise<void> {
     if (this.slowBusy) return;
@@ -415,9 +433,10 @@ export class Keeper {
     } catch (e) {
       this.d.metrics.errors.inc({ kind: "slow" });
       this.d.metrics.rpcErrors.set(this.d.clients.rpcErrors.consecutive);
-      this.d.log.warn({ err: String(e).slice(0, 160) }, "slow tick failed");
+      this.d.log.warn({ err: errText(e, 160) }, "slow tick failed");
       await this.riskCheck("slow-error");
     } finally {
+      this.flushRpcMetrics();
       this.d.metrics.loopMs.observe(this.now() - t0);
       this.slowBusy = false;
     }
@@ -592,7 +611,7 @@ export class Keeper {
         }
       }
     } catch (e) {
-      this.d.log.debug({ err: String(e).slice(0, 100) }, "ladder check failed");
+      this.d.log.debug({ err: errText(e, 100) }, "ladder check failed");
     }
   }
 
@@ -627,7 +646,7 @@ export class Keeper {
       void this.perform(a)
         .catch((e) => {
           this.d.metrics.errors.inc({ kind: "perform" });
-          this.d.log.error({ action: a.type, err: String(e).slice(0, 200) }, "action failed");
+          this.d.log.error({ action: a.type, err: errText(e, 200) }, "action failed");
         })
         .finally(() => this.inflight.delete(a.key));
     }
@@ -663,7 +682,7 @@ export class Keeper {
         void this.d.alerter.alert("tx-timeout", `${kind} not mined after the replacements`);
       } else {
         this.d.metrics.errors.inc({ kind: "send" });
-        this.d.log.warn({ kind, err: String(e).slice(0, 160) }, "send failed");
+        this.d.log.warn({ kind, err: errText(e, 160) }, "send failed");
       }
       return null;
     }
@@ -774,7 +793,7 @@ export class Keeper {
         const r = await this.d.reports(f).reportAt(f, ts);
         if (r) out.push(r);
       } catch (e) {
-        this.d.log.debug({ err: String(e).slice(0, 80) }, "no fresh report for the checkpoint");
+        this.d.log.debug({ err: errText(e, 80) }, "no fresh report for the checkpoint");
       }
     }
     return out;
@@ -828,7 +847,7 @@ export class Keeper {
       premium = out[1];
     } catch (e) {
       this.d.log.debug(
-        { id: o.id.toString(), err: String(e).slice(0, 120) },
+        { id: o.id.toString(), err: errText(e, 120) },
         "execution would revert: skipping",
       );
       this.orders.forget(o.id);
@@ -846,7 +865,10 @@ export class Keeper {
         this.haltWanted = true;
         this.haltReasons = ["INVENTORY_LOSS"];
         this.triggerBlock ??= this.head?.number ?? null;
-        this.d.log.warn({ id: o.id.toString(), maxLossRatio: proj.maxLossRatio }, "this fill would pass the inventory cap");
+        this.d.log.warn(
+          { id: o.id.toString(), maxLossRatio: proj.maxLossRatio },
+          "this fill would pass the inventory cap",
+        );
         if (!this.halting) await this.pullAll(this.haltReasons, "projected-fill");
         return;
       }
@@ -947,6 +969,7 @@ export class Keeper {
       tickIntervalMs: this.d.cfg.slowTickMs,
       ready: reasons.length === 0,
       readyReasons: reasons,
+      risk: this.lastRisk,
       halted: this.vaultFlags().keeperHalt || this.halting,
       vaultPaused: this.vaultFlags().quotingPaused,
       block: this.head?.number.toString() ?? null,

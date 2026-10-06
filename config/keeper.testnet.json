@@ -6,7 +6,10 @@
     "shockBps": 100,
     "shockWindowMs": 5000,
     "sanityBps": 200,
-    "chainlinkMaxAgeMs": 900000
+    "chainlinkMaxAgeMs": 900000,
+    "staleMsBySource": {
+      "coinbase": 12000
+    }
   },
   "risk": {
     "rpcErrorsToPull": 5,
@@ -39,6 +42,13 @@
   "topUpBelowFraction": 0.5,
   "minSecondsLeftToSplit": 120,
   "checkpointEverySec": 300,
-  "tx": { "stuckMs": 4000, "maxReplacements": 3, "bumpPct": 25, "pollMs": 150, "haltFeeBoost": 3 },
-  "executeUnfilled": true
+  "tx": {
+    "stuckMs": 4000,
+    "maxReplacements": 3,
+    "bumpPct": 25,
+    "pollMs": 150,
+    "haltFeeBoost": 3
+  },
+  "executeUnfilled": true,
+  "startupGraceMs": 20000
 }

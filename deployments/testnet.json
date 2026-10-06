@@ -112,39 +112,39 @@
   ],
   "vault": {
     "chainId": 10143,
-    "deployBlock": 68615979,
+    "deployBlock": 68644575,
     "epochLength": 900,
     "execDelaySeconds": 2,
-    "forwardVenue": "0xDf5958c9d759a97B7C3A9e49F8fB0924406698Aa",
+    "forwardVenue": "0x28dbCf1631f51c9021D999B46e5D9439B4eD913C",
     "maxLatenessSeconds": 4,
     "tvlCap": 5000000000,
-    "vault": "0xcd2072443D37397DbEa4e8eADbCcfB8cB1f10748",
+    "vault": "0xbEaf85D2682BAD7ca09fD869037065350cF4a3b5",
     "vaultKeeper": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4",
     "vaultOwnerGuardianTreasury": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
     "transactions": [
       {
-        "hash": "0xd1df66f2c902fb3ad190357bb376295ad3abae98cf5eb3c8ad595f9bcbd6e989",
+        "hash": "0x26a9650ec1242495a7399633118306c41d69f5ee6096ec20215a53ae034c9cc9",
         "contractName": "ConvergeVault",
         "function": null,
-        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
       },
       {
-        "hash": "0x4907fd465098f992e03f2a39f63cefc12a926ebbe96eb40e653f269347966692",
+        "hash": "0x26c7a5d38f917b74a47eec0de9efa414d91a75ce204e4d3b398421c94865e16c",
         "contractName": "ForwardVenue",
         "function": null,
-        "contractAddress": "0xdf5958c9d759a97b7c3a9e49f8fb0924406698aa"
+        "contractAddress": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c"
       },
       {
-        "hash": "0xb4a7a8134dd26ef3d428697919db88d6f743311b7bd3dd841d28de16ba5bf4d1",
+        "hash": "0xd319dda8d0eecc0b8cca508bca5b28dde64a58ddc88a81b229a5ffdf696934ce",
         "contractName": "ConvergeVault",
         "function": "enableAsset(bytes32,uint256,uint256)",
-        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
       },
       {
-        "hash": "0x7c54eee16db1ea7fbfecc90de26b99a4322a13d6d216d6d3dc255d5765c84ba9",
+        "hash": "0xf65e81e65d76713b9a58fc905604b82a02dafe69110e7e95880ce7d5c140f64a",
         "contractName": "ConvergeVault",
         "function": "setInitialVenue(address)",
-        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
       }
     ]
   },
@@ -183,6 +183,44 @@
         "contractName": "ConvergeVault",
         "function": "setInitialVenue(address)",
         "contractAddress": "0xbe417d5d53725e60a937f2b2894972a7344a92cc"
+      }
+    ]
+  },
+  "vault_v2_pre_halt": {
+    "chainId": 10143,
+    "deployBlock": 68615979,
+    "epochLength": 900,
+    "execDelaySeconds": 2,
+    "forwardVenue": "0xDf5958c9d759a97B7C3A9e49F8fB0924406698Aa",
+    "maxLatenessSeconds": 4,
+    "tvlCap": 5000000000,
+    "vault": "0xcd2072443D37397DbEa4e8eADbCcfB8cB1f10748",
+    "vaultKeeper": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4",
+    "vaultOwnerGuardianTreasury": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
+    "transactions": [
+      {
+        "hash": "0xd1df66f2c902fb3ad190357bb376295ad3abae98cf5eb3c8ad595f9bcbd6e989",
+        "contractName": "ConvergeVault",
+        "function": null,
+        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+      },
+      {
+        "hash": "0x4907fd465098f992e03f2a39f63cefc12a926ebbe96eb40e653f269347966692",
+        "contractName": "ForwardVenue",
+        "function": null,
+        "contractAddress": "0xdf5958c9d759a97b7c3a9e49f8fb0924406698aa"
+      },
+      {
+        "hash": "0xb4a7a8134dd26ef3d428697919db88d6f743311b7bd3dd841d28de16ba5bf4d1",
+        "contractName": "ConvergeVault",
+        "function": "enableAsset(bytes32,uint256,uint256)",
+        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
+      },
+      {
+        "hash": "0x7c54eee16db1ea7fbfecc90de26b99a4322a13d6d216d6d3dc255d5765c84ba9",
+        "contractName": "ConvergeVault",
+        "function": "setInitialVenue(address)",
+        "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
       }
     ]
   }

@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -77,3 +77,12 @@ check-4: check-all
 	@grep -q '"vault"' deployments/testnet.json
 	@test -s docs/evidence/phase-4/testnet-e2e.md
 	@echo "check-4 OK"
+
+check-5: check-all
+	pnpm --filter @converge/keeper typecheck
+	pnpm --filter @converge/keeper test
+	pnpm --filter @converge/keeper test:integration
+	pnpm --filter @converge/keeper test:chaos
+	@test -f docs/adr/ADR-006-keeper.md && test -f docs/ops/keeper-runbook.md
+	@test -f services/keeper/Dockerfile && test -f docker-compose.yml
+	@echo "check-5 OK"

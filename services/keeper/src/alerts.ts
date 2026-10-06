@@ -1,4 +1,5 @@
 import type { Logger } from "pino";
+import { errText } from "./errors";
 
 export interface Alerter {
   alert(key: string, message: string): Promise<void>;
@@ -43,7 +44,7 @@ export class WebhookAlerter implements Alerter {
       });
       if (!res.ok) this.log.error({ status: res.status }, "alert delivery failed");
     } catch (e) {
-      this.log.error({ err: String(e).slice(0, 100) }, "alert delivery failed");
+      this.log.error({ err: errText(e, 100) }, "alert delivery failed");
     }
   }
 }

@@ -21,7 +21,16 @@ export async function startAnvil(blockTime = 0.4): Promise<Anvil> {
   const bin = `${homedir()}/.foundry/bin/anvil`;
   const child: ChildProcess = spawn(
     bin,
-    ["--port", String(port), "--block-time", String(blockTime), "--disable-code-size-limit", "--silent", "--accounts", "10"],
+    [
+      "--port",
+      String(port),
+      "--block-time",
+      String(blockTime),
+      "--disable-code-size-limit",
+      "--silent",
+      "--accounts",
+      "10",
+    ],
     { stdio: "ignore" },
   );
   const url = `http://127.0.0.1:${port}`;

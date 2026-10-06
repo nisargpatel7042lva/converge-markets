@@ -38,20 +38,31 @@ describe("keeper on anvil", () => {
     await anvil?.stop();
   });
 
-  const view = () => stack.read<{ tradable: boolean }>(stack.addrs.vault, convergeVaultAbi, "venueView", [market]);
+  const view = () =>
+    stack.read<{ tradable: boolean }>(stack.addrs.vault, convergeVaultAbi, "venueView", [market]);
 
   it("makes an eligible round tradable by itself: sigma, inventory, NAV", async () => {
     await waitFor(async () => (await view()).tradable, 30_000, "the round to become tradable");
     const [sigma] = await Promise.all([
-      stack.read<readonly [boolean, string, bigint, bigint, bigint, bigint]>(stack.addrs.vault, convergeVaultAbi, "assetCfg", [
-        (await import("../support/stack")).ASSET_ID,
-      ]),
+      stack.read<readonly [boolean, string, bigint, bigint, bigint, bigint]>(
+        stack.addrs.vault,
+        convergeVaultAbi,
+        "assetCfg",
+        [(await import("../support/stack")).ASSET_ID],
+      ),
     ]);
     expect(sigma[2]).toBeGreaterThan(0n);
-    const reg = await stack.read<boolean>(stack.addrs.vault, convergeVaultAbi, "isRegistered", [market]);
+    const reg = await stack.read<boolean>(stack.addrs.vault, convergeVaultAbi, "isRegistered", [
+      market,
+    ]);
     expect(reg).toBe(true);
     // inventory is the target share of the NAV (5% of 1000), split into pairs
-    const [basis] = await stack.read<readonly [bigint, bigint]>(stack.addrs.vault, convergeVaultAbi, "positionOf", [market]);
+    const [basis] = await stack.read<readonly [bigint, bigint]>(
+      stack.addrs.vault,
+      convergeVaultAbi,
+      "positionOf",
+      [market],
+    );
     expect(Number(basis) / 1e6).toBeGreaterThan(40);
     expect(Number(basis) / 1e6).toBeLessThanOrEqual(50);
   }, 60_000);
@@ -59,35 +70,75 @@ describe("keeper on anvil", () => {
   it("executes a taker's order within two blocks and the fill is accounted on chain", async () => {
     await waitFor(async () => (await view()).tradable, 30_000, "tradable");
     const id = await stack.placeOrder(market, 0, 2_000_000n, 900_000_000_000_000_000n); // BUY_UP 2 shares, limit 0.90
-    const row = await waitFor(async () => {
-      const o = (await stack.read<readonly [Address, number, number]>(stack.addrs.venue, forwardVenueAbi, "orders", [id]));
-      return Number(o[2]) === 2 ? o : null;
-    }, 20_000, "the order to be executed");
+    const row = await waitFor(
+      async () => {
+        const o = await stack.read<readonly [Address, number, number]>(
+          stack.addrs.venue,
+          forwardVenueAbi,
+          "orders",
+          [id],
+        );
+        return Number(o[2]) === 2 ? o : null;
+      },
+      20_000,
+      "the order to be executed",
+    );
     expect(Number(row[2])).toBe(2);
-    const [, cash] = await stack.read<readonly [bigint, bigint]>(stack.addrs.vault, convergeVaultAbi, "positionOf", [market]);
+    const [, cash] = await stack.read<readonly [bigint, bigint]>(
+      stack.addrs.vault,
+      convergeVaultAbi,
+      "positionOf",
+      [market],
+    );
     expect(Number(cash) / 1e6).toBeGreaterThan(0.9); // premium received for 2 UP at about 0.5 to 0.6
     expect(Number(cash) / 1e6).toBeLessThan(1.4);
-    expect(await counter(rig.metrics, "keeper_fills_total", { outcome: "filled" })).toBeGreaterThanOrEqual(1);
+    expect(
+      await counter(rig.metrics, "keeper_fills_total", { outcome: "filled" }),
+    ).toBeGreaterThanOrEqual(1);
     const age = await histQuantile(rig.metrics, "keeper_quote_age_blocks", 0.95);
     expect(age.count).toBeGreaterThanOrEqual(1);
     expect(age.value).toBeLessThanOrEqual(2);
   }, 60_000);
 
   it("prices the fill at the fair value of the price at the order's second", async () => {
-    const sigma = Number(
-      (await stack.read<readonly [boolean, string, bigint]>(stack.addrs.vault, convergeVaultAbi, "assetCfg", [(await import("../support/stack")).ASSET_ID]))[2],
-    ) / 1e18;
-    const st = await stack.read<bigint>(market, [{ type: "function", name: "strike", stateMutability: "view", inputs: [], outputs: [{ type: "int256" }] }] as const, "strike");
+    const sigma =
+      Number(
+        (
+          await stack.read<readonly [boolean, string, bigint]>(
+            stack.addrs.vault,
+            convergeVaultAbi,
+            "assetCfg",
+            [(await import("../support/stack")).ASSET_ID],
+          )
+        )[2],
+      ) / 1e18;
+    const st = await stack.read<bigint>(
+      market,
+      [
+        {
+          type: "function",
+          name: "strike",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ type: "int256" }],
+        },
+      ] as const,
+      "strike",
+    );
     const now = await stack.now();
     const fair = fairUp(px.v, Number(st) / 1e18, sigma, end - now);
     expect(fair).toBeGreaterThan(0.3);
     expect(fair).toBeLessThan(0.7);
-    const q = await stack.read<{ quoting: boolean; fair: bigint; bids: readonly { price: bigint }[]; asks: readonly { price: bigint }[] }>(
-      stack.addrs.venue,
-      forwardVenueAbi,
-      "quoteAt",
-      [market, BigInt(Math.round(px.v * 1e8)) * 10n ** 10n, BigInt(now + 2)],
-    );
+    const q = await stack.read<{
+      quoting: boolean;
+      fair: bigint;
+      bids: readonly { price: bigint }[];
+      asks: readonly { price: bigint }[];
+    }>(stack.addrs.venue, forwardVenueAbi, "quoteAt", [
+      market,
+      BigInt(Math.round(px.v * 1e8)) * 10n ** 10n,
+      BigInt(now + 2),
+    ]);
     expect(q.quoting).toBe(true);
     expect(Math.abs(Number(q.fair) / 1e18 - fair)).toBeLessThan(0.01);
     expect(Number(q.asks[0]!.price) / 1e18).toBeGreaterThan(fair);
@@ -99,7 +150,9 @@ describe("keeper on anvil", () => {
     expect(await counter(rig.metrics, "keeper_quote_violations_total")).toBe(0);
     expect(await counter(rig.metrics, "keeper_errors_total", { kind: "mirror_mismatch" })).toBe(0);
     expect(await counter(rig.metrics, "keeper_errors_total", { kind: "perform" })).toBe(0);
-    expect(await counter(rig.metrics, "keeper_errors_total", { kind: "unhandled_rejection" })).toBe(0);
+    expect(await counter(rig.metrics, "keeper_errors_total", { kind: "unhandled_rejection" })).toBe(
+      0,
+    );
     expect(rig.keeper.status().halted).toBe(false);
   });
 });

@@ -56,8 +56,12 @@ export function evaluateRisk(i: RiskInputs, cfg: RiskCfg): Risk {
   if (i.blockLagMs !== null && i.blockLagMs > cfg.maxBlockLagMs) reasons.add("BLOCK_LAG");
   if (i.inventory) {
     // hysteresis: once halted, the inventory has to come well back under the cap
-    const lossCap = i.halted ? Math.min(cfg.inventoryResumeRatio, cfg.inventoryLossRatioCap) : cfg.inventoryLossRatioCap;
-    const excessCap = i.halted ? cfg.excessNavFractionCap * (lossCap / cfg.inventoryLossRatioCap) : cfg.excessNavFractionCap;
+    const lossCap = i.halted
+      ? Math.min(cfg.inventoryResumeRatio, cfg.inventoryLossRatioCap)
+      : cfg.inventoryLossRatioCap;
+    const excessCap = i.halted
+      ? cfg.excessNavFractionCap * (lossCap / cfg.inventoryLossRatioCap)
+      : cfg.excessNavFractionCap;
     if (i.inventory.maxLossRatio >= lossCap || i.inventory.totalLossRatio >= lossCap)
       reasons.add("INVENTORY_LOSS");
     if (i.inventory.excessNavFraction >= excessCap) reasons.add("INVENTORY_EXCESS");

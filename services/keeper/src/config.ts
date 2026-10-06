@@ -28,6 +28,13 @@ export const EnvSchema = z.object({
   DATA_STREAMS_API_SECRET: z.string().optional(),
   /** Chain used only to sanity-check the reference price (Chainlink push feed on Monad mainnet). */
   SANITY_RPC_URL: z.string().url().optional(),
+  /** Test hooks: point a price source at a relay (the testnet run injects faults through one). */
+  BINANCE_WS_URL: z.string().url().optional(),
+  COINBASE_WS_URL: z.string().url().optional(),
+  /** JSON-RPC calls per second the keeper may make (public Monad endpoints answer 429 above 15). */
+  MAX_RPS: z.coerce.number().min(0).default(10),
+  /** Multicall3 address; defaults to the canonical one on Monad (143, 10143). `none` disables. */
+  MULTICALL3: z.string().optional(),
   HTTP_PORT: z.coerce.number().int().default(9100),
   HTTP_HOST: z.string().default("127.0.0.1"),
   /** Bearer token for POST /kill and /unkill. Without it the endpoints are disabled. */
@@ -69,6 +76,11 @@ export function loadEnv(src: NodeJS.ProcessEnv = process.env): Env {
 export const PriceCfgSchema = z.object({
   /** A source with no tick for this long is dropped. */
   staleMs: z.number().int().positive().default(3_000),
+  /**
+   * Per-source override of `staleMs`. A source that only publishes on trades (Coinbase's ticker:
+   * measured gaps up to 7.4 s on ETH-USD) needs a longer window than a book-ticker stream.
+   */
+  staleMsBySource: z.record(z.number().int().positive()).default({}),
   /** Fewer healthy sources than this: pull all quotes. */
   minSources: z.number().int().min(1).default(2),
   /** Healthy sources further than this from their median: divergence. */

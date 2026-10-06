@@ -20,3 +20,6 @@ backtest/data/raw/
 backtest/data/cache/
 backtest/report/quick/
 docs/evidence/phase-4/invariant-paths.log
+ops/grafana/admin_password
+services/keeper/.env
+scripts/keeper-live/.taker-key

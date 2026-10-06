@@ -5,6 +5,7 @@ import {
   fallback,
   http,
   type Account,
+  type Address,
   type Chain,
   type Hex,
   type PublicClient,
@@ -21,32 +22,91 @@ export type Clients = {
   chain: Chain;
   /** Per-endpoint error counter bumps (for the RPC-error risk check and the metrics). */
   rpcErrors: { consecutive: number; total: number; lastOkMs: number | null };
+  /** JSON-RPC calls made, by method (a batch counts each call). */
+  rpcCalls: Map<string, number>;
 };
+
+/**
+ * A fetch that counts the JSON-RPC calls and holds them to `maxRps` (the public Monad endpoints
+ * answer HTTP 429 above 15 calls a second). Transaction submissions are never delayed: a pull-all
+ * must not queue behind reads.
+ */
+export function limitedFetch(
+  maxRps: number,
+  calls: Map<string, number>,
+  now: () => number = Date.now,
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+  base: typeof fetch = fetch,
+): typeof fetch {
+  let tokens = maxRps;
+  let last = now();
+  return async (input, init) => {
+    let methods: string[] = [];
+    try {
+      const body = JSON.parse(String(init?.body ?? "null")) as unknown;
+      methods = (Array.isArray(body) ? body : [body])
+        .map((x) => (x as { method?: string } | null)?.method)
+        .filter((m): m is string => typeof m === "string");
+    } catch {
+      // not JSON-RPC: count it as one anonymous call
+      methods = ["unknown"];
+    }
+    for (const m of methods) calls.set(m, (calls.get(m) ?? 0) + 1);
+    const urgent = methods.includes("eth_sendRawTransaction");
+    const need = Math.max(1, methods.length);
+    if (!urgent && maxRps > 0) {
+      for (;;) {
+        const t = now();
+        tokens = Math.min(maxRps, tokens + ((t - last) / 1000) * maxRps);
+        last = t;
+        if (tokens >= Math.min(need, maxRps)) {
+          tokens -= Math.min(need, maxRps);
+          break;
+        }
+        await sleep(Math.ceil(((Math.min(need, maxRps) - tokens) / maxRps) * 1000) + 5);
+      }
+    }
+    return base(input, init);
+  };
+}
 
 export function makeClients(opts: {
   rpcUrls: string[];
   keeperKey: Hex;
   chainId: number;
   timeoutMs?: number;
+  /** Cap on JSON-RPC calls per second (all endpoints together). 0 disables it. */
+  maxRps?: number;
+  /** Multicall3: concurrent reads are aggregated into one eth_call. */
+  multicall3?: Address;
 }): Clients {
   const chain = defineChain({
     id: opts.chainId,
     name: `chain-${opts.chainId}`,
     nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
     rpcUrls: { default: { http: opts.rpcUrls } },
+    ...(opts.multicall3 ? { contracts: { multicall3: { address: opts.multicall3 } } } : {}),
   });
   const timeout = opts.timeoutMs ?? 4_000;
   const errors = { consecutive: 0, total: 0, lastOkMs: null as number | null };
   // JSON-RPC batching turns the many reads of one tick into one HTTP request per endpoint.
-  const transports = opts.rpcUrls.map((u) => http(u, { timeout, batch: true, retryCount: 2, retryDelay: 60 }));
+  const rpcCalls = new Map<string, number>();
+  const fetchFn = limitedFetch(opts.maxRps ?? 0, rpcCalls);
+  const transports = opts.rpcUrls.map((u) =>
+    http(u, { timeout, batch: true, retryCount: 2, retryDelay: 60, fetchFn }),
+  );
   const transport =
     transports.length === 1
       ? (transports[0] as Transport)
       : fallback(transports, { retryCount: 1, rank: false });
   const account = privateKeyToAccount(opts.keeperKey);
-  const pub = createPublicClient({ chain, transport }) as PublicClient;
+  const pub = createPublicClient({
+    chain,
+    transport,
+    ...(opts.multicall3 ? { batch: { multicall: { wait: 8 } } } : {}),
+  }) as PublicClient;
   const wallet = createWalletClient({ account, chain, transport });
-  return { pub, wallet, account, chain, rpcErrors: errors };
+  return { pub, wallet, account, chain, rpcErrors: errors, rpcCalls };
 }
 
 /** Counts consecutive RPC failures (reset by any success) for the risk check. */

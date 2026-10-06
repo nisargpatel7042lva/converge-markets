@@ -1,5 +1,6 @@
 import type { Address, Hex } from "viem";
 import { NonceManager } from "./nonce";
+import { errText } from "../errors";
 
 export type Fees = { baseFee: bigint; tip: bigint };
 
@@ -123,7 +124,7 @@ export class TxManager {
       try {
         gas = ((await this.chain.estimateGas(base)) * BigInt(this.cfg.gasMultiplierPct)) / 100n;
       } catch (e) {
-        throw new SimulationReverted(kind, String(e).slice(0, 200));
+        throw new SimulationReverted(kind, errText(e, 200));
       }
     }
     const fees = await this.chain.fees();

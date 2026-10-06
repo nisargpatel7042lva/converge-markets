@@ -68,15 +68,39 @@ export type Stack = {
   executor: W;
   keeperAccount: Account;
   signerKey: Hex;
-  addrs: { usdc: Address; factory: Address; streams: Address; vault: Address; venue: Address; verifier: Address };
+  addrs: {
+    usdc: Address;
+    factory: Address;
+    streams: Address;
+    vault: Address;
+    venue: Address;
+    verifier: Address;
+  };
   /** Moves chain time forward and mines a block. */
   warp: (seconds: number) => Promise<void>;
   now: () => Promise<number>;
   report: (ts: number, price: number) => Hex;
-  tx: (w: W, p: { address: Address; abi: Abi | readonly unknown[]; functionName: string; args?: readonly unknown[]; value?: bigint }) => Promise<Hex>;
-  read: <T>(address: Address, abi: Abi | readonly unknown[], functionName: string, args?: readonly unknown[]) => Promise<T>;
+  tx: (
+    w: W,
+    p: {
+      address: Address;
+      abi: Abi | readonly unknown[];
+      functionName: string;
+      args?: readonly unknown[];
+      value?: bigint;
+    },
+  ) => Promise<Hex>;
+  read: <T>(
+    address: Address,
+    abi: Abi | readonly unknown[],
+    functionName: string,
+    args?: readonly unknown[],
+  ) => Promise<T>;
   /** Creates the 15-minute round starting at the next boundary at least `lead` seconds ahead, opens it. */
-  openRound: (price: number, lead?: number) => Promise<{ market: Address; start: number; end: number }>;
+  openRound: (
+    price: number,
+    lead?: number,
+  ) => Promise<{ market: Address; start: number; end: number }>;
   /** Submits the end report, waits out the finalization window and resolves the round. */
   resolveRound: (market: Address, end: number, price: number) => Promise<void>;
   /** Deposits `usd`, settles the epoch and claims shares (the vault then has a NAV). */
@@ -92,7 +116,9 @@ export async function deployStack(url: string): Promise<Stack> {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_chainId", params: [] }),
       })
-    ).json().then((j: { result: string }) => BigInt(j.result)),
+    )
+      .json()
+      .then((j: { result: string }) => BigInt(j.result)),
   );
   const chain = defineChain({
     id: chainId,
@@ -100,8 +126,13 @@ export async function deployStack(url: string): Promise<Stack> {
     nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
     rpcUrls: { default: { http: [url] } },
   });
-  const pub = createPublicClient({ chain, transport: http(url), pollingInterval: 100 }) as PublicClient;
-  const mk = (k: Hex): W => createWalletClient({ account: privateKeyToAccount(k), chain, transport: http(url) });
+  const pub = createPublicClient({
+    chain,
+    transport: http(url),
+    pollingInterval: 100,
+  }) as PublicClient;
+  const mk = (k: Hex): W =>
+    createWalletClient({ account: privateKeyToAccount(k), chain, transport: http(url) });
   const admin = mk(KEYS.admin);
   const lp = mk(KEYS.lp);
   const taker = mk(KEYS.taker);
@@ -128,11 +159,31 @@ export async function deployStack(url: string): Promise<Stack> {
   const usdc = await deploy("MockERC20", ["Test USD", "tUSDC", 6]);
   const verifier = await deploy("MockStreamsVerifierProxy", [signer.address]);
   const factory = await deploy("MarketFactory", [usdc, admin.account.address]);
-  const streams = await deploy("DataStreamsResolver", [admin.account.address, verifier, 20n, 1800n]);
-  await tx(admin, { address: streams, abi: dataStreamsResolverAbi, functionName: "configureAsset", args: [ASSET_ID, TEST_FEED] });
+  const streams = await deploy("DataStreamsResolver", [
+    admin.account.address,
+    verifier,
+    20n,
+    1800n,
+  ]);
+  await tx(admin, {
+    address: streams,
+    abi: dataStreamsResolverAbi,
+    functionName: "configureAsset",
+    args: [ASSET_ID, TEST_FEED],
+  });
   const creator = await read<Hex>(factory, marketFactoryAbi, "CREATOR_ROLE");
-  await tx(admin, { address: factory, abi: marketFactoryAbi, functionName: "grantRole", args: [creator, admin.account.address] });
-  await tx(admin, { address: factory, abi: marketFactoryAbi, functionName: "setAsset", args: [ASSET_ID, streams, "TEST", true] });
+  await tx(admin, {
+    address: factory,
+    abi: marketFactoryAbi,
+    functionName: "grantRole",
+    args: [creator, admin.account.address],
+  });
+  await tx(admin, {
+    address: factory,
+    abi: marketFactoryAbi,
+    functionName: "setAsset",
+    args: [ASSET_ID, streams, "TEST", true],
+  });
   const P = DEFAULT_PARAMS_ONCHAIN;
   const wad = (x: number) => BigInt(Math.round(x * 1e9)) * 10n ** 9n;
   const params = {
@@ -155,15 +206,40 @@ export async function deployStack(url: string): Promise<Stack> {
     totalAtRiskMaxFraction: wad(P.totalAtRiskMaxFraction),
   };
   const vault = await deploy("ConvergeVault", [
-    usdc, factory, streams, admin.account.address, admin.account.address, keeperAccount.address,
-    admin.account.address, 900n, 10n * U, 5_000n * U, params,
+    usdc,
+    factory,
+    streams,
+    admin.account.address,
+    admin.account.address,
+    keeperAccount.address,
+    admin.account.address,
+    900n,
+    10n * U,
+    5_000n * U,
+    params,
   ]);
   const venue = await deploy("ForwardVenue", [vault, 2, 4, parseEther("0.001")]);
-  await tx(admin, { address: vault, abi: convergeVaultAbi, functionName: "enableAsset", args: [ASSET_ID, wad(0.4), wad(1.2)] });
-  await tx(admin, { address: vault, abi: convergeVaultAbi, functionName: "setInitialVenue", args: [venue] });
+  await tx(admin, {
+    address: vault,
+    abi: convergeVaultAbi,
+    functionName: "enableAsset",
+    args: [ASSET_ID, wad(0.4), wad(1.2)],
+  });
+  await tx(admin, {
+    address: vault,
+    abi: convergeVaultAbi,
+    functionName: "setInitialVenue",
+    args: [venue],
+  });
 
   const rpc = async (method: string, params: unknown[]) =>
-    (await (await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) })).json()) as { result?: unknown };
+    (await (
+      await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      })
+    ).json()) as { result?: unknown };
   const now = async () => Number((await pub.getBlock()).timestamp);
   const warp: Stack["warp"] = async (s) => {
     await rpc("evm_increaseTime", [s]);
@@ -178,15 +254,34 @@ export async function deployStack(url: string): Promise<Stack> {
     }
   };
   const report = (ts: number, price: number) =>
-    signTestReportSync(KEYS.signer, TEST_FEED, BigInt(ts), BigInt(Math.round(price * 1e8)) * 10n ** 10n);
+    signTestReportSync(
+      KEYS.signer,
+      TEST_FEED,
+      BigInt(ts),
+      BigInt(Math.round(price * 1e8)) * 10n ** 10n,
+    );
 
   const openRound: Stack["openRound"] = async (price, lead = 40) => {
     const t = await now();
     const start = (Math.floor((t + lead) / 900) + 1) * 900;
-    await tx(admin, { address: factory, abi: marketFactoryAbi, functionName: "createMarket", args: [ASSET_ID, 900n, BigInt(start)] });
-    const market = await read<Address>(factory, marketFactoryAbi, "getMarket", [ASSET_ID, 900n, BigInt(start)]);
+    await tx(admin, {
+      address: factory,
+      abi: marketFactoryAbi,
+      functionName: "createMarket",
+      args: [ASSET_ID, 900n, BigInt(start)],
+    });
+    const market = await read<Address>(factory, marketFactoryAbi, "getMarket", [
+      ASSET_ID,
+      900n,
+      BigInt(start),
+    ]);
     await warpTo(start + 1);
-    await tx(admin, { address: streams, abi: dataStreamsResolverAbi, functionName: "submit", args: [ASSET_ID, BigInt(start), report(start, price)] });
+    await tx(admin, {
+      address: streams,
+      abi: dataStreamsResolverAbi,
+      functionName: "submit",
+      args: [ASSET_ID, BigInt(start), report(start, price)],
+    });
     await warp(21);
     await tx(admin, { address: market, abi: marketAbi, functionName: "open", args: ["0x"] });
     return { market, start, end: start + 900 };
@@ -194,34 +289,96 @@ export async function deployStack(url: string): Promise<Stack> {
 
   const resolveRound: Stack["resolveRound"] = async (market, end, price) => {
     await warpTo(end + 1);
-    await tx(admin, { address: streams, abi: dataStreamsResolverAbi, functionName: "submit", args: [ASSET_ID, BigInt(end), report(end, price)] });
+    await tx(admin, {
+      address: streams,
+      abi: dataStreamsResolverAbi,
+      functionName: "submit",
+      args: [ASSET_ID, BigInt(end), report(end, price)],
+    });
     await warp(21);
     await tx(admin, { address: market, abi: marketAbi, functionName: "resolve", args: ["0x"] });
   };
 
   const fund: Stack["fund"] = async (usd) => {
     const amount = BigInt(Math.round(usd * 1e6));
-    await tx(lp, { address: usdc, abi: mockErc20Abi, functionName: "mint", args: [lp.account.address, amount] });
-    await tx(lp, { address: usdc, abi: mockErc20Abi, functionName: "approve", args: [vault, amount] });
+    await tx(lp, {
+      address: usdc,
+      abi: mockErc20Abi,
+      functionName: "mint",
+      args: [lp.account.address, amount],
+    });
+    await tx(lp, {
+      address: usdc,
+      abi: mockErc20Abi,
+      functionName: "approve",
+      args: [vault, amount],
+    });
     const e = await read<bigint>(vault, convergeVaultAbi, "currentEpoch");
-    await tx(lp, { address: vault, abi: convergeVaultAbi, functionName: "requestDeposit", args: [amount] });
+    await tx(lp, {
+      address: vault,
+      abi: convergeVaultAbi,
+      functionName: "requestDeposit",
+      args: [amount],
+    });
     const end = Number(await read<bigint>(vault, convergeVaultAbi, "epochEnd", [e]));
     await warpTo(end + 1);
-    await tx(lp, { address: vault, abi: convergeVaultAbi, functionName: "settleEpoch", args: [e, []] });
-    await tx(lp, { address: vault, abi: convergeVaultAbi, functionName: "claimDeposit", args: [e, lp.account.address] });
+    await tx(lp, {
+      address: vault,
+      abi: convergeVaultAbi,
+      functionName: "settleEpoch",
+      args: [e, []],
+    });
+    await tx(lp, {
+      address: vault,
+      abi: convergeVaultAbi,
+      functionName: "claimDeposit",
+      args: [e, lp.account.address],
+    });
   };
 
   const placeOrder: Stack["placeOrder"] = async (market, kind, shares, limit) => {
     const escrow = (shares * limit + WAD - 1n) / WAD + 4n;
-    await tx(admin, { address: usdc, abi: mockErc20Abi, functionName: "mint", args: [taker.account.address, escrow] });
-    await tx(taker, { address: usdc, abi: mockErc20Abi, functionName: "approve", args: [venue, escrow] });
-    await tx(taker, { address: venue, abi: forwardVenueAbi, functionName: "placeOrder", args: [market, kind, shares, limit], value: parseEther("0.001") });
+    await tx(admin, {
+      address: usdc,
+      abi: mockErc20Abi,
+      functionName: "mint",
+      args: [taker.account.address, escrow],
+    });
+    await tx(taker, {
+      address: usdc,
+      abi: mockErc20Abi,
+      functionName: "approve",
+      args: [venue, escrow],
+    });
+    await tx(taker, {
+      address: venue,
+      abi: forwardVenueAbi,
+      functionName: "placeOrder",
+      args: [market, kind, shares, limit],
+      value: parseEther("0.001"),
+    });
     return (await read<bigint>(venue, forwardVenueAbi, "nextOrderId")) - 1n;
   };
 
   return {
-    url, pub, chain, admin, lp, taker, executor, keeperAccount, signerKey: KEYS.signer,
+    url,
+    pub,
+    chain,
+    admin,
+    lp,
+    taker,
+    executor,
+    keeperAccount,
+    signerKey: KEYS.signer,
     addrs: { usdc, factory, streams, vault, venue, verifier },
-    warp, now, report, tx, read, openRound, resolveRound, fund, placeOrder,
+    warp,
+    now,
+    report,
+    tx,
+    read,
+    openRound,
+    resolveRound,
+    fund,
+    placeOrder,
   };
 }

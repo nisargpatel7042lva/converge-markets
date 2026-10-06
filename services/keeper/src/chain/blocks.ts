@@ -1,5 +1,6 @@
 import { createPublicClient, webSocket, type PublicClient } from "viem";
 import type { Logger } from "pino";
+import { errText } from "../errors";
 
 export type Head = {
   number: bigint;
@@ -75,15 +76,19 @@ export class BlockSource {
         transport: webSocket(this.o.wsUrl, { retryCount: 0 }),
       }) as PublicClient;
       this.unwatch = this.wsClient.watchBlocks({
-        onBlock: (b) => this.emit(b.number as bigint, b.timestamp, "ws"),
+        onBlock: (b) => {
+          // a socket error can deliver an empty block: ignore it, the polling fallback covers
+          if (b?.number === null || b?.number === undefined) return;
+          this.emit(b.number, b.timestamp, "ws");
+        },
         onError: (e) => {
-          this.log.warn({ err: String(e).slice(0, 100) }, "block socket error");
+          this.log.warn({ err: errText(e, 100) }, "block socket error");
           this.reopenWsLater();
         },
         emitMissed: false,
       });
     } catch (e) {
-      this.log.warn({ err: String(e).slice(0, 100) }, "block socket open failed");
+      this.log.warn({ err: errText(e, 100) }, "block socket open failed");
       this.reopenWsLater();
     }
   }
@@ -110,7 +115,7 @@ export class BlockSource {
         const b = await this.pub.getBlock();
         this.emit(b.number as bigint, b.timestamp, "poll");
       } catch (e) {
-        this.log.debug({ err: String(e).slice(0, 80) }, "block poll failed");
+        this.log.debug({ err: errText(e, 80) }, "block poll failed");
       } finally {
         busy = false;
       }

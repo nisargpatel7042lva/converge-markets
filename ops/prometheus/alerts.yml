@@ -1,0 +1,27 @@
+groups:
+  - name: converge-keeper
+    rules:
+      - alert: KeeperDown
+        expr: up{job="converge-keeper"} == 0
+        for: 30s
+        labels: { severity: page }
+      - alert: KeeperHalted
+        expr: keeper_halted == 1
+        for: 2m
+        labels: { severity: warn }
+        annotations: { summary: "quotes have been pulled for more than 2 minutes" }
+      - alert: KeeperLoopStalled
+        expr: time() - keeper_last_tick_timestamp_seconds > 30
+        for: 15s
+        labels: { severity: page }
+      - alert: QuoteAgeHigh
+        expr: histogram_quantile(0.95, sum(rate(keeper_quote_age_blocks_bucket[10m])) by (le)) > 2
+        for: 10m
+        labels: { severity: warn }
+      - alert: QuoteViolation
+        expr: increase(keeper_quote_violations_total[5m]) > 0
+        labels: { severity: page }
+      - alert: KeeperWalletLow
+        expr: keeper_wallet_balance_mon < 0.5
+        for: 1m
+        labels: { severity: warn }

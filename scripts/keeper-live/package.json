@@ -1,0 +1,21 @@
+{
+  "name": "@converge/keeper-live",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "relay": "tsx src/relay.ts",
+    "driver": "tsx src/driver.ts",
+    "collect": "tsx src/collect.ts"
+  },
+  "dependencies": {
+    "@converge/sdk": "workspace:*",
+    "viem": "^2.54.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.19.0"
+  }
+}
