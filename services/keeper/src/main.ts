@@ -118,6 +118,7 @@ async function main(): Promise<void> {
     assets,
     reports: makeReportSource(env, refs, () => keeperRef?.chainOffsetMs() ?? 0),
     tx,
+    gasMultiplierPct: env.GAS_MULTIPLIER_PCT,
     ledger: new CostLedger(resolve(env.OUT_DIR, "costs.jsonl")),
     wsUrl: env.WS_URL,
   });

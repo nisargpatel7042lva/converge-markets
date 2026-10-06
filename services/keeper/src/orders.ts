@@ -10,6 +10,8 @@ import { readNextOrderId, readOrder, type OrderRow } from "./chain/vault";
 export class OrderTracker {
   private scanFrom: bigint | null = null;
   private readonly pending = new Map<bigint, OrderRow>();
+  /** Wall clock when each order was first seen (latency instrumentation). */
+  readonly firstSeenMs = new Map<bigint, number>();
 
   constructor(
     private readonly c: Clients,
@@ -31,6 +33,8 @@ export class OrderTracker {
   /** Drop an order we know is finished (we executed or expired it). */
   forget(id: bigint): void {
     this.pending.delete(id);
+    if (this.firstSeenMs.size > 2_000)
+      this.firstSeenMs.delete(this.firstSeenMs.keys().next().value as bigint);
   }
 
   async refresh(): Promise<void> {
@@ -42,8 +46,10 @@ export class OrderTracker {
     if (ids.length === 0) return;
     const rows = await Promise.all(ids.map((id) => readOrder(this.c, this.venue, id)));
     for (const r of rows) {
-      if (r.status === 1) this.pending.set(r.id, r);
-      else this.pending.delete(r.id);
+      if (r.status === 1) {
+        if (!this.pending.has(r.id)) this.firstSeenMs.set(r.id, Date.now());
+        this.pending.set(r.id, r);
+      } else this.pending.delete(r.id);
     }
     this.scanFrom = next;
   }

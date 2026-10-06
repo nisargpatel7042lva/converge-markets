@@ -74,6 +74,8 @@ export type KeeperDeps = {
   venue?: { execDelay: number; maxLateness: number };
   /** Gas limit used for halts (a tiny call: no estimate round trip). */
   haltGas?: bigint;
+  /** Gas-limit margin over the estimate, in percent (Monad bills the limit). */
+  gasMultiplierPct?: number;
 };
 
 const WAD = 10n ** 18n;
@@ -347,12 +349,14 @@ export class Keeper {
     try {
       await this.riskCheck("block");
       if (!this.state) return; // the first slow tick has not run yet
+      // Act on the orders already known first: the refresh below costs two round trips, and an
+      // order that is due now must not wait for it. New orders are picked up for the next block
+      // (an order is placed two seconds before it is due, so it is known long before).
+      this.dispatch(
+        this.planNow().filter((a) => a.type === "executeOrder" || a.type === "expireOrder"),
+      );
       await this.orders.refresh();
       this.d.metrics.pendingOrders.set(this.orders.size);
-      const acts = this.planNow().filter(
-        (a) => a.type === "executeOrder" || a.type === "expireOrder",
-      );
-      this.dispatch(acts);
     } catch (e) {
       this.d.metrics.errors.inc({ kind: "fast" });
       this.d.log.warn({ err: errText(e, 160) }, "fast path failed");
@@ -502,6 +506,7 @@ export class Keeper {
       this.dispatch(this.planNow()); // while killed the plan keeps only what protects users
       await this.housekeeping();
       this.stateOkAt = this.now();
+      void this.d.tx?.warm();
     } catch (e) {
       this.d.metrics.errors.inc({ kind: "slow" });
       this.d.metrics.rpcErrors.set(this.d.clients.rpcErrors.consecutive);
@@ -898,6 +903,7 @@ export class Keeper {
 
   /** The latency-critical step: build the report for the order's second and execute it once. */
   private async execute(o: OrderRow): Promise<void> {
+    const t0 = this.now();
     const { venue } = this.d.addrs;
     const st = this.state as VaultState;
     const mk = st.markets.find((x) => x.address.toLowerCase() === o.market.toLowerCase());
@@ -931,10 +937,20 @@ export class Keeper {
     // what the chain says would happen
     let filled = 0n;
     let premium = 0n;
+    let gas: bigint | undefined;
     try {
-      const res = await tracked(this.d.clients, () =>
-        this.d.clients.pub.call({ account: this.d.clients.account, to: venue, data }),
-      );
+      // the simulation and the gas estimate are independent: one round trip, not two
+      const [res, est] = await Promise.all([
+        tracked(this.d.clients, () =>
+          this.d.clients.pub.call({ account: this.d.clients.account, to: venue, data }),
+        ),
+        this.d.mode === "live"
+          ? tracked(this.d.clients, () =>
+              this.d.clients.pub.estimateGas({ account: this.d.clients.account, to: venue, data }),
+            )
+          : Promise.resolve(undefined),
+      ]);
+      if (est !== undefined) gas = (est * BigInt(this.d.gasMultiplierPct ?? 115)) / 100n;
       const out = decodeFunctionResult({
         abi: forwardVenueAbi,
         functionName: "executeOrder",
@@ -950,6 +966,7 @@ export class Keeper {
       this.orders.forget(o.id);
       return;
     }
+    const tSim = this.now();
     if (filled === 0n && !this.d.cfg.executeUnfilled) return;
 
     // Pull BEFORE the vault's own ceiling is reached: if this fill would take the inventory past the
@@ -995,8 +1012,10 @@ export class Keeper {
       return;
     }
     const first = this.heads.find((h) => Number(h.timestamp) >= o.execAt);
-    const r = await this.send("executeOrder", venue, data);
+    const tSend = this.now();
+    const r = await this.send("executeOrder", venue, data, gas === undefined ? {} : { gas });
     if (!r) return;
+    const seen = this.orders.firstSeenMs.get(o.id);
     this.orders.forget(o.id);
     if (r.status === "success") {
       const outcome = filled > 0n ? "filled" : "unfilled";
@@ -1017,6 +1036,15 @@ export class Keeper {
             pricingBlock: first.number.toString(),
             mined: r.blockNumber.toString(),
             blocks: age,
+            // where the time went, in ms after the first block at or past the order's second
+            stagesMs: {
+              orderSeen: seen === undefined ? null : seen - first.seenAtMs,
+              executeStart: t0 - first.seenAtMs,
+              simulated: tSim - first.seenAtMs,
+              broadcast: r.sentAtMs - first.seenAtMs,
+              mined: r.minedAtMs - first.seenAtMs,
+              prepBeforeBroadcast: r.sentAtMs - tSend,
+            },
           },
           "order executed",
         );

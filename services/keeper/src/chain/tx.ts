@@ -137,6 +137,19 @@ export class TxManager {
     this.sleep = hooks.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   }
 
+  /**
+   * Primes what a submission needs (fees and the first nonce) so that the first send after a quiet
+   * period does not spend round trips on them. Errors are ignored: it is only an optimisation.
+   */
+  async warm(): Promise<void> {
+    try {
+      await this.chain.fees();
+      if (this.nonces.pendingCount === 0) this.nonces.release(await this.nonces.acquire());
+    } catch {
+      // the real submission reports its own errors
+    }
+  }
+
   async submit(kind: string, to: Address, data: Hex, opts: TxOpts = {}): Promise<TxResult> {
     const base = { to, data, ...(opts.value === undefined ? {} : { value: opts.value }) };
     let gas = opts.gas;
