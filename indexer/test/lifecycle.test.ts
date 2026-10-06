@@ -56,7 +56,9 @@ describe("full lifecycle", () => {
       .depositClaimed(0, LP, LP, 1000n * U - 1000n, 0n);
 
     // Inventory split by the vault; the market opens.
-    c.tx().split(m, VAULT, 100n * U);
+    c.tx()
+      .split(m, VAULT, 100n * U)
+      .vault("InventorySplit", { market: m.market, amount: 100n * U });
     c.tx(900).opened(m, 65_000n * 10n ** 8n);
 
     // TAKER buys 10 UP: one order, two ladder levels, 6 @ 0.54 = 3.24 and 4 @ 0.56 = 2.24 (premium 5.48).
@@ -120,6 +122,8 @@ describe("full lifecycle", () => {
       })
       .orderExecuted(2, OTHER, 4n * U, 2_200_000n);
 
+    // After the fills the vault merges 2 pairs back (basis 100 -> ... fills overwrite it, merge subtracts).
+    c.tx().vault("InventoryMerged", { market: m.market, amount: 2n * U });
     // The market resolves UP (end price above the strike), TAKER redeems its 6 UP at 1:1.
     c.tx(900).resolved(m, 2, 65_000n * 10n ** 8n, 65_100n * 10n ** 8n);
     c.tx().redeemed(m, TAKER, 6n * U, 0n, 6n * U);
@@ -156,7 +160,7 @@ describe("full lifecycle", () => {
     expect(market.tradeCount).toBe(3);
     expect(market.volume).toBe(3_240_000n + 2_240_000n + 2_200_000n);
     expect(market.lastUpPrice?.toString()).toBe("0.55");
-    expect([market.vaultBasis, market.vaultCash]).toEqual([-6n * U, 3_280_000n]);
+    expect([market.vaultBasis, market.vaultCash]).toEqual([-8n * U, 3_280_000n]);
     // supply: vault split 100 + 0 (market created only by the vault's split); redeemed 6 UP burned
     expect(market.upSupply).toBe(100n * U - 6n * U);
     expect(market.downSupply).toBe(100n * U);
@@ -516,6 +520,15 @@ describe("transfers and flags", () => {
     idx = await run(c);
     v = await idx.Vault.getOrThrow(VAULT);
     expect([v.quotingPaused, v.quotingHalted]).toEqual([false, false]);
+  });
+
+  it("a vault row created by any event starts from the constructor state in deployments/testnet.json", async () => {
+    const c = new Chain(T0);
+    c.tx().vault("QuotingPaused", { by: LP });
+    const v = await (await run(c)).Vault.getOrThrow(VAULT);
+    expect(v.performanceFeeBps).toBe(1000); // the contract's field initializer
+    expect(v.tvlCap).toBe(5000n * U); // deployments/testnet.json vault.tvlCap
+    expect(v.keeper).toBe("0x6e5008e79b3f6bcf314467c8b325b3784a9e9af4"); // vault.vaultKeeper, lowercased
   });
 
   it("an invalidated market and a redeem fee are recorded", async () => {

@@ -33,6 +33,8 @@ contracts:
       - event: "NavSnapshot(uint256 navLower, uint256 navUpper, uint256 ppsLower, uint256 supply, bool settlement)"
       - event: "PerformanceFee(uint256 feeShares, uint256 feeAssets, uint256 newHwm)"
       - event: "Fill(address indexed market, bool upToken, bool vaultSells, uint256 units, uint256 premium, address indexed taker, int256 basis, int256 cash)"
+      - event: "InventorySplit(address indexed market, uint256 amount)"
+      - event: "InventoryMerged(address indexed market, uint256 amount)"
       - event: "MarketRegistered(address indexed market, bytes32 indexed assetId)"
       - event: "MarketUnregistered(address indexed market)"
       - event: "QuotingPaused(address indexed by)"

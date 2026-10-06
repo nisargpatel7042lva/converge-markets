@@ -11,6 +11,7 @@ import {
   type VaultEpoch,
 } from "envio";
 import { dayOf, performance, type Obs } from "../lib/apy";
+import { VAULT_DEFAULTS } from "../lib/deployment-defaults";
 import {
   addEscrowShares,
   addShares,
@@ -42,7 +43,7 @@ const WINDOWS = [
 /** How many empty days the baseline search may skip before it gives up (quiet vault). */
 const BASELINE_WALK_DAYS = 21;
 
-const zeroVault = (id: string): Vault => ({
+const zeroVault = (id: string, chainId: number): Vault => ({
   id,
   navLower: 0n,
   navUpper: 0n,
@@ -50,9 +51,10 @@ const zeroVault = (id: string): Vault => ({
   supply: 0n,
   totalSupply: 0n,
   lastNavTimestamp: 0,
-  tvlCap: 0n,
-  performanceFeeBps: 0,
-  keeper: undefined,
+  // Constructor state no event carries (generated from deployments/*.json; reconcile verifies it).
+  tvlCap: VAULT_DEFAULTS[chainId]?.tvlCap ?? 0n,
+  performanceFeeBps: VAULT_DEFAULTS[chainId]?.performanceFeeBps ?? 0,
+  keeper: VAULT_DEFAULTS[chainId]?.keeper,
   venue: undefined,
   quotingPaused: false,
   quotingHalted: false,
@@ -78,11 +80,11 @@ const zeroVault = (id: string): Vault => ({
 
 async function updateVault(
   context: Ctx,
-  address: string,
+  event: { srcAddress: string; chainId: number },
   fn: (v: Vault) => Partial<Vault>,
 ): Promise<Vault> {
-  const id = lc(address);
-  const v = (await context.Vault.get(id)) ?? zeroVault(id);
+  const id = lc(event.srcAddress);
+  const v = (await context.Vault.get(id)) ?? zeroVault(id, event.chainId);
   const next = { ...v, ...fn(v) };
   context.Vault.set(next);
   return next;
@@ -259,7 +261,7 @@ indexer.onEvent(
   { contract: "ConvergeVault", event: "PerformanceFee" },
   async ({ event, context }) => {
     const ts = event.block.timestamp;
-    await updateVault(context, event.srcAddress, (v) => ({
+    await updateVault(context, event, (v) => ({
       pendingFeeShares: event.params.feeShares,
       pendingFeeAssets: event.params.feeAssets,
       totalPerformanceFees: v.totalPerformanceFees + event.params.feeAssets,
@@ -309,7 +311,7 @@ indexer.onEvent(
       settledTimestamp: ts,
       settledBlock: event.block.number,
     }));
-    await updateVault(context, event.srcAddress, (v) => ({
+    await updateVault(context, event, (v) => ({
       lastSettledEpoch: id,
       settledEpochs: v.settledEpochs + 1,
       totalDeposited: v.totalDeposited + event.params.depositsAccepted,
@@ -344,7 +346,7 @@ indexer.onEvent(
       settledTimestamp: ts,
       settledBlock: event.block.number,
     }));
-    await updateVault(context, event.srcAddress, (v) => ({ expiredEpochs: v.expiredEpochs + 1 }));
+    await updateVault(context, event, (v) => ({ expiredEpochs: v.expiredEpochs + 1 }));
     await setRequestStatuses(context, id, "REFUNDABLE");
   },
 );
@@ -401,7 +403,7 @@ indexer.onEvent({ contract: "ConvergeVault", event: "NavSnapshot" }, async ({ ev
   const sinceFirst = first ? performance(cur, first) : undefined;
   metrics.apySinceInception = sinceFirst?.apy;
 
-  await updateVault(context, event.srcAddress, () => ({
+  await updateVault(context, event, () => ({
     navLower: p.navLower,
     navUpper: p.navUpper,
     ppsLower: p.ppsLower,
@@ -469,7 +471,7 @@ indexer.onEvent({ contract: "ConvergeVault", event: "Fill" }, async ({ event, co
     context.log.error(`Fill for unknown market ${marketId}`);
   }
 
-  await updateVault(context, event.srcAddress, (v) => ({
+  await updateVault(context, event, (v) => ({
     totalFillVolume: v.totalFillVolume + p.premium,
     fillCount: v.fillCount + 1,
   }));
@@ -500,6 +502,25 @@ indexer.onEvent({ contract: "ConvergeVault", event: "Fill" }, async ({ event, co
 
 // ------------------------------------------------------------------ registry and inventory
 
+// splitForInventory adds `amount` to the vault's basis in the market, mergeInventory (also called by
+// redeemResolved) removes it; Fill carries the absolute basis after a fill. Together they keep
+// Market.vaultBasis equal to ConvergeVault.positionOf(market).basis.
+indexer.onEvent(
+  { contract: "ConvergeVault", event: "InventorySplit" },
+  async ({ event, context }) => {
+    const m = await context.Market.get(lc(event.params.market));
+    if (m) context.Market.set({ ...m, vaultBasis: m.vaultBasis + event.params.amount });
+  },
+);
+
+indexer.onEvent(
+  { contract: "ConvergeVault", event: "InventoryMerged" },
+  async ({ event, context }) => {
+    const m = await context.Market.get(lc(event.params.market));
+    if (m) context.Market.set({ ...m, vaultBasis: m.vaultBasis - event.params.amount });
+  },
+);
+
 indexer.onEvent(
   { contract: "ConvergeVault", event: "MarketRegistered" },
   async ({ event, context }) => {
@@ -521,46 +542,46 @@ indexer.onEvent(
 indexer.onEvent(
   { contract: "ConvergeVault", event: "QuotingPaused" },
   async ({ event, context }) => {
-    await updateVault(context, event.srcAddress, () => ({ quotingPaused: true }));
+    await updateVault(context, event, () => ({ quotingPaused: true }));
   },
 );
 indexer.onEvent(
   { contract: "ConvergeVault", event: "QuotingResumed" },
   async ({ event, context }) => {
-    await updateVault(context, event.srcAddress, () => ({ quotingPaused: false }));
+    await updateVault(context, event, () => ({ quotingPaused: false }));
   },
 );
 indexer.onEvent(
   { contract: "ConvergeVault", event: "QuotingHalted" },
   async ({ event, context }) => {
-    await updateVault(context, event.srcAddress, () => ({ quotingHalted: true }));
+    await updateVault(context, event, () => ({ quotingHalted: true }));
   },
 );
 indexer.onEvent(
   { contract: "ConvergeVault", event: "QuotingUnhalted" },
   async ({ event, context }) => {
-    await updateVault(context, event.srcAddress, () => ({ quotingHalted: false }));
+    await updateVault(context, event, () => ({ quotingHalted: false }));
   },
 );
 indexer.onEvent(
   { contract: "ConvergeVault", event: "BreakerTripped" },
   async ({ event, context }) => {
-    await updateVault(context, event.srcAddress, (v) => ({ breakerTrips: v.breakerTrips + 1 }));
+    await updateVault(context, event, (v) => ({ breakerTrips: v.breakerTrips + 1 }));
   },
 );
 indexer.onEvent({ contract: "ConvergeVault", event: "TvlCapSet" }, async ({ event, context }) => {
-  await updateVault(context, event.srcAddress, () => ({ tvlCap: event.params.cap }));
+  await updateVault(context, event, () => ({ tvlCap: event.params.cap }));
 });
 indexer.onEvent({ contract: "ConvergeVault", event: "FeeSet" }, async ({ event, context }) => {
-  await updateVault(context, event.srcAddress, () => ({
+  await updateVault(context, event, () => ({
     performanceFeeBps: Number(event.params.bps),
   }));
 });
 indexer.onEvent({ contract: "ConvergeVault", event: "KeeperSet" }, async ({ event, context }) => {
-  await updateVault(context, event.srcAddress, () => ({ keeper: lc(event.params.keeper) }));
+  await updateVault(context, event, () => ({ keeper: lc(event.params.keeper) }));
 });
 indexer.onEvent({ contract: "ConvergeVault", event: "VenueSet" }, async ({ event, context }) => {
-  await updateVault(context, event.srcAddress, () => ({ venue: lc(event.params.venue) }));
+  await updateVault(context, event, () => ({ venue: lc(event.params.venue) }));
 });
 
 // ------------------------------------------------------------------ share token (ERC-20)
@@ -571,7 +592,7 @@ indexer.onEvent({ contract: "ConvergeVault", event: "Transfer" }, async ({ event
   const mint = lc(from) === ZERO;
   const burn = lc(to) === ZERO;
   if (mint || burn) {
-    await updateVault(context, event.srcAddress, (v) => ({
+    await updateVault(context, event, (v) => ({
       totalSupply: v.totalSupply + (mint ? value : -value),
     }));
   }

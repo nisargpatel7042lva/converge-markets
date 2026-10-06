@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-6 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -77,3 +77,23 @@ check-4: check-all
 	@grep -q '"vault"' deployments/testnet.json
 	@test -s docs/evidence/phase-4/testnet-e2e.md
 	@echo "check-4 OK"
+
+# Phase 6: the Envio indexer. Offline (no HyperSync token, no public RPC): codegen, config
+# freshness, TypeScript, handler tests with mock events (createTestIndexer), ABI parity against
+# `forge build` output, SDK query helpers, the reconcile / latency / lag tooling and the generated
+# query docs. The hosted backfill, hosted latency and live lag runs need the Envio token and are
+# documented in docs/phases/PHASE-6-report.md; the LOCAL end-to-end run is
+# `bash scripts/reconcile/run-local.sh` (needs docker + anvil).
+check-6:
+	cd contracts && forge build
+	pnpm --filter @converge/indexer check:config
+	pnpm --filter @converge/indexer typecheck
+	pnpm --filter @converge/indexer test
+	pnpm --filter @converge/sdk typecheck
+	pnpm --filter @converge/sdk test
+	pnpm --filter @converge/reconcile typecheck
+	pnpm --filter @converge/reconcile test
+	pnpm --filter @converge/reconcile check:queries-doc
+	pnpm exec prettier --check indexer packages/sdk scripts/reconcile
+	@test -f indexer/QUERIES.md && test -f docs/phases/PHASE-6-plan.md
+	@echo "check-6 OK"

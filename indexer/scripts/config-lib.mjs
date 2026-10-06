@@ -27,6 +27,8 @@ export const CONTRACTS = {
     "NavSnapshot(uint256 navLower, uint256 navUpper, uint256 ppsLower, uint256 supply, bool settlement)",
     "PerformanceFee(uint256 feeShares, uint256 feeAssets, uint256 newHwm)",
     "Fill(address indexed market, bool upToken, bool vaultSells, uint256 units, uint256 premium, address indexed taker, int256 basis, int256 cash)",
+    "InventorySplit(address indexed market, uint256 amount)",
+    "InventoryMerged(address indexed market, uint256 amount)",
     "MarketRegistered(address indexed market, bytes32 indexed assetId)",
     "MarketUnregistered(address indexed market)",
     "QuotingPaused(address indexed by)",
@@ -94,4 +96,31 @@ export function render(o) {
   lines.push("      - name: Market");
   lines.push("      - name: OutcomeToken");
   return lines.join("\n") + "\n";
+}
+
+/**
+ * Initial vault state that no event carries (the constructor sets it). Generated per chain from
+ * deployments/<net>.json; indexer/test + the reconcile script verify it against the chain.
+ * performanceFeeBps is the contract's field initializer (ConvergeVault: `uint16 public
+ * performanceFeeBps = 1_000`).
+ * @param {{chainId:number, keeper:string|undefined, tvlCap:string|number|undefined}[]} entries
+ */
+export function renderDefaults(entries, header) {
+  const rows = entries
+    .map(
+      (e) =>
+        `  ${e.chainId}: { keeper: ${e.keeper ? JSON.stringify(e.keeper.toLowerCase()) : "undefined"}, tvlCap: ${BigInt(e.tvlCap ?? 0)}n, performanceFeeBps: 1000 },`,
+    )
+    .join("\n");
+  return `${header}
+export interface VaultDefaults {
+  keeper: string | undefined;
+  tvlCap: bigint;
+  performanceFeeBps: number;
+}
+
+export const VAULT_DEFAULTS: Record<number, VaultDefaults> = {
+${rows}
+};
+`;
 }

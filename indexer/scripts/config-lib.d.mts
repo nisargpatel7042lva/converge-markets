@@ -9,3 +9,7 @@ export function render(o: {
   vaultBlock: number;
   rpc?: string;
 }): string;
+export function renderDefaults(
+  entries: { chainId: number; keeper: string | undefined; tvlCap: string | number | undefined }[],
+  header: string,
+): string;
