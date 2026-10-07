@@ -27,11 +27,16 @@ if [ -n "${DOCKER_CONFIG_DIR:-}" ]; then export DOCKER_CONFIG="$DOCKER_CONFIG_DI
 ANVIL_PID=""
 ENVIO_PID=""
 cleanup() {
-  if [ -n "$ENVIO_PID" ]; then kill "$ENVIO_PID" 2>/dev/null; fi
+  # envio runs in its own session (setsid): killing the group takes the node child with it.
+  if [ -n "$ENVIO_PID" ]; then kill -- "-$ENVIO_PID" 2>/dev/null; fi
   (cd "$LOCAL/project" 2>/dev/null && pnpm exec envio stop >/dev/null 2>&1)
   if [ -n "$ANVIL_PID" ]; then kill "$ANVIL_PID" 2>/dev/null; fi
+  echo "exit" >> "$LOCAL/run-local.done"
 }
 trap cleanup EXIT
+for p in "$PORT" 8080 5433 9898; do
+  if (echo > "/dev/tcp/127.0.0.1/$p") 2>/dev/null; then echo "port $p is already in use: stop the other process first"; exit 1; fi
+done
 
 echo "== 1. anvil on $RPC"
 anvil --port "$PORT" --silent --code-size-limit 131072 > "$LOCAL/anvil.log" 2>&1 &
@@ -48,7 +53,7 @@ node indexer/scripts/local-project.mjs "$LOCAL/addresses.json" "$RPC" "$LOCAL/pr
 
 echo "== 4. envio dev (backfill timing)"
 START_MS=$(date +%s%3N)
-(cd "$LOCAL/project" && ENVIO_TUI=false LOG_STRATEGY=console-raw pnpm exec envio dev -r > "$LOCAL/envio-dev.log" 2>&1) &
+(cd "$LOCAL/project" && ENVIO_TUI=false LOG_STRATEGY=console-raw exec setsid pnpm exec envio dev -r > "$LOCAL/envio-dev.log" 2>&1) &
 ENVIO_PID=$!
 echo "$ENVIO_PID" > "$LOCAL/envio-dev.pid"
 READY=""

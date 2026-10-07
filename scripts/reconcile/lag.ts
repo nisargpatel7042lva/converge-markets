@@ -31,6 +31,9 @@ const chainFilter = opt(args, "chain", "CHAIN_ID");
 // still be catching up with blocks produced before the first poll. They are recorded and
 // reported, but only the steady state decides the verdict.
 const warmup = Number(opt(args, "warmup-samples", "WARMUP_SAMPLES", "4"));
+// On the shared public RPC (15 rps budget) read the chain head sparingly, e.g. --rpc-interval 5000.
+const rpcIntervalMs = Number(opt(args, "rpc-interval", "RPC_INTERVAL", String(intervalMs)));
+let lastRpcAt = 0;
 const outDir = resolve(opt(args, "out", "OUT_DIR", resolve(ROOT, "docs/evidence/phase-6"))!);
 
 const o = { url, headers, apiKey, timeoutMs: 10_000 };
@@ -62,7 +65,10 @@ async function main() {
           lagSource: Math.max(0, m.sourceBlock - m.progressBlock),
           ready: m.isReady,
         };
-        if (pub) s.lagRpc = Math.max(0, Number(await pub.getBlockNumber()) - m.progressBlock);
+        if (pub && Date.now() - lastRpcAt >= rpcIntervalMs) {
+          lastRpcAt = Date.now();
+          s.lagRpc = Math.max(0, Number(await pub.getBlockNumber()) - m.progressBlock);
+        }
         samples.push(s);
       }
     } catch (e) {
@@ -79,7 +85,10 @@ async function main() {
   const sumR = lagR.length ? summarize(lagR) : undefined;
   const notReady = steady.filter((s) => !s.ready).length;
   const advanced = samples.length ? samples.at(-1)!.progress - samples[0]!.progress : 0;
-  const worst = Math.max(sum.max, sumR?.max ?? 0);
+  // With an RPC the verdict rests on the INDEPENDENT chain head; without one only on the indexer's
+  // own sourceBlock, which proves nothing about being at the head of the chain.
+  const independent = sumR !== undefined;
+  const worst = independent ? sumR.max : sum.max;
   const pass = steady.length > 0 && worst < maxLag && notReady === 0 && errors === 0;
   const meta = {
     label,
@@ -94,6 +103,7 @@ async function main() {
     errors,
     notReadySamples: notReady,
     blocksAdvancedWhileMonitoring: advanced,
+    independentVerdict: independent,
     lagVsIndexerSourceBlock: sum,
     lagVsRpcHead: sumR,
     pass,
@@ -117,8 +127,8 @@ async function main() {
       `- Lag = sourceBlock - progressBlock (the indexer's own view of the head, not independent): max ${sum.max}, p95 ${sum.p95}, mean ${sum.mean.toFixed(2)}`,
       sumR
         ? `- Lag vs the chain head read from RPC (independent): max **${sumR.max}**, p95 ${sumR.p95}, p50 ${sumR.p50}`
-        : "- RPC head comparison: not used (the verdict then rests on the indexer's own `sourceBlock`)",
-      `- Threshold: max lag < ${maxLag} blocks: **${pass ? "PASS" : "FAIL"}**`,
+        : "- RPC head comparison: NOT used. The verdict rests on the indexer's own `sourceBlock` and is **not independent evidence** of being at the chain head.",
+      `- Threshold: max lag < ${maxLag} blocks (${independent ? "independent chain head" : "indexer's own head, NOT independent"}): **${pass ? "PASS" : "FAIL"}**`,
       "",
     ].join("\n"),
   );

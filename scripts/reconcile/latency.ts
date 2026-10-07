@@ -34,6 +34,8 @@ interface Case {
   name: string;
   query: string;
   variables?: GqlVariables;
+  /** Different variables per request (cycling through real ids) so caching of one document cannot flatter the result. */
+  rotate?: (i: number) => GqlVariables;
 }
 
 async function discover(): Promise<Case[]> {
@@ -44,16 +46,21 @@ async function discover(): Promise<Case[]> {
     NavSnapshot: { timestamp: number }[];
     Order: { taker: string }[];
   }>(`{
-    Market(where: {tradeCount: {_gt: 0}}, order_by: {tradeCount: desc}, limit: 1) { id }
-    UserPosition(order_by: {tradeCount: desc}, limit: 1) { user }
-    LPPosition(order_by: {totalDeposited: desc}, limit: 1) { user }
+    Market(where: {tradeCount: {_gt: 0}}, order_by: {tradeCount: desc}, limit: 100) { id }
+    UserPosition(order_by: {tradeCount: desc}, limit: 200) { user }
+    LPPosition(order_by: {totalDeposited: desc}, limit: 50) { user }
     NavSnapshot(order_by: {block: desc}, limit: 1) { timestamp }
     Order(limit: 1) { taker }
   }`);
-  const market = d.Market[0]?.id ?? "0x0000000000000000000000000000000000000000";
-  const user =
-    d.UserPosition[0]?.user ?? d.Order[0]?.taker ?? "0x0000000000000000000000000000000000000000";
-  const lp = d.LPPosition[0]?.user ?? user;
+  const none = "0x0000000000000000000000000000000000000000";
+  const markets = d.Market.map((m) => m.id);
+  const users = [...new Set(d.UserPosition.map((p) => p.user))];
+  if (users.length === 0 && d.Order[0]) users.push(d.Order[0].taker);
+  const lps = d.LPPosition.map((l) => l.user);
+  const pickOf = (xs: string[]) => (i: number) => xs[i % Math.max(1, xs.length)] ?? none;
+  const market = pickOf(markets);
+  const user = pickOf(users);
+  const lp = lps.length ? pickOf(lps) : user;
   const latest = d.NavSnapshot[0]?.timestamp ?? Math.floor(Date.now() / 1000);
   const Q = INDEXER_QUERIES;
   return [
@@ -76,12 +83,16 @@ async function discover(): Promise<Case[]> {
     {
       name: "marketDetail + 50 trades",
       query: Q.marketDetail,
-      variables: { id: market, trades: 50 },
+      rotate: (i) => ({ id: market(i), trades: 50 }),
     },
     { name: "recentTrades 50", query: Q.recentTrades, variables: { limit: 50 } },
-    { name: "userPositions", query: Q.userPositions, variables: { user } },
-    { name: "userTrades 50", query: Q.userTrades, variables: { user, limit: 50, offset: 0 } },
-    { name: "userOrders 50", query: Q.userOrders, variables: { user, limit: 50 } },
+    { name: "userPositions", query: Q.userPositions, rotate: (i) => ({ user: user(i) }) },
+    {
+      name: "userTrades 50",
+      query: Q.userTrades,
+      rotate: (i) => ({ user: user(i), limit: 50, offset: 0 }),
+    },
+    { name: "userOrders 50", query: Q.userOrders, rotate: (i) => ({ user: user(i), limit: 50 }) },
     { name: "vaultOverview", query: Q.vaultOverview },
     {
       name: "navHistory 7d",
@@ -89,15 +100,17 @@ async function discover(): Promise<Case[]> {
       variables: { since: latest - 7 * 86_400, limit: 1000 },
     },
     { name: "epochs 20", query: Q.epochs, variables: { limit: 20 } },
-    { name: "lpOverview", query: Q.lpOverview, variables: { user: lp } },
+    { name: "lpOverview", query: Q.lpOverview, rotate: (i) => ({ user: lp(i) }) },
     { name: "dailyStats 30", query: Q.dailyStats, variables: { days: 30 } },
     { name: "protocolStats", query: Q.protocolStats },
   ];
 }
 
+let counter = 0;
 async function timeOnce(c: Case): Promise<number> {
+  const vars = c.rotate ? c.rotate(counter++) : c.variables;
   const t = performance.now();
-  await q(c.query, c.variables);
+  await q(c.query, vars);
   return performance.now() - t;
 }
 

@@ -51,7 +51,11 @@ const rps = Number(opt(args, "rps", "RPS", "Infinity"));
 const latest = opt(args, "block", "BLOCK") === "latest";
 const aggregates = args.has("aggregates");
 const allowSmall = args.has("allow-small");
-const logChunk = BigInt(opt(args, "log-chunk", "LOG_CHUNK", "10000")!);
+let logChunk = BigInt(opt(args, "log-chunk", "LOG_CHUNK", "10000")!);
+// Hosted Hasura may cap the rows of a query: page small and cross-check against the aggregate count.
+const pageSize = Number(opt(args, "page", "PAGE", "1000"));
+// Per-market volume / trade count against the Fill logs (several log queries per sampled market).
+const deep = !args.has("no-deep");
 const outDir = resolve(opt(args, "out", "OUT_DIR", resolve(ROOT, "docs/evidence/phase-6"))!);
 if (!addrPath) throw new Error("--addresses <file> is required");
 
@@ -96,6 +100,9 @@ const vaultAbi = parseAbi([
   "function venue() view returns (address)",
   "function isRegistered(address) view returns (bool)",
   "function positionOf(address) view returns (int256 basis, int256 cash)",
+  "function quoteNavLower() view returns (uint256)",
+  "function lastNavUpper() view returns (uint256)",
+  "function pricePerShareLower() view returns (uint256)",
   "function epochs(uint256) view returns (uint128 depositAssets, uint128 redeemShares, bool settled, bool depositRejected, uint128 sharesMinted, uint128 redeemFilled, uint128 redeemAssetsPaid)",
 ]);
 const venueAbi = parseAbi([
@@ -103,6 +110,9 @@ const venueAbi = parseAbi([
 ]);
 const fillEvent = parseAbiItem(
   "event Fill(address indexed market, bool upToken, bool vaultSells, uint256 units, uint256 premium, address indexed taker, int256 basis, int256 cash)",
+);
+const orderExecutedEvent = parseAbiItem(
+  "event OrderExecuted(uint256 indexed id, address indexed executor, uint256 filled, uint256 premium, uint256 reportPrice, uint32 reportValidFrom, uint32 reportObservations)",
 );
 const navEvent = parseAbiItem(
   "event NavSnapshot(uint256 navLower, uint256 navUpper, uint256 ppsLower, uint256 supply, bool settlement)",
@@ -170,6 +180,35 @@ const rd = <T>(
       } as never) as Promise<T>,
   );
 
+type LogRow = { logIndex: number; blockNumber: bigint; args: Record<string, unknown> };
+
+/** getLogs over [from, to] in chunks; a provider range error halves the chunk (down to 100 blocks). */
+async function logsRange(
+  address: Address,
+  event: unknown,
+  from: bigint,
+  to: bigint,
+  args?: Record<string, unknown>,
+): Promise<LogRow[]> {
+  const out: LogRow[] = [];
+  let step = logChunk;
+  for (let s0 = from; s0 <= to;) {
+    const e = s0 + step - 1n > to ? to : s0 + step - 1n;
+    try {
+      const part = (await limiter.run(() =>
+        pub.getLogs({ address, event, args, fromBlock: s0, toBlock: e } as never),
+      )) as unknown as LogRow[];
+      out.push(...part);
+      s0 = e + 1n;
+    } catch (err) {
+      if (step <= 100n) throw err;
+      step = step / 2n;
+      logChunk = step; // remember: the provider's limit is below the configured chunk
+    }
+  }
+  return out;
+}
+
 async function logsAt(event: typeof fillEvent | typeof navEvent, from: bigint, to: bigint) {
   return limiter.run(() =>
     pub.getLogs({ address: vault, event, fromBlock: from, toBlock: to } as never),
@@ -185,7 +224,7 @@ const checkers: Record<string, Checker> = {
   async Market(id) {
     const { row: m, block } = await fetchOne(
       "Market",
-      "status strike endPrice startTime endTime upToken downToken redeemFeeBps assetId upSupply downSupply vaultRegistered vaultBasis vaultCash",
+      "status strike endPrice startTime endTime upToken downToken redeemFeeBps assetId upSupply downSupply vaultRegistered vaultBasis vaultCash volume tradeCount createdBlock",
       id,
     );
     if (!m) return { checks: [eq("exists", "no", "yes")], block };
@@ -210,9 +249,31 @@ const checkers: Record<string, Checker> = {
       rd<bigint>(up, tokenAbi, "totalSupply", [], b),
       rd<bigint>(down, tokenAbi, "totalSupply", [], b),
     ]);
+    // volume and trade count from the vault's Fill logs for this market (events, not views)
+    let fillChecks: Check[] = [];
+    if (deep) {
+      const fills = await logsRange(
+        vault,
+        fillEvent,
+        BigInt(Number(m.createdBlock)),
+        BigInt(block),
+        {
+          market: a,
+        },
+      );
+      fillChecks = [
+        eq("tradeCount (Fill logs)", m.tradeCount, fills.length),
+        eq(
+          "volume (sum of Fill premium)",
+          m.volume,
+          fills.reduce((x, l) => x + BigInt(String(l.args.premium)), 0n),
+        ),
+      ];
+    }
     return {
       block: b,
       checks: [
+        ...fillChecks,
         eq("status", m.status, STATUS[Number(state)]),
         eq("strike", m.strike ?? 0, strike),
         eq("endPrice", m.endPrice ?? 0, endPrice),
@@ -290,7 +351,7 @@ const checkers: Record<string, Checker> = {
   async NavSnapshot(id) {
     const { row: n, block } = await fetchOne(
       "NavSnapshot",
-      "navLower navUpper ppsLower supply settlement block",
+      "navLower navUpper navLowerAfter navUpperAfter ppsLower supply settlement block",
       id,
     );
     if (!n) return { checks: [eq("exists", "no", "yes")], block };
@@ -306,6 +367,21 @@ const checkers: Record<string, Checker> = {
       supply: bigint;
       settlement: boolean;
     };
+    // For a settlement the vault stores navLower + accepted - paid (quoteNavLower) and
+    // navUpper + accepted - paid (lastNavUpper): the stored "after" values must equal the contract
+    // state at that block (this is what the TVL shown to users comes from).
+    const stateChecks: Check[] = [];
+    if (a.settlement) {
+      const nb = Number(n.block);
+      const [qLo, qHi] = await Promise.all([
+        rd<bigint>(vault, vaultAbi, "quoteNavLower", [], nb),
+        rd<bigint>(vault, vaultAbi, "lastNavUpper", [], nb),
+      ]);
+      stateChecks.push(
+        eq("navLowerAfter == quoteNavLower() at the block", n.navLowerAfter, qLo),
+        eq("navUpperAfter == lastNavUpper() at the block", n.navUpperAfter, qHi),
+      );
+    }
     return {
       block,
       checks: [
@@ -314,6 +390,7 @@ const checkers: Record<string, Checker> = {
         eq("ppsLower", n.ppsLower, a.ppsLower),
         eq("supply", n.supply, a.supply),
         eq("settlement", n.settlement, a.settlement),
+        ...stateChecks,
       ],
     };
   },
@@ -364,17 +441,30 @@ const checkers: Record<string, Checker> = {
   async Order(id) {
     const { row: o, block } = await fetchOne(
       "Order",
-      "taker market_id kind status shares limit execAt",
+      "venue orderId taker market_id kind status shares limit execAt filled premium settledBlock",
       id,
     );
     if (!o) return { checks: [eq("exists", "no", "yes")], block };
     const b = latest ? "latest" : block;
+    const ven = String(o.venue) as Address;
     const c = await rd<
       readonly [Address, number, number, bigint, Address, bigint, bigint, bigint, bigint]
-    >(venue, venueAbi, "orders", [BigInt(id)], b);
+    >(ven, venueAbi, "orders", [BigInt(String(o.orderId))], b);
+    const execChecks: Check[] = [];
+    if (o.status === "EXECUTED" && o.settledBlock !== null) {
+      const sb = BigInt(Number(o.settledBlock));
+      const ex = (await logsRange(ven, orderExecutedEvent, sb, sb)).find(
+        (l) => String(l.args.id) === String(o.orderId),
+      );
+      execChecks.push(
+        eq("filled (OrderExecuted log)", o.filled, ex?.args.filled),
+        eq("premium (OrderExecuted log)", o.premium, ex?.args.premium),
+      );
+    }
     return {
       block: b,
       checks: [
+        ...execChecks,
         eq("taker", o.taker, c[0]),
         eq("kind", o.kind, KINDS[Number(c[1])]),
         eq(
@@ -393,18 +483,19 @@ const checkers: Record<string, Checker> = {
   async Vault(id) {
     const { row: v, block } = await fetchOne(
       "Vault",
-      "totalSupply tvlCap performanceFeeBps quotingPaused quotingHalted keeper venue",
+      "totalSupply tvlCap performanceFeeBps quotingPaused quotingHalted keeper venue ppsLower",
       id,
     );
     if (!v) return { checks: [eq("exists", "no", "yes")], block };
     const b = latest ? "latest" : block;
-    const [ts, cap, fee, paused, keeper, ven] = await Promise.all([
+    const [ts, cap, fee, paused, keeper, ven, pps] = await Promise.all([
       rd<bigint>(vault, vaultAbi, "totalSupply", [], b),
       rd<bigint>(vault, vaultAbi, "tvlCap", [], b),
       rd<number>(vault, vaultAbi, "performanceFeeBps", [], b),
       rd<boolean>(vault, vaultAbi, "quotingPaused", [], b),
       rd<Address>(vault, vaultAbi, "keeper", [], b),
       rd<Address>(vault, vaultAbi, "venue", [], b),
+      rd<bigint>(vault, vaultAbi, "pricePerShareLower", [], b),
     ]);
     // keeperHalt() exists only in vault builds with the halt flag; absent on older deployments.
     let halted: boolean | undefined;
@@ -422,6 +513,7 @@ const checkers: Record<string, Checker> = {
         eq("quotingPaused", v.quotingPaused, paused),
         eq("keeper", v.keeper, keeper),
         eq("venue", v.venue, ven),
+        eq("ppsLower == pricePerShareLower()", v.ppsLower, pps),
         ...(halted === undefined ? [] : [eq("quotingHalted", v.quotingHalted, halted)]),
       ],
     };
@@ -429,18 +521,30 @@ const checkers: Record<string, Checker> = {
 };
 
 // ---- main
-async function listIds(entity: string, orderField = "id", extra = ""): Promise<string[]> {
-  const ids: string[] = [];
-  for (let offset = 0; ; offset += 5000) {
-    const d = await indexerQuery<Record<string, Raw[]>>(
+async function pagedRows<T>(entity: string, fields: string, order = "id"): Promise<T[]> {
+  const out: T[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const d = await indexerQuery<Record<string, T[]>>(
       gql,
-      `{ ${entity}(order_by: {${orderField}: asc}, limit: 5000, offset: ${offset}) { id ${extra} } }`,
+      `{ ${entity}(order_by: {${order}: asc}, limit: ${pageSize}, offset: ${offset}) { ${fields} } }`,
     );
-    const page = d[entity]!;
-    ids.push(...page.map((r) => String(r.id)));
-    if (page.length < 5000) break;
+    out.push(...d[entity]!);
+    if (d[entity]!.length < pageSize) break;
   }
-  return ids;
+  // a row cap on the endpoint (or a concurrent write) must not silently shrink the population
+  const c = await indexerQuery<Record<string, { aggregate: { count: number } }>>(
+    gql,
+    `{ ${entity}_aggregate { aggregate { count } } }`,
+  );
+  const total = c[`${entity}_aggregate`]!.aggregate.count;
+  if (Math.abs(total - out.length) > Math.max(5, total * 0.01)) {
+    throw new Error(`${entity}: paged ${out.length} rows but the aggregate count is ${total}`);
+  }
+  return out;
+}
+
+async function listIds(entity: string, orderField = "id"): Promise<string[]> {
+  return (await pagedRows<Raw>(entity, "id", orderField)).map((r) => String(r.id));
 }
 
 async function runOne(kind: string, id: string): Promise<Result> {
