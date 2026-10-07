@@ -21,9 +21,12 @@ import { clock, pct, usd } from "@/lib/format";
 import { useIndexerVault, useNow, useVault } from "@/lib/queries";
 import { explainTxError, sendAll } from "@/lib/tx";
 import { useAccount } from "@/lib/use-account";
+import { useExitOnly } from "@/lib/exit-only";
+import { recordEpoch } from "@/lib/activity";
 
 export default function Vault() {
   const { profile } = useAccount();
+  const exitOnly = useExitOnly();
   const v = useVault(profile?.address);
   const ix = useIndexerVault();
   const now = useNow();
@@ -71,6 +74,7 @@ export default function Vault() {
       ];
       await sendAll(account, steps);
       track("lp_deposit");
+      if (profile && d) recordEpoch(profile.address, d.epoch);
       setAmount("");
     });
 
@@ -79,6 +83,7 @@ export default function Vault() {
       const shares = (myShares * BigInt(Math.round(fraction * 100))) / 100n;
       if (shares <= 0n) throw new Error("You have no shares to redeem.");
       await sendAll(account, [{ label: "Redeem", tx: requestRedeemTx(deployment.vault, shares) }]);
+      if (profile && d) recordEpoch(profile.address, d.epoch);
     });
 
   const claim = (epoch: bigint, kind: "deposit" | "redeem") =>
@@ -167,6 +172,47 @@ export default function Vault() {
             <p className="mt-1 text-xs text-muted">
               Deposits and withdrawals are batched and settle together at the end of each window
               (about {Math.round(d.epochLength / 60)} minutes), at one fair price for everyone.
+            </p>
+          </Card>
+
+          <Card className="mt-4">
+            <h2 className="text-base font-semibold">Read this before adding money</h2>
+            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
+              <li>
+                <strong className="text-text">You can lose money.</strong> The vault takes the other
+                side of bets. If the market moves against it faster than the spread pays, its value
+                goes down, and so does yours.
+              </li>
+              <li>
+                <strong className="text-text">How it makes money:</strong> it sells Up and Down at a
+                small markup over fair value, and takes a performance fee of{" "}
+                {d.performanceFeeBps / 100}% on gains. That is the only source of return. There are
+                no token rewards.
+              </li>
+              <li>
+                <strong className="text-text">Safety limits:</strong> each round and the whole vault
+                have a loss ceiling, and a daily drop of 5% pauses new bets. You can always take
+                your money out; a pause never blocks that.
+              </li>
+              <li>
+                <strong className="text-text">Timing:</strong> deposits and withdrawals settle once
+                per window, not instantly. Past results are not a promise.
+              </li>
+              <li>
+                <strong className="text-text">It is new software.</strong>{" "}
+                {deployment.testnet
+                  ? "This is a test network with play money."
+                  : "It is a capped launch (" +
+                    usd(d.tvlCap, 0) +
+                    ") because the contracts are new."}
+              </li>
+            </ul>
+            <p className="mt-3 text-xs text-faint">
+              Full details:{" "}
+              <Link className="underline underline-offset-4" href="/legal/risk">
+                Risk disclosure
+              </Link>
+              .
             </p>
           </Card>
 
@@ -269,12 +315,18 @@ export default function Vault() {
                 </label>
                 <Button
                   className="mt-3 w-full"
-                  disabled={!ack || !amount || busy !== null}
+                  disabled={!ack || !amount || busy !== null || exitOnly}
                   onClick={deposit}
                   data-testid="deposit"
                 >
                   {busy === "deposit" ? "Waiting for Face ID…" : "Request deposit"}
                 </Button>
+                {exitOnly ? (
+                  <p className="mt-2 text-xs text-muted">
+                    New deposits aren&apos;t available in your region. You can still take your money
+                    out below.
+                  </p>
+                ) : null}
                 {myShares > 0n ? (
                   <div className="mt-4 border-t border-line pt-4">
                     <h3 className="text-sm font-semibold">Take money out</h3>
@@ -300,47 +352,6 @@ export default function Vault() {
               </Card>
             </>
           )}
-
-          <Card className="mt-4">
-            <h2 className="text-base font-semibold">Read this before adding money</h2>
-            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
-              <li>
-                <strong className="text-text">You can lose money.</strong> The vault takes the other
-                side of bets. If the market moves against it faster than the spread pays, its value
-                goes down, and so does yours.
-              </li>
-              <li>
-                <strong className="text-text">How it makes money:</strong> it sells Up and Down at a
-                small markup over fair value, and takes a performance fee of{" "}
-                {d.performanceFeeBps / 100}% on gains. That is the only source of return. There are
-                no token rewards.
-              </li>
-              <li>
-                <strong className="text-text">Safety limits:</strong> each round and the whole vault
-                have a loss ceiling, and a daily drop of 5% pauses new bets. You can always take
-                your money out; a pause never blocks that.
-              </li>
-              <li>
-                <strong className="text-text">Timing:</strong> deposits and withdrawals settle once
-                per window, not instantly. Past results are not a promise.
-              </li>
-              <li>
-                <strong className="text-text">It is new software.</strong>{" "}
-                {deployment.testnet
-                  ? "This is a test network with play money."
-                  : "It is a capped launch (" +
-                    usd(d.tvlCap, 0) +
-                    ") because the contracts are new."}
-              </li>
-            </ul>
-            <p className="mt-3 text-xs text-faint">
-              Full details:{" "}
-              <Link className="underline underline-offset-4" href="/legal/risk">
-                Risk disclosure
-              </Link>
-              .
-            </p>
-          </Card>
         </>
       )}
     </AppShell>

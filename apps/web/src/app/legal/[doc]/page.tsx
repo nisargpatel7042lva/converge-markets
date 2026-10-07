@@ -47,7 +47,7 @@ const DOCS: Record<string, { title: string; updated: string; sections: [string, 
       ],
       [
         "How the vault makes and loses money",
-        "The vault sells Up and Down tokens a little above its estimate of fair value. It earns that margin when prices are estimated well and loses when markets move against it faster than the margin pays. Its returns come only from this trading and a performance fee of up to 20% of gains (currently 10%). There are no token rewards.",
+        "The vault sells Up and Down tokens a little above its estimate of fair value. It earns that margin when prices are estimated well and loses when markets move against it faster than the margin pays. Its returns come only from this trading and a performance fee on gains (the current rate is shown on the Earn page; the contract caps it at 20%). There are no token rewards.",
       ],
       [
         "Limits that reduce, not remove, loss",
@@ -77,7 +77,7 @@ const DOCS: Record<string, { title: string; updated: string; sections: [string, 
     sections: [
       [
         "What we collect",
-        "No name, email or phone number. Your account is an address derived from your passkey. We count how many people reach each step (landing, account created, funded, first bet, vault deposit) with an anonymous random id kept in your browser. It contains no address, no handle and no IP address that we store.",
+        "No name, email or phone number. Your account is an address derived from your passkey. We count how many people reach each step (landing, account created, funded, first bet, vault deposit) with an anonymous random id kept in your browser. It contains no address and no handle, and we ask the analytics service not to record an IP address or build a profile (that setting is the service's to honour: check its project settings).",
       ],
       [
         "What is public",

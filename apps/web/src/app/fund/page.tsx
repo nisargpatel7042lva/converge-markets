@@ -8,44 +8,50 @@ import { Button, Card, EmptyState, Skeleton } from "@/components/ui";
 import { deployment } from "@/config/deployment";
 import { env } from "@/config/deployment";
 import { track } from "@/lib/analytics";
+import { GAS_RESERVE_WEI } from "@/lib/limits";
 import { explorerAddress } from "@/lib/chain";
 import { nativeAmount, short, usd } from "@/lib/format";
 import { useBalances } from "@/lib/queries";
 import { useAccount } from "@/lib/use-account";
-
-const MIN_GAS = 5n * 10n ** 15n; // below 0.005 MON an account can't send a couple of transactions
 
 export default function Fund() {
   const { profile, handle, ready } = useAccount();
   const bal = useBalances(profile?.address);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const dripAsked = useRef(false);
+  const lastDrip = useRef(0);
+  const [dripNote, setDripNote] = useState<string | null>(null);
 
   const usdc = bal.data?.usdc ?? 0n;
   const native = bal.data?.native ?? 0n;
   const funded = usdc > 0n;
-  const hasGas = native >= MIN_GAS;
+  const hasGas = native >= GAS_RESERVE_WEI;
 
   useEffect(() => {
-    if (funded) track("funded", { gas: hasGas });
+    if (funded && hasGas) track("funded");
   }, [funded, hasGas]);
 
-  // A new account gets one small gas top-up after its first deposit (ADR-007), never before.
+  // An account that has a deposit but too little gas money asks the relayer for a small top-up (ADR-007),
+  // again after a minute if it still has too little; the reason is shown when it is refused.
   useEffect(() => {
-    if (!profile || !funded || hasGas || dripAsked.current || deployment.testnet) return;
-    dripAsked.current = true;
+    if (!profile || !funded || hasGas || deployment.testnet) return;
+    if (Date.now() - lastDrip.current < 60_000) return;
+    lastDrip.current = Date.now();
     void fetch("/api/gas", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ address: profile.address }),
     })
       .then(async (r) => {
-        if (r.ok) toast("A little gas money was added to your account.", "ok");
+        const j = (await r.json().catch(() => ({}))) as { error?: string };
+        if (r.ok) {
+          setDripNote(null);
+          toast("A little gas money was added to your account.", "ok");
+        } else setDripNote(j.error ?? "Free gas isn't available right now.");
         void bal.refetch();
       })
-      .catch(() => undefined);
-  }, [profile, funded, hasGas, bal]);
+      .catch(() => setDripNote("Free gas isn't available right now."));
+  }, [profile, funded, hasGas, bal, native]);
 
   async function faucet() {
     if (!profile) return;
@@ -124,7 +130,24 @@ export default function Fund() {
             {busy ? "Adding test money…" : "Get free test money"}
           </Button>
         ) : null}
-        {funded ? (
+        {funded && !hasGas ? (
+          <p
+            role="status"
+            data-testid="needs-gas"
+            className="mt-3 rounded-xl bg-[#2e2410] px-3 py-2 text-xs leading-relaxed text-warn"
+          >
+            Almost ready: your account needs about {nativeAmount(GAS_RESERVE_WEI, 2)}{" "}
+            {deployment.nativeSymbol} for network fees.{" "}
+            {dripNote ??
+              (deployment.testnet
+                ? "Use the free test money button above."
+                : "We are sending a little for you…")}{" "}
+            {deployment.testnet
+              ? null
+              : `You can also send ${deployment.nativeSymbol} to the address below from an exchange or another wallet.`}
+          </p>
+        ) : null}
+        {funded && hasGas ? (
           <Link
             href="/markets"
             data-testid="to-markets"

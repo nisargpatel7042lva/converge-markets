@@ -37,8 +37,17 @@ test("landing to a confirmed first trade in under 60 seconds", async ({
   mark("confirmed");
   await expect(page.getByTestId("result")).toContainText("You're in on Up", { timeout: 30_000 });
   mark("tradeFilled");
-
   const total = t.tradeFilled!;
+
+  // the trade really happened: the dollars left the account and the position is listed
+  await page.getByTestId("close-result").click();
+  await page.goto("/positions");
+  await expect(page.getByTestId("position")).toHaveCount(1);
+  await page.goto("/fund");
+  const left = Number((await page.getByTestId("usdc-balance").textContent())!.replace(/[$,]/g, ""));
+  expect(left).toBeLessThan(100);
+  expect(left).toBeGreaterThan(94);
+
   expect(problems, problems.join("\n")).toEqual([]);
 
   mkdirSync(evidence, { recursive: true });

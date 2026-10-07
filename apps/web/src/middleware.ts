@@ -8,7 +8,7 @@ import { regionDecision } from "@/lib/region";
 export function middleware(req: NextRequest) {
   const country = req.headers.get("x-vercel-ip-country") ?? req.headers.get("cf-ipcountry");
   const region = req.headers.get("x-vercel-ip-country-region");
-  const d = regionDecision(country, region, process.env.RESTRICTED_COUNTRIES);
+  const d = regionDecision(country, region, process.env.RESTRICTED_COUNTRIES_EXTRA);
   if (!d.blocked) return NextResponse.next();
 
   // Optional reviewer bypass (DECISION NEEDED, see config/regions.json): only exists when the
@@ -30,6 +30,22 @@ export function middleware(req: NextRequest) {
       return res;
     }
   }
+  // Exit-only mode: the pages for collecting, withdrawing and exporting stay open (the contracts
+  // never block an exit, so the app must not either); new bets and deposits are closed in the UI.
+  const exit = ["/account", "/positions", "/vault", "/stats", "/legal", "/fund"].some(
+    (p) => req.nextUrl.pathname === p || req.nextUrl.pathname.startsWith(`${p}/`),
+  );
+  if (exit && !req.nextUrl.pathname.startsWith("/api/")) {
+    const res = NextResponse.next();
+    res.cookies.set("exit_only", "1", {
+      path: "/",
+      sameSite: "lax",
+      secure: req.nextUrl.protocol === "https:",
+      maxAge: 3600,
+    });
+    return res;
+  }
+
   const url = req.nextUrl.clone();
   if (url.pathname.startsWith("/api/"))
     return NextResponse.json({ error: "Not available in your region" }, { status: 451 });

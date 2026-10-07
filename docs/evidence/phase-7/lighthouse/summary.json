@@ -13,26 +13,26 @@
       "performance": 98,
       "accessibility": 100,
       "bestPractices": 100,
-      "lcpMs": 2317,
-      "tbtMs": 67,
+      "lcpMs": 2286,
+      "tbtMs": 56,
       "cls": 0.006
     },
     {
       "page": "/markets",
-      "performance": 99,
+      "performance": 95,
       "accessibility": 100,
       "bestPractices": 100,
-      "lcpMs": 2265,
-      "tbtMs": 61,
+      "lcpMs": 2878,
+      "tbtMs": 52,
       "cls": 0
     },
     {
       "page": "/stats",
-      "performance": 90,
+      "performance": 93,
       "accessibility": 100,
       "bestPractices": 100,
-      "lcpMs": 3308,
-      "tbtMs": 150,
+      "lcpMs": 3136,
+      "tbtMs": 100,
       "cls": 0.001
     },
     {
@@ -40,18 +40,54 @@
       "performance": 99,
       "accessibility": 100,
       "bestPractices": 100,
-      "lcpMs": 2263,
-      "tbtMs": 56,
+      "lcpMs": 2267,
+      "tbtMs": 51,
       "cls": 0
     },
     {
       "page": "/start",
-      "performance": 96,
+      "performance": 99,
       "accessibility": 100,
       "bestPractices": 100,
-      "lcpMs": 2702,
-      "tbtMs": 76,
+      "lcpMs": 2265,
+      "tbtMs": 48,
       "cls": 0
+    },
+    {
+      "page": "/vault",
+      "performance": 97,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2658,
+      "tbtMs": 39,
+      "cls": 0.001
+    },
+    {
+      "page": "/fund",
+      "performance": 97,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2655,
+      "tbtMs": 52,
+      "cls": 0.001
+    },
+    {
+      "page": "/positions",
+      "performance": 95,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2914,
+      "tbtMs": 53,
+      "cls": 0.001
+    },
+    {
+      "page": "/account",
+      "performance": 99,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2108,
+      "tbtMs": 46,
+      "cls": 0.001
     }
   ]
 }

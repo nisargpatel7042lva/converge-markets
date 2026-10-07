@@ -235,3 +235,64 @@ export async function readOrderResult(id: bigint, fromBlock: bigint): Promise<Or
   }
   return { status: "unfilled", filled: 0n, premium: 0n };
 }
+
+/** Markets by address (rounds older than the live window, found from this device's records or the indexer). */
+export async function readRoundsByAddress(addresses: Address[]): Promise<Round[]> {
+  const rounds = await Promise.all(addresses.map((a) => readRound(a).catch(() => null)));
+  return rounds.filter((r): r is Round => r !== null);
+}
+
+export type OpenOrder = {
+  id: bigint;
+  market: Address;
+  kind: number;
+  shares: bigint;
+  execAt: number;
+  expired: boolean;
+};
+
+/** The venue's view of orders this device placed that are still OPEN, and whether they can be refunded. */
+export async function readOpenOrders(ids: bigint[], now: number): Promise<OpenOrder[]> {
+  if (ids.length === 0) return [];
+  const [rows, lateness] = await Promise.all([
+    multicall({
+      allowFailure: false,
+      contracts: ids.map((id) => ({
+        address: deployment.venue,
+        abi: forwardVenueAbi,
+        functionName: "orders" as const,
+        args: [id] as const,
+      })),
+    }),
+    publicClient.readContract({
+      address: deployment.venue,
+      abi: forwardVenueAbi,
+      functionName: "maxLateness",
+    }),
+  ]);
+  return ids
+    .map((id, i) => {
+      const o = rows[i] as unknown as readonly [
+        Address,
+        number,
+        number,
+        number | bigint,
+        Address,
+        bigint,
+      ];
+      return {
+        id,
+        market: o[4],
+        kind: Number(o[1]),
+        shares: o[5],
+        execAt: Number(o[3]),
+        status: Number(o[2]),
+        expired: now > Number(o[3]) + Number(lateness),
+      };
+    })
+    .filter((o) => o.status === 1)
+    .map(({ status: _s, ...o }) => {
+      void _s;
+      return o;
+    });
+}

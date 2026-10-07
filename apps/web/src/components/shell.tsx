@@ -46,18 +46,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           {ready && handle ? (
             <Link
               href="/account"
-              className="rounded-full bg-raised px-3 py-1.5 text-xs font-medium text-muted"
+              className="inline-flex min-h-11 items-center rounded-full bg-raised px-3 text-xs font-medium text-muted"
             >
               {handle}
             </Link>
           ) : ready ? (
             <Link
               href="/start"
-              className="rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-[#0b0820]"
+              className="inline-flex min-h-11 items-center rounded-full bg-brand px-4 text-xs font-semibold text-[#0b0820]"
             >
               Sign in
             </Link>
-          ) : null}
+          ) : (
+            <span aria-hidden className="inline-block h-11 w-24" />
+          )}
         </div>
       </header>
       <main id="main" className="flex-1 px-4 pb-28 pt-4">

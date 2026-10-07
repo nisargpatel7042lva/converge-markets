@@ -1,5 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
+import { epochsOf } from "./activity";
 import { nowSec as clockNow, syncClock } from "./clock";
 import type { Address } from "viem";
 import { deployment } from "@/config/deployment";
@@ -94,7 +95,7 @@ export function useHoldings(user: Address | undefined, rounds: Round[] | undefin
 export function useVault(user: Address | undefined) {
   return useQuery({
     queryKey: ["vault", user],
-    queryFn: async () => (await import("./data-vault")).readVault(user),
+    queryFn: async () => (await import("./data-vault")).readVault(user, user ? epochsOf(user) : []),
     refetchInterval: 5000,
   });
 }
@@ -133,5 +134,23 @@ export function useIndexerStats() {
     },
     refetchInterval: 20000,
     retry: 1,
+  });
+}
+
+/** The executor reward the venue asks for now (it can be changed by the owner after the build). */
+export function useMinReward() {
+  return useQuery({
+    queryKey: ["min-reward"],
+    queryFn: async () => {
+      const { forwardVenueAbi } = await import("@converge/sdk");
+      const { publicClient } = await import("./chain");
+      const { deployment } = await import("@/config/deployment");
+      return publicClient.readContract({
+        address: deployment.venue,
+        abi: forwardVenueAbi,
+        functionName: "minReward",
+      });
+    },
+    staleTime: 60_000,
   });
 }

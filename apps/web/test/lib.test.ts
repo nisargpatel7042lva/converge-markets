@@ -44,10 +44,11 @@ describe("region block", () => {
     expect(regionDecision("UA", "43")).toEqual({ blocked: true, reason: "subdivision" });
     expect(regionDecision("UA", "30").blocked).toBe(false);
   });
-  it("lets a missing header through and honours an override list", () => {
+  it("lets a missing header through; an extra list adds countries and never removes one", () => {
     expect(regionDecision(null, null).blocked).toBe(false);
     expect(regionDecision("DE", null, "DE, FR").blocked).toBe(true);
-    expect(regionDecision("IN", null, "DE").blocked).toBe(false);
+    expect(regionDecision("IN", null, "DE").blocked).toBe(true); // India stays blocked
+    expect(regionDecision("UA", "40").blocked).toBe(true); // Sevastopol
   });
 });
 

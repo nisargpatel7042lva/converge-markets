@@ -25,8 +25,8 @@ export default async function globalSetup() {
   await stack.fund(1000);
   const price = { v: 3000 };
   const round = await stack.openRound(price.v, 40);
-  const rig = makeRig(stack);
-  const feed = rig.feed(() => price.v);
+  let rig = makeRig(stack);
+  let feed = rig.feed(() => price.v);
   await rig.keeper.start();
   // wait until the keeper has made the round tradable (sigma, inventory, NAV): the tests start from a live market
   for (let i = 0; ; i++) {
@@ -47,6 +47,11 @@ export default async function globalSetup() {
     if (req.url === "/stop-keeper") {
       feed.stop();
       rig.stop();
+    }
+    if (req.url === "/start-keeper") {
+      rig = makeRig(stack);
+      feed = rig.feed(() => price.v);
+      void rig.keeper.start();
     }
     res.writeHead(200).end("ok");
   }).listen(3101, "127.0.0.1");

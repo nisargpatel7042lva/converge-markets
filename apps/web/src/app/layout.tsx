@@ -6,7 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "Converge: bet UP or DOWN in 15 minutes", template: "%s · Converge" },
   description:
-    "Call the next 15 minutes of BTC, ETH and MON. Start with Face ID, no seed phrase, no extension. Liquidity providers earn from the spread.",
+    "Call the next 15 minutes of a crypto price. Start with Face ID, no seed phrase, no extension. Liquidity providers earn from the spread.",
   applicationName: "Converge",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Converge", statusBarStyle: "black-translucent" },

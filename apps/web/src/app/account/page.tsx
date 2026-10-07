@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/shell";
 import { toast } from "@/components/toast";
 import { Button, Card, EmptyState } from "@/components/ui";
@@ -17,6 +17,12 @@ export default function Account() {
   const [phrase, setPhrase] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmForget, setConfirmForget] = useState(false);
+  // the phrase never stays on screen: it hides itself after a minute
+  useEffect(() => {
+    if (!phrase) return;
+    const t = setTimeout(() => setPhrase(null), 60_000);
+    return () => clearTimeout(t);
+  }, [phrase]);
 
   if (ready && !profile)
     return (

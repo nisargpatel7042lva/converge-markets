@@ -96,6 +96,26 @@ test.describe("static pages and the edge", () => {
   });
 });
 
+test.describe("exit path", () => {
+  test("a restricted region can still reach collect, withdraw and export, but not new bets", async ({
+    browser,
+  }) => {
+    const ctx = await browser.newContext({
+      extraHTTPHeaders: { "x-vercel-ip-country": "IN" },
+      baseURL: info().baseURL,
+    });
+    const page = await ctx.newPage();
+    for (const path of ["/positions", "/vault", "/account"])
+      expect((await page.goto(path))?.status()).toBe(200);
+    expect((await ctx.cookies()).some((c) => c.name === "exit_only")).toBe(true);
+    for (const path of ["/markets", "/start", "/fund"]) {
+      const r = await page.goto(path);
+      expect(r?.status() === 451 || path === "/fund").toBe(true);
+    }
+    await ctx.close();
+  });
+});
+
 test.describe("account", () => {
   test("restoring with no passkey explains what to do; creating works; the recovery phrase is shown after a prompt", async ({
     page,
@@ -208,6 +228,47 @@ test.describe("vault", () => {
     await page.getByTestId("deposit").click();
     await expect(page.getByText("Deposit $50.00")).toBeVisible({ timeout: 30_000 });
     expect(problems, problems.join("\n")).toEqual([]);
+  });
+});
+
+test.describe("a bet nobody fills", () => {
+  test("is shown as waiting, never offers a second bet, and can be cancelled for a full refund", async ({
+    page,
+    authenticator,
+    problems,
+  }) => {
+    void authenticator;
+    test.setTimeout(120_000);
+    await fetch("http://127.0.0.1:3101/stop-keeper"); // nobody will execute the order
+    await page.goto("/");
+    await createAccount(page);
+    await fundWithFaucet(page);
+    await page.getByTestId("to-markets").click();
+    await page.getByTestId("round-card").first().click();
+    await expect(page.getByTestId("bet-down")).toBeEnabled();
+    await page.getByTestId("bet-down").click();
+    // the focus stays inside the sheet while it is open
+    for (let i = 0; i < 12; i++) await page.keyboard.press("Tab");
+    expect(
+      await page.evaluate(() => Boolean(document.activeElement?.closest("[role=dialog]"))),
+    ).toBe(true);
+    await page.getByTestId("confirm").click();
+    await expect(page.getByTestId("waiting")).toBeVisible({ timeout: 30_000 });
+    await page.goto("/positions");
+    await expect(page.getByTestId("open-order")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("refund")).toHaveCount(0); // still inside its window
+    await rpc("evm_increaseTime", [20]);
+    await rpc("evm_mine");
+    await expect(page.getByTestId("refund")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("refund").click();
+    await expect(page.getByText(/Your money is back in your account/)).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(page.getByTestId("open-order")).toHaveCount(0, { timeout: 20_000 });
+    await page.goto("/fund");
+    await expect(page.getByTestId("usdc-balance")).toHaveText("$100.00");
+    expect(problems, problems.join("\n")).toEqual([]);
+    await fetch("http://127.0.0.1:3101/start-keeper"); // the next tests need an executor again
   });
 });
 

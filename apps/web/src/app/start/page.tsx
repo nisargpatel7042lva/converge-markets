@@ -49,7 +49,20 @@ export default function Start() {
         </Link>
       </header>
       <main id="main" className="flex flex-1 flex-col justify-center gap-6 py-8">
-        {ready && profile && justCreated ? (
+        {ready && profile && !justCreated ? (
+          <section className="flex flex-col gap-5">
+            <div>
+              <p className="text-sm text-faint">You&apos;re signed in as</p>
+              <h1 data-testid="handle" className="mt-1 text-3xl font-bold tracking-tight">
+                {handle}
+              </h1>
+            </div>
+            <Button onClick={() => router.push("/markets")}>Open the markets</Button>
+            <Button tone="ghost" size="md" onClick={() => router.push("/account")}>
+              Account and export
+            </Button>
+          </section>
+        ) : ready && profile && justCreated ? (
           <section className="pop flex flex-col gap-5" aria-live="polite">
             <div>
               <p className="text-sm text-faint">Your account is ready</p>

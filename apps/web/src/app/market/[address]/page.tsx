@@ -15,6 +15,7 @@ import { usePrice } from "@/lib/prices";
 import { useHoldings, useLadder, useNow, useRound } from "@/lib/queries";
 import { explainTxError, sendAll } from "@/lib/tx";
 import { useAccount } from "@/lib/use-account";
+import { useExitOnly } from "@/lib/exit-only";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function MarketPage({ params }: { params: Promise<{ address: string }> }) {
@@ -24,6 +25,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
   const now = useNow();
   const px = usePrice(r?.series);
   const { profile } = useAccount();
+  const exitOnly = useExitOnly();
   const phase = r ? roundPhase({ state: r.state, start: r.start, end: r.end, now }) : null;
   const ladder = useLadder(r, phase?.phase === "LIVE" ? px.price : null);
   const holdings = useHoldings(profile?.address, r ? [r] : undefined);
@@ -62,7 +64,9 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
   const downAsk = ladder.data ? askFromLadder("DOWN", ladder.data) : null;
   const paused = phase.phase === "LIVE" && ladder.isSuccess && !ladder.data?.quoting;
   const holding = holdings.data?.[0];
-  const canBet = phase.phase === "LIVE" && !phase.closing && ladder.data?.quoting;
+  // no bets on a stale price feed (the odds shown would be wrong) and none in exit-only mode
+  const canBet =
+    phase.phase === "LIVE" && !phase.closing && ladder.data?.quoting && px.live && !exitOnly;
   const winnerShares =
     phase.phase === "SETTLED" && holding
       ? phase.outcome === "UP"
@@ -145,7 +149,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
           <Card className="mt-4">
             <div className="flex items-center justify-between text-sm">
               <span className="font-semibold text-up">Up {prob !== null ? pct(prob) : "…"}</span>
-              <span className="text-xs text-faint">what the market thinks</span>
+              <span className="text-xs text-faint">fair odds right now</span>
               <span className="font-semibold text-down">
                 Down {prob !== null ? pct(1 - prob) : "…"}
               </span>
@@ -160,6 +164,25 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
             </div>
           </Card>
 
+          {exitOnly ? (
+            <p
+              role="status"
+              data-testid="exit-only"
+              className="mt-4 rounded-2xl border border-line bg-raised px-4 py-3 text-sm text-muted"
+            >
+              New bets aren&apos;t available in your region. You can still collect winnings and take
+              your money out from My bets and Earn.
+            </p>
+          ) : !px.live ? (
+            <p
+              role="status"
+              data-testid="feed-down"
+              className="mt-4 rounded-2xl border border-line bg-[#2e2410] px-4 py-3 text-sm text-warn"
+            >
+              The live price feed is reconnecting. Betting is paused until it is back, so you never
+              bet on a stale price.
+            </p>
+          ) : null}
           {paused ? (
             <p
               role="status"
@@ -189,7 +212,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
               <span>Up</span>
               <span className="tabular text-xs font-medium opacity-80">
                 {upAsk
-                  ? `${pct(Number(upAsk.priceWad) / 1e18)} chance`
+                  ? `${price(Number(upAsk.priceWad) / 1e18)} per share`
                   : canBet === false
                     ? "unavailable"
                     : "…"}
@@ -205,7 +228,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
               <span>Down</span>
               <span className="tabular text-xs font-medium opacity-80">
                 {downAsk
-                  ? `${pct(Number(downAsk.priceWad) / 1e18)} chance`
+                  ? `${price(Number(downAsk.priceWad) / 1e18)} per share`
                   : canBet === false
                     ? "unavailable"
                     : "…"}

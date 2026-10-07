@@ -22,7 +22,17 @@ const chrome =
 const PORT = 3200;
 const pages = process.env.PAGES
   ? process.env.PAGES.split(",")
-  : ["/", "/markets", "/stats", "/legal/terms", "/start"];
+  : [
+      "/",
+      "/markets",
+      "/stats",
+      "/legal/terms",
+      "/start",
+      "/vault",
+      "/fund",
+      "/positions",
+      "/account",
+    ];
 const env = { ...process.env, NEXT_DIST_DIR: ".next-lh", NEXT_PUBLIC_APP_ENV: "production" };
 
 const sh = (cmd, args, opts = {}) =>

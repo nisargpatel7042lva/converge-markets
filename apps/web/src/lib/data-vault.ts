@@ -3,7 +3,7 @@ import type { Address } from "viem";
 import { deployment } from "@/config/deployment";
 import { multicall, publicClient } from "./chain";
 
-export async function readVault(user?: Address) {
+export async function readVault(user?: Address, extraEpochs: bigint[] = []) {
   const v = deployment.vault;
   const c = (fn: string, args: readonly unknown[] = []) => ({
     address: v,
@@ -60,7 +60,14 @@ export async function readVault(user?: Address) {
     },
   };
   if (user) {
-    const epochs = [epoch - 3n, epoch - 2n, epoch - 1n, epoch].filter((e) => e >= 0n);
+    // the last few windows, plus every window this device made a request in (older claims stay visible)
+    const epochs = [
+      ...new Set([epoch - 3n, epoch - 2n, epoch - 1n, epoch, ...extraEpochs].map(String)),
+    ]
+      .map(BigInt)
+      .filter((e) => e >= 0n && e <= epoch)
+      .sort((a, b) => (a < b ? -1 : 1))
+      .slice(-12);
     const res = await multicall({
       allowFailure: false,
       contracts: [

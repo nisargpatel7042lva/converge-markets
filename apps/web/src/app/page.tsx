@@ -21,7 +21,7 @@ export default function Landing() {
             <span className="text-up">Up</span> or <span className="text-down">Down</span>.
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted">
-            Pick a side on Bitcoin, Ethereum or Monad. If you are right when the round ends, you
+            Pick a side on the price of a crypto asset. If you are right when the round ends, you
             collect. No seed phrase, no browser extension, no sign-up form.
           </p>
           <div className="mt-6">

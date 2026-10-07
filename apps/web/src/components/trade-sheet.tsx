@@ -2,7 +2,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { parseEventLogs } from "viem";
+import { createPortal } from "react-dom";
+import { parseEventLogs, type Hex } from "viem";
 import {
   approveTx,
   askFromLadder,
@@ -14,26 +15,28 @@ import {
   type Side,
 } from "@converge/sdk";
 import { deployment } from "@/config/deployment";
+import { recordOrder } from "@/lib/activity";
 import { explainAccountError, withSigner, type Profile } from "@/lib/account";
 import { track } from "@/lib/analytics";
-import { publicClient, explorerTx } from "@/lib/chain";
+import { explorerTx, publicClient } from "@/lib/chain";
 import { readOrderResult, type Ladder, type OrderResult, type Round } from "@/lib/data";
 import { nativeAmount, pct, usd } from "@/lib/format";
-import { useBalances } from "@/lib/queries";
+import { GAS_RESERVE_WEI } from "@/lib/limits";
+import { useBalances, useMinReward } from "@/lib/queries";
 import { explainTxError, sendAll } from "@/lib/tx";
 import { toast } from "./toast";
 import { Button } from "./ui";
 
 const SLIPPAGE_BPS = 200;
 const PRESETS = [1, 5, 10, 25];
-const MIN_GAS_WEI = 8n * 10n ** 15n;
+const net = (v: bigint, bps: number) => v - (v * BigInt(bps)) / 10_000n;
 
 type Phase =
   | { k: "idle" }
   | { k: "signing" }
   | { k: "sending"; label: string }
   | { k: "waiting"; id: bigint; hash: string }
-  | { k: "done"; result: OrderResult; hash: string }
+  | { k: "done"; result: OrderResult; hash: string; note?: string }
   | { k: "error"; message: string };
 
 export function TradeSheet({
@@ -54,14 +57,47 @@ export function TradeSheet({
   const [phase, setPhase] = useState<Phase>({ k: "idle" });
   const bal = useBalances(profile?.address);
   const dialog = useRef<HTMLDivElement>(null);
+  const lastFocus = useRef<Element | null>(null);
+  const locked = phase.k === "signing" || phase.k === "sending" || phase.k === "waiting";
+
+  // The page behind the sheet is inert while it is open; focus returns to where it was on close.
+  useEffect(() => {
+    lastFocus.current = document.activeElement;
+    dialog.current?.focus();
+    const main = document.getElementById("main");
+    const nav = document.querySelector("nav[aria-label=Main]");
+    main?.setAttribute("inert", "");
+    nav?.setAttribute("inert", "");
+    return () => {
+      main?.removeAttribute("inert");
+      nav?.removeAttribute("inert");
+      (lastFocus.current as HTMLElement | null)?.focus?.();
+    };
+  }, []);
 
   useEffect(() => {
-    dialog.current?.focus();
-    const onKey = (e: KeyboardEvent) =>
-      e.key === "Escape" && phase.k !== "signing" && phase.k !== "sending" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !locked) return onClose();
+      if (e.key !== "Tab" || !dialog.current) return;
+      const f = [
+        ...dialog.current.querySelectorAll<HTMLElement>(
+          "button, a[href], input, [tabindex]:not([tabindex='-1'])",
+        ),
+      ].filter((x) => !x.hasAttribute("disabled"));
+      if (f.length === 0) return;
+      const first = f[0]!;
+      const last = f[f.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, phase.k]);
+  }, [onClose, locked]);
 
   const ask = ladder ? askFromLadder(side, ladder) : null;
   const plan = useMemo(() => {
@@ -81,15 +117,16 @@ export function TradeSheet({
 
   const usdc = bal.data?.usdc ?? 0n;
   const native = bal.data?.native ?? 0n;
-  const reward = BigInt(deployment.minRewardWei);
+  const minReward = useMinReward();
+  const reward = minReward.data ?? BigInt(deployment.minRewardWei);
   const needsMoney = plan ? usdc < plan.escrow : false;
-  const needsGas = native < MIN_GAS_WEI;
-  const busy = phase.k === "signing" || phase.k === "sending" || phase.k === "waiting";
+  const needsGas = native < GAS_RESERVE_WEI + reward;
   const sideName = side === "UP" ? "Up" : "Down";
 
   async function confirm() {
     if (!profile || !plan) return;
     setPhase({ k: "signing" });
+    let placedHash: Hex | null = null;
     try {
       const fromBlock = await publicClient.getBlockNumber({ cacheTime: 0 });
       const { hashes } = await withSigner(profile, async (account) => {
@@ -112,31 +149,65 @@ export function TradeSheet({
         return { hashes: await sendAll(account, steps) };
       });
       const hash = hashes[hashes.length - 1]!;
-      const receipt = await publicClient.getTransactionReceipt({ hash });
-      const placed = parseEventLogs({
-        abi: forwardVenueAbi,
-        logs: receipt.logs,
-        eventName: "OrderPlaced",
-      })[0];
-      if (!placed) throw new Error("The bet was sent but we couldn't find it. Check My bets.");
-      const id = placed.args.id;
+      // From here on the bet exists on chain: nothing below may offer a second bet.
+      placedHash = hash;
+      let id: bigint | null = null;
+      try {
+        const receipt = await publicClient.getTransactionReceipt({ hash });
+        const placed = parseEventLogs({
+          abi: forwardVenueAbi,
+          logs: receipt.logs,
+          eventName: "OrderPlaced",
+        })[0];
+        if (placed) id = placed.args.id;
+      } catch {
+        // keep going: the order is placed, only its number is unknown for now
+      }
+      if (id === null) {
+        setPhase({
+          k: "done",
+          result: { status: "open" },
+          hash,
+          note: "Your bet is placed. We couldn't read its number yet: check My bets in a moment.",
+        });
+        return;
+      }
+      recordOrder(profile.address, {
+        id: id.toString(),
+        market: round.address,
+        side,
+        at: Date.now(),
+      });
       setPhase({ k: "waiting", id, hash });
       const t0 = Date.now();
+      let failures = 0;
       for (;;) {
-        const r = await readOrderResult(id, fromBlock);
-        if (r.status !== "open") {
-          setPhase({ k: "done", result: r, hash });
-          if (r.status === "filled") track("first_trade", { side });
-          void qc.invalidateQueries();
-          return;
+        try {
+          const r = await readOrderResult(id, fromBlock);
+          failures = 0;
+          if (r.status !== "open") {
+            setPhase({ k: "done", result: r, hash });
+            if (r.status === "filled") track("first_trade", { side });
+            void qc.invalidateQueries();
+            return;
+          }
+        } catch {
+          if (++failures >= 5) break; // the node keeps failing: stop asking, the bet stays tracked
         }
-        if (Date.now() - t0 > 45_000) {
-          setPhase({ k: "done", result: { status: "open" }, hash });
-          return;
-        }
+        if (Date.now() - t0 > 45_000) break;
         await new Promise((res) => setTimeout(res, 500));
       }
+      setPhase({ k: "done", result: { status: "open" }, hash });
     } catch (e) {
+      if (placedHash) {
+        setPhase({
+          k: "done",
+          result: { status: "open" },
+          hash: placedHash,
+          note: "Your bet is placed, but we lost track of it for a moment. Check My bets.",
+        });
+        return;
+      }
       const msg = /passkey|Mera|PRF|NotAllowed/i.test(String(e))
         ? explainAccountError(e)
         : explainTxError(e);
@@ -145,10 +216,11 @@ export function TradeSheet({
     }
   }
 
-  return (
+  // rendered outside #main so that the page behind can be made inert without the sheet going with it
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
-      onClick={() => !busy && onClose()}
+      onClick={() => !locked && onClose()}
     >
       <div
         ref={dialog}
@@ -167,18 +239,18 @@ export function TradeSheet({
           <button
             aria-label="Close"
             onClick={onClose}
-            disabled={busy}
-            className="min-h-10 min-w-10 rounded-full text-faint disabled:opacity-40"
+            disabled={locked}
+            className="min-h-11 min-w-11 rounded-full text-faint disabled:opacity-40"
           >
             ✕
           </button>
         </div>
 
         {phase.k === "done" || phase.k === "waiting" ? (
-          <Result phase={phase} side={side} onClose={onClose} />
+          <Result phase={phase} side={side} feeBps={round.redeemFeeBps} onClose={onClose} />
         ) : (
           <>
-            <fieldset disabled={busy} className="mt-4">
+            <fieldset disabled={locked} className="mt-4">
               <legend className="text-xs text-faint">How much?</legend>
               <div className="mt-2 grid grid-cols-4 gap-2" role="group" aria-label="Amount presets">
                 {PRESETS.map((p) => (
@@ -223,12 +295,12 @@ export function TradeSheet({
               <div>
                 <dt className="text-xs text-faint">You win if right</dt>
                 <dd data-testid="win" className="tabular text-base font-semibold text-up">
-                  {plan ? usd(plan.payoutIfRight) : "—"}
+                  {plan ? `+${usd(plan.profitIfRight)}` : "—"}
                 </dd>
               </div>
-              <div className="col-span-2 text-xs text-muted">
+              <div className="col-span-2 text-xs leading-relaxed text-muted">
                 {ask
-                  ? `The market says ${sideName} is ${pct(Number(ask.priceWad) / 1e18)} likely. If the price moves more than ${SLIPPAGE_BPS / 100}% before we fill you, the bet is cancelled and your money comes back.`
+                  ? `${sideName} costs ${pct(Number(ask.priceWad) / 1e18)} of a dollar per share and pays $1 if you're right${round.redeemFeeBps > 0 ? `, minus a ${round.redeemFeeBps / 100}% collection fee` : ""}: ${plan ? usd(plan.payoutIfRight) : "—"} back in total. Your bet is filled about 2 seconds after you confirm, at the oracle's price then (up to ${plan ? usd(plan.escrow) : "—"} is held, the rest comes back). If the price moves more than ${SLIPPAGE_BPS / 100}% first, the bet is cancelled and your money comes back.`
                   : "No price right now: the market isn't taking bets this second."}
               </div>
             </dl>
@@ -267,9 +339,9 @@ export function TradeSheet({
                 data-testid="confirm"
                 tone={side === "UP" ? "up" : "down"}
                 className="mt-4 w-full"
-                disabled={!plan || busy}
+                disabled={!plan || locked}
                 onClick={confirm}
-                aria-busy={busy}
+                aria-busy={locked}
               >
                 {phase.k === "signing"
                   ? "Waiting for Face ID…"
@@ -286,17 +358,20 @@ export function TradeSheet({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function Result({
   phase,
   side,
+  feeBps,
   onClose,
 }: {
   phase: Extract<Phase, { k: "waiting" | "done" }>;
   side: Side;
+  feeBps: number;
   onClose: () => void;
 }) {
   if (phase.k === "waiting")
@@ -332,7 +407,8 @@ function Result({
           <p className="tabular text-sm text-muted">
             {usd(r.premium ?? 0n)} for {usd(r.filled ?? 0n)} of {sideName}. If you&apos;re right
             when the round ends, you collect{" "}
-            <span className="font-semibold text-text">{usd(r.filled ?? 0n)}</span>.
+            <span className="font-semibold text-text">{usd(net(r.filled ?? 0n, feeBps))}</span>
+            {feeBps > 0 ? ` (after a ${feeBps / 100}% fee)` : ""}.
           </p>
         </>
       ) : r.status === "unfilled" || r.status === "expired" ? (
@@ -347,10 +423,10 @@ function Result({
         </>
       ) : (
         <>
-          <p className="text-xl font-bold">Still working on it</p>
+          <p className="text-xl font-bold">Your bet is placed</p>
           <p className="text-sm text-muted">
-            Your bet hasn&apos;t been filled yet. It will be filled or cancelled within a minute.
-            Check My bets.
+            {phase.note ??
+              "It hasn't been filled yet. It is filled or cancelled within seconds; if nobody fills it, you can cancel it from My bets and get your money back."}
           </p>
         </>
       )}

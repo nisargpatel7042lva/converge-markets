@@ -60,7 +60,7 @@ export function explainTxError(e: unknown): string {
     return "Not enough gas money (MON) in this account. Add a little MON and try again.";
   if (/MarketNotTradable|not tradable/i.test(text))
     return "This market isn't open for trading right now.";
-  if (/transfer amount exceeds balance|insufficient balance|ERC20/i.test(text))
+  if (/transfer amount exceeds balance|insufficient balance|ERC20InsufficientBalance/i.test(text))
     return "Not enough dollars in this account for that amount.";
   if (/RewardTooLow/i.test(text)) return "The network fee setting changed. Reload and try again.";
   if (/LimitOutOfRange/i.test(text)) return "That price is out of range. Try a different amount.";
