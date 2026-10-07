@@ -145,6 +145,10 @@ export interface MarketRow {
   vaultCash: bigint;
   upSupply: bigint;
   downSupply: bigint;
+  /** The partner that created the market (PartnerRegistry), or null for a core round. */
+  partner: string | null;
+  /** The owner voided it: the vault no longer quotes it. */
+  voided: boolean;
 }
 
 export interface TradeRow {
@@ -319,7 +323,7 @@ export interface ProtocolStatsRow {
 
 // ------------------------------------------------------------------ field selections
 
-const MARKET_FIELDS = `id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply`;
+const MARKET_FIELDS = `id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply partner voided`;
 const TRADE_FIELDS = `id market_id side action size premium price taker txHash block timestamp`;
 const POSITION_FIELDS = `id user market_id upBalance downBalance upEscrowed downEscrowed upCost downCost costBasis realizedPnl totalIn totalOut tradeCount market { id asset status outcome lastUpPrice startTime endTime redeemFeeBps }`;
 const VAULT_FIELDS = `id navLower navUpper ppsLower supply totalSupply lastNavTimestamp tvlCap performanceFeeBps quotingPaused quotingHalted breakerTrips settledEpochs expiredEpochs totalDeposited totalRedeemed totalPerformanceFees totalFillVolume fillCount apy7d apy30d return7d return30d apySinceInception`;
@@ -439,6 +443,8 @@ export function parseMarket(r: Raw): MarketRow {
     vaultCash: toBig(r.vaultCash as Num),
     upSupply: toBig(r.upSupply as Num),
     downSupply: toBig(r.downSupply as Num),
+    partner: r.partner ? s(r.partner) : null,
+    voided: Boolean(r.voided),
   };
 }
 

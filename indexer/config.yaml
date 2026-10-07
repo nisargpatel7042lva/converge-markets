@@ -11,6 +11,20 @@ contracts:
     events:
       - event: "AssetSet(bytes32 indexed assetId, address resolver, string label, bool enabled)"
       - event: "MarketCreated(address indexed market, bytes32 indexed assetId, uint64 indexed startTime, uint64 duration, (address factory, bytes32 assetId, address resolver, address collateral, address up, address down, uint64 startTime, uint64 endTime, uint16 redeemFeeBps) params)"
+  - name: PartnerRegistry
+    events:
+      - event: "MarketCreated(address indexed market, bytes32 indexed assetId, uint64 indexed startTime, uint64 duration, (address factory, bytes32 assetId, address resolver, address collateral, address up, address down, uint64 startTime, uint64 endTime, uint16 redeemFeeBps) params)"
+      - event: "PartnerMarketCreated(address indexed market, address indexed partner, bytes32 indexed assetId, int256 strike, uint64 startTime, uint64 endTime, address resolver, uint16 feeShareBps)"
+      - event: "PartnerApproved(address indexed partner, uint256 exposureCap, uint16 feeShareBps, bytes32[] assets)"
+      - event: "PartnerTermsSet(address indexed partner, uint256 exposureCap, uint16 feeShareBps)"
+      - event: "PartnerSuspended(address indexed partner, bool suspended, address indexed by)"
+      - event: "BondPosted(address indexed partner, uint256 amount, uint256 bond)"
+      - event: "BondWithdrawalRequested(address indexed partner, uint256 amount, uint64 withdrawableAt)"
+      - event: "BondWithdrawalCancelled(address indexed partner, uint256 amount)"
+      - event: "BondWithdrawn(address indexed partner, uint256 amount)"
+      - event: "Slashed(address indexed partner, uint256 amount, address recipient, bytes32 reason)"
+      - event: "MarketVoided(address indexed market, address indexed partner, bytes32 reason)"
+      - event: "FeesCollected(address indexed market, address indexed partner, uint256 partnerShare, uint256 treasuryShare)"
   - name: Market
     events:
       - event: "Split(address indexed account, uint256 amount)"
@@ -47,6 +61,7 @@ contracts:
       - event: "KeeperSet(address indexed keeper)"
       - event: "VenueProposed(address indexed venue, uint64 eta)"
       - event: "VenueSet(address indexed venue)"
+      - event: "PartnerRegistrySet(address indexed registry)"
       - event: "Transfer(address indexed from, address indexed to, uint256 value)"
   - name: ForwardVenue
     events:
@@ -69,3 +84,5 @@ chains:
       # Market and OutcomeToken have no address: contractRegister adds them on MarketCreated.
       - name: Market
       - name: OutcomeToken
+      # The PartnerRegistry has no address either: the vault announces it (PartnerRegistrySet).
+      - name: PartnerRegistry

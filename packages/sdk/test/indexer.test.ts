@@ -112,6 +112,8 @@ const marketRow = {
   vaultCash: "-2",
   upSupply: "100000000",
   downSupply: "100000000",
+  partner: null,
+  voided: false,
 };
 
 describe("client", () => {
@@ -244,6 +246,14 @@ describe("client", () => {
       const used = [...q.matchAll(/\$(\w+)/g)].map((m) => m[1]);
       for (const u of used) expect(declared, `${name} uses undeclared $${u}`).toContain(u);
     }
+  });
+
+  it("parseMarket reads the partner and the void flag of a partner market", () => {
+    const m = parseMarket({ ...marketRow, partner: "0xabc", voided: true });
+    expect(m.partner).toBe("0xabc");
+    expect(m.voided).toBe(true);
+    expect(parseMarket(marketRow).partner).toBeNull();
+    expect(parseMarket(marketRow).voided).toBe(false);
   });
 
   it("parseMarket handles a never-opened market", () => {

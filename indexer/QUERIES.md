@@ -33,7 +33,7 @@ query MarketList($statuses: [marketstatus!]!, $limit: Int!, $offset: Int!) {
     order_by: { endTime: asc }
     limit: $limit
     offset: $offset
-  ) { id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply }
+  ) { id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply partner voided }
 }
 ```
 
@@ -54,7 +54,7 @@ query MarketListByAsset($statuses: [marketstatus!]!, $asset: String!, $limit: In
     order_by: { endTime: asc }
     limit: $limit
     offset: $offset
-  ) { id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply }
+  ) { id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply partner voided }
 }
 ```
 
@@ -71,7 +71,7 @@ Variables: `id: String!` (lower-case market address), `trades: Int!`
 ```graphql
 query MarketDetail($id: String!, $trades: Int!) {
   Market_by_pk(id: $id) {
-    id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply
+    id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply partner voided
     trades(order_by: { block: desc, logIndex: desc }, limit: $trades) { id market_id side action size premium price taker txHash block timestamp }
   }
 }

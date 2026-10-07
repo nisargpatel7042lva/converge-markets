@@ -99,6 +99,10 @@ type Market {
   downSupply: BigInt!
   "Cumulative redeem fees charged by this market (collateral units; the on-chain feesAccrued is reset by claimFees)."
   redeemFeesTotal: BigInt!
+  "The partner that created this market through the PartnerRegistry (ADR-008); null for the core 15 minute / 1 hour rounds."
+  partner: String @index
+  "True once the owner voided the market: the vault no longer quotes it (users can still merge and redeem)."
+  voided: Boolean!
   trades: [Trade!]! @derivedFrom(field: "market")
   tokens: [OutcomeToken!]! @derivedFrom(field: "market")
 }
@@ -209,6 +213,8 @@ type Vault {
   performanceFeeBps: Int!
   keeper: String
   venue: String
+  "The PartnerRegistry the vault accepts markets from (set once by the owner, ADR-008); null before."
+  partnerRegistry: String
   quotingPaused: Boolean!
   "True while the keeper's halt (ADR-006 haltQuoting) is in force; independent of the guardian pause and the breaker."
   quotingHalted: Boolean!
@@ -387,4 +393,30 @@ type NavDay @internal {
 "Venue contracts registered at runtime (VenueSet): treated as system holders (not users). Not exposed."
 type SystemAddress @internal {
   id: ID!
+}
+
+"""
+A third-party app approved to create threshold markets with the vault's depth (PartnerRegistry, ADR-008).
+Bond fields track the registry's `bond` and `pendingWithdrawal` exactly (a slash takes the active bond first).
+"""
+type Partner {
+  id: ID!
+  approved: Boolean!
+  suspended: Boolean!
+  "Most collateral the vault may have split into this partner's markets (collateral units)."
+  exposureCap: BigInt!
+  "Share of the redeem fee paid to the partner, in basis points."
+  feeShareBps: Int!
+  "Active bond (collateral units)."
+  bond: BigInt!
+  "Bond in a pending withdrawal (still slashable)."
+  pendingWithdrawal: BigInt!
+  slashedTotal: BigInt!
+  marketsCreated: Int!
+  voidedMarkets: Int!
+  "Fees credited to the partner by collectFees (collateral units)."
+  feesEarned: BigInt!
+  allowedAssets: [String!]!
+  firstSeenBlock: Int!
+  updatedBlock: Int!
 }

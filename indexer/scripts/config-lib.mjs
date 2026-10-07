@@ -8,6 +8,22 @@ export const CONTRACTS = {
     "AssetSet(bytes32 indexed assetId, address resolver, string label, bool enabled)",
     `MarketCreated(address indexed market, bytes32 indexed assetId, uint64 indexed startTime, uint64 duration, ${MARKET_PARAMS} params)`,
   ],
+  // Liquidity-as-a-service (ADR-008). The registry is a second market factory: its MarketCreated has
+  // the factory's exact shape, and the rest of its events describe partners, bonds and governance.
+  PartnerRegistry: [
+    `MarketCreated(address indexed market, bytes32 indexed assetId, uint64 indexed startTime, uint64 duration, ${MARKET_PARAMS} params)`,
+    "PartnerMarketCreated(address indexed market, address indexed partner, bytes32 indexed assetId, int256 strike, uint64 startTime, uint64 endTime, address resolver, uint16 feeShareBps)",
+    "PartnerApproved(address indexed partner, uint256 exposureCap, uint16 feeShareBps, bytes32[] assets)",
+    "PartnerTermsSet(address indexed partner, uint256 exposureCap, uint16 feeShareBps)",
+    "PartnerSuspended(address indexed partner, bool suspended, address indexed by)",
+    "BondPosted(address indexed partner, uint256 amount, uint256 bond)",
+    "BondWithdrawalRequested(address indexed partner, uint256 amount, uint64 withdrawableAt)",
+    "BondWithdrawalCancelled(address indexed partner, uint256 amount)",
+    "BondWithdrawn(address indexed partner, uint256 amount)",
+    "Slashed(address indexed partner, uint256 amount, address recipient, bytes32 reason)",
+    "MarketVoided(address indexed market, address indexed partner, bytes32 reason)",
+    "FeesCollected(address indexed market, address indexed partner, uint256 partnerShare, uint256 treasuryShare)",
+  ],
   Market: [
     "Split(address indexed account, uint256 amount)",
     "Merged(address indexed account, uint256 amount)",
@@ -41,6 +57,7 @@ export const CONTRACTS = {
     "KeeperSet(address indexed keeper)",
     "VenueProposed(address indexed venue, uint64 eta)",
     "VenueSet(address indexed venue)",
+    "PartnerRegistrySet(address indexed registry)",
     "Transfer(address indexed from, address indexed to, uint256 value)",
   ],
   ForwardVenue: [
@@ -106,6 +123,10 @@ export function render(o) {
   );
   lines.push("      - name: Market");
   lines.push("      - name: OutcomeToken");
+  lines.push(
+    "      # The PartnerRegistry has no address either: the vault announces it (PartnerRegistrySet).",
+  );
+  lines.push("      - name: PartnerRegistry");
   return lines.join("\n") + "\n";
 }
 

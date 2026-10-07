@@ -15,6 +15,7 @@ import {
   marketAbi,
   marketFactoryAbi,
   outcomeTokenAbi,
+  partnerRegistryAbi,
 } from "../../packages/sdk/src/abi/generated";
 import { CONTRACTS } from "../scripts/config-lib.mjs";
 
@@ -27,6 +28,7 @@ const SDK_ABI: Record<string, readonly unknown[]> = {
   OutcomeToken: outcomeTokenAbi,
   ConvergeVault: convergeVaultAbi,
   ForwardVenue: forwardVenueAbi,
+  PartnerRegistry: partnerRegistryAbi,
 };
 
 function forgeAbi(name: string): readonly unknown[] | undefined {

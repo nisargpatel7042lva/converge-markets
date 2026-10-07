@@ -58,6 +58,7 @@ const zeroVault = (id: string, chainId: number): Vault => ({
   performanceFeeBps: VAULT_DEFAULTS[chainId]?.performanceFeeBps ?? 0,
   keeper: VAULT_DEFAULTS[chainId]?.keeper,
   venue: undefined,
+  partnerRegistry: undefined,
   quotingPaused: false,
   quotingHalted: false,
   pendingVenue: undefined,
@@ -649,6 +650,21 @@ indexer.onEvent({ contract: "ConvergeVault", event: "VenueSet" }, async ({ event
     pendingVenueEta: undefined,
   }));
 });
+
+// The vault announces the one PartnerRegistry it accepts (ADR-008): index exactly that contract.
+indexer.contractRegister(
+  { contract: "ConvergeVault", event: "PartnerRegistrySet" },
+  async ({ event, context }) => {
+    context.chain.PartnerRegistry.add(event.params.registry);
+  },
+);
+
+indexer.onEvent(
+  { contract: "ConvergeVault", event: "PartnerRegistrySet" },
+  async ({ event, context }) => {
+    await updateVault(context, event, () => ({ partnerRegistry: lc(event.params.registry) }));
+  },
+);
 
 // ------------------------------------------------------------------ share token (ERC-20)
 

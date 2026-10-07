@@ -27,14 +27,46 @@ import {
 
 // ------------------------------------------------------------------ factory
 
-indexer.contractRegister(
-  { contract: "MarketFactory", event: "MarketCreated" },
-  async ({ event, context }) => {
-    context.chain.Market.add(event.params.market);
-    context.chain.OutcomeToken.add(event.params.params.up);
-    context.chain.OutcomeToken.add(event.params.params.down);
-  },
-);
+/** The part of a MarketCreated event both factories (MarketFactory, PartnerRegistry) share. */
+type Hex = `0x${string}`;
+interface MarketCreatedLike {
+  params: {
+    market: Hex;
+    assetId: string;
+    duration: bigint;
+    params: {
+      resolver: Hex;
+      collateral: Hex;
+      up: Hex;
+      down: Hex;
+      startTime: bigint;
+      endTime: bigint;
+      redeemFeeBps: bigint;
+    };
+  };
+  block: { number: number; timestamp: number };
+}
+
+const registerMarket = async ({
+  event,
+  context,
+}: {
+  event: MarketCreatedLike;
+  context: {
+    chain: {
+      Market: { add: (a: Hex) => void };
+      OutcomeToken: { add: (a: Hex) => void };
+    };
+  };
+}) => {
+  context.chain.Market.add(event.params.market);
+  context.chain.OutcomeToken.add(event.params.params.up);
+  context.chain.OutcomeToken.add(event.params.params.down);
+};
+
+indexer.contractRegister({ contract: "MarketFactory", event: "MarketCreated" }, registerMarket);
+// The PartnerRegistry is a second market factory with the same event (ADR-008).
+indexer.contractRegister({ contract: "PartnerRegistry", event: "MarketCreated" }, registerMarket);
 
 indexer.onEvent({ contract: "MarketFactory", event: "AssetSet" }, async ({ event, context }) => {
   context.Asset.set({
@@ -45,9 +77,14 @@ indexer.onEvent({ contract: "MarketFactory", event: "AssetSet" }, async ({ event
   });
 });
 
-indexer.onEvent(
-  { contract: "MarketFactory", event: "MarketCreated" },
-  async ({ event, context }) => {
+async function indexMarketCreated({
+  event,
+  context,
+}: {
+  event: MarketCreatedLike;
+  context: Ctx;
+}): Promise<void> {
+  {
     const p = event.params.params;
     const assetId = event.params.assetId;
     const asset = await context.Asset.get(assetId);
@@ -83,6 +120,8 @@ indexer.onEvent(
       upSupply: 0n,
       downSupply: 0n,
       redeemFeesTotal: 0n,
+      partner: undefined,
+      voided: false,
     });
     context.OutcomeToken.set({ id: lc(p.up), market_id: id, side: "UP", totalSupply: 0n });
     context.OutcomeToken.set({ id: lc(p.down), market_id: id, side: "DOWN", totalSupply: 0n });
@@ -90,8 +129,11 @@ indexer.onEvent(
       totalMarkets: s.totalMarkets + 1,
     }));
     await updateDaily(context, ts, (d) => ({ marketsCreated: d.marketsCreated + 1 }));
-  },
-);
+  }
+}
+
+indexer.onEvent({ contract: "MarketFactory", event: "MarketCreated" }, indexMarketCreated);
+indexer.onEvent({ contract: "PartnerRegistry", event: "MarketCreated" }, indexMarketCreated);
 
 // ------------------------------------------------------------------ market lifecycle
 

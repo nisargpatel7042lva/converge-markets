@@ -20,6 +20,8 @@ export const VENUE = dep.vault.forwardVenue.toLowerCase();
 export const FACTORY_BLOCK = dep.deployBlock;
 export const VAULT_BLOCK = dep.vault.deployBlock;
 export const CHAIN = 10143;
+/** The PartnerRegistry the vault announces (PartnerRegistrySet): the indexer follows the vault. */
+export const REGISTRY = `0x${"4001".padStart(40, "0")}`;
 
 export const ASSET = "0xee62665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d6489";
 export const ZERO = "0x0000000000000000000000000000000000000000";
@@ -124,6 +126,48 @@ export class Chain {
         redeemFeeBps: 0n,
       },
     });
+  }
+
+  /** A partner market: the registry emits the factory-shaped event, then its own. */
+  partnerMarketCreated(
+    m: MarketAddrs,
+    partner: string,
+    startTime: number,
+    duration: number,
+    strike: bigint,
+    feeShareBps = 3000,
+    redeemFeeBps = 50n,
+  ): this {
+    this.emit("PartnerRegistry", "MarketCreated", REGISTRY, {
+      market: m.market,
+      assetId: ASSET,
+      startTime: BigInt(startTime),
+      duration: BigInt(duration),
+      params: {
+        factory: REGISTRY,
+        assetId: ASSET,
+        resolver: RESOLVER,
+        collateral: COLLATERAL,
+        up: m.up,
+        down: m.down,
+        startTime: BigInt(startTime),
+        endTime: BigInt(startTime + duration),
+        redeemFeeBps,
+      },
+    });
+    return this.emit("PartnerRegistry", "PartnerMarketCreated", REGISTRY, {
+      market: m.market,
+      partner,
+      assetId: ASSET,
+      strike,
+      startTime: BigInt(startTime),
+      endTime: BigInt(startTime + duration),
+      resolver: RESOLVER,
+      feeShareBps,
+    });
+  }
+  registry(event: string, params: Record<string, unknown>): this {
+    return this.emit("PartnerRegistry", event, REGISTRY, params);
   }
 
   opened(m: MarketAddrs, strike: bigint): this {

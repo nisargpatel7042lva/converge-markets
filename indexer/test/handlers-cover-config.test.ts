@@ -26,9 +26,13 @@ describe("config and handlers agree", () => {
   });
 
   it("every dynamically registered contract is registered by a contractRegister on MarketCreated", () => {
-    expect(src).toMatch(
-      /contractRegister\(\s*\{\s*contract:\s*"MarketFactory",\s*event:\s*"MarketCreated"/,
-    );
+    for (const factory of ["MarketFactory", "PartnerRegistry"]) {
+      expect(src).toMatch(
+        new RegExp(
+          `contractRegister\\(\\s*\\{\\s*contract:\\s*"${factory}",\\s*event:\\s*"MarketCreated"`,
+        ),
+      );
+    }
     for (const c of ["Market", "OutcomeToken"]) {
       expect(src).toContain(`context.chain.${c}.add(`);
     }
