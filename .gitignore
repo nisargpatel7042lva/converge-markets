@@ -28,3 +28,10 @@ indexer/config.local.yaml
 indexer/generated/
 indexer/logs/
 .local-indexer/
+
+ops/grafana/admin_password
+services/keeper/.env
+scripts/keeper-live/.taker-key
+docs/evidence/phase-5/kill.token
+ops/alertmanager/webhook_url
+.claude/

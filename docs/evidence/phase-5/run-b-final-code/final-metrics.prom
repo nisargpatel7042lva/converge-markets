@@ -1,0 +1,489 @@
+# HELP keeper_tx_sent_total Transactions sent, by kind and result
+# TYPE keeper_tx_sent_total counter
+keeper_tx_sent_total{kind="setSigma",result="success"} 5
+keeper_tx_sent_total{kind="executeOrder",result="success"} 1
+keeper_tx_sent_total{kind="setSigma",result="sim_revert"} 2
+keeper_tx_sent_total{kind="haltQuoting",result="success"} 1
+keeper_tx_sent_total{kind="unhaltQuoting",result="success"} 1
+
+# HELP keeper_tx_inclusion_ms Milliseconds from the first broadcast to the receipt
+# TYPE keeper_tx_inclusion_ms histogram
+keeper_tx_inclusion_ms_bucket{le="100",kind="setSigma"} 1
+keeper_tx_inclusion_ms_bucket{le="250",kind="setSigma"} 1
+keeper_tx_inclusion_ms_bucket{le="500",kind="setSigma"} 1
+keeper_tx_inclusion_ms_bucket{le="800",kind="setSigma"} 1
+keeper_tx_inclusion_ms_bucket{le="1200",kind="setSigma"} 2
+keeper_tx_inclusion_ms_bucket{le="2000",kind="setSigma"} 4
+keeper_tx_inclusion_ms_bucket{le="4000",kind="setSigma"} 5
+keeper_tx_inclusion_ms_bucket{le="8000",kind="setSigma"} 5
+keeper_tx_inclusion_ms_bucket{le="20000",kind="setSigma"} 5
+keeper_tx_inclusion_ms_bucket{le="+Inf",kind="setSigma"} 5
+keeper_tx_inclusion_ms_sum{kind="setSigma"} 6047
+keeper_tx_inclusion_ms_count{kind="setSigma"} 5
+keeper_tx_inclusion_ms_bucket{le="100",kind="executeOrder"} 0
+keeper_tx_inclusion_ms_bucket{le="250",kind="executeOrder"} 0
+keeper_tx_inclusion_ms_bucket{le="500",kind="executeOrder"} 0
+keeper_tx_inclusion_ms_bucket{le="800",kind="executeOrder"} 0
+keeper_tx_inclusion_ms_bucket{le="1200",kind="executeOrder"} 1
+keeper_tx_inclusion_ms_bucket{le="2000",kind="executeOrder"} 1
+keeper_tx_inclusion_ms_bucket{le="4000",kind="executeOrder"} 1
+keeper_tx_inclusion_ms_bucket{le="8000",kind="executeOrder"} 1
+keeper_tx_inclusion_ms_bucket{le="20000",kind="executeOrder"} 1
+keeper_tx_inclusion_ms_bucket{le="+Inf",kind="executeOrder"} 1
+keeper_tx_inclusion_ms_sum{kind="executeOrder"} 1102
+keeper_tx_inclusion_ms_count{kind="executeOrder"} 1
+keeper_tx_inclusion_ms_bucket{le="100",kind="haltQuoting"} 0
+keeper_tx_inclusion_ms_bucket{le="250",kind="haltQuoting"} 0
+keeper_tx_inclusion_ms_bucket{le="500",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="800",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="1200",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="2000",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="4000",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="8000",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="20000",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="+Inf",kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_sum{kind="haltQuoting"} 496
+keeper_tx_inclusion_ms_count{kind="haltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="100",kind="unhaltQuoting"} 0
+keeper_tx_inclusion_ms_bucket{le="250",kind="unhaltQuoting"} 0
+keeper_tx_inclusion_ms_bucket{le="500",kind="unhaltQuoting"} 0
+keeper_tx_inclusion_ms_bucket{le="800",kind="unhaltQuoting"} 0
+keeper_tx_inclusion_ms_bucket{le="1200",kind="unhaltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="2000",kind="unhaltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="4000",kind="unhaltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="8000",kind="unhaltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="20000",kind="unhaltQuoting"} 1
+keeper_tx_inclusion_ms_bucket{le="+Inf",kind="unhaltQuoting"} 1
+keeper_tx_inclusion_ms_sum{kind="unhaltQuoting"} 907
+keeper_tx_inclusion_ms_count{kind="unhaltQuoting"} 1
+
+# HELP keeper_tx_gas_limit_total Gas limit paid for (Monad bills the limit), by kind
+# TYPE keeper_tx_gas_limit_total counter
+keeper_tx_gas_limit_total{kind="setSigma"} 260095
+keeper_tx_gas_limit_total{kind="executeOrder"} 707408
+keeper_tx_gas_limit_total{kind="haltQuoting"} 100000
+keeper_tx_gas_limit_total{kind="unhaltQuoting"} 100000
+
+# HELP keeper_tx_cost_mon_total MON spent on gas, by kind
+# TYPE keeper_tx_cost_mon_total counter
+keeper_tx_cost_mon_total{kind="setSigma"} 0.026529689999999998
+keeper_tx_cost_mon_total{kind="executeOrder"} 0.072155616
+keeper_tx_cost_mon_total{kind="haltQuoting"} 0.0102
+keeper_tx_cost_mon_total{kind="unhaltQuoting"} 0.0102
+
+# HELP keeper_quotes_sent_total Quote-maintaining actions sent (sigma updates, inventory splits and merges), by kind
+# TYPE keeper_quotes_sent_total counter
+keeper_quotes_sent_total{kind="setSigma"} 5
+
+# HELP keeper_quote_age_blocks Blocks between an order's pricing time (first block at or after it) and the block that executed it
+# TYPE keeper_quote_age_blocks histogram
+keeper_quote_age_blocks_bucket{le="0"} 0
+keeper_quote_age_blocks_bucket{le="1"} 0
+keeper_quote_age_blocks_bucket{le="2"} 0
+keeper_quote_age_blocks_bucket{le="3"} 0
+keeper_quote_age_blocks_bucket{le="4"} 0
+keeper_quote_age_blocks_bucket{le="6"} 1
+keeper_quote_age_blocks_bucket{le="10"} 1
+keeper_quote_age_blocks_bucket{le="20"} 1
+keeper_quote_age_blocks_bucket{le="+Inf"} 1
+keeper_quote_age_blocks_sum 6
+keeper_quote_age_blocks_count 1
+
+# HELP keeper_order_exec_latency_ms Milliseconds from seeing the pricing-time block to the execution receipt
+# TYPE keeper_order_exec_latency_ms histogram
+keeper_order_exec_latency_ms_bucket{le="200"} 0
+keeper_order_exec_latency_ms_bucket{le="400"} 0
+keeper_order_exec_latency_ms_bucket{le="800"} 0
+keeper_order_exec_latency_ms_bucket{le="1200"} 0
+keeper_order_exec_latency_ms_bucket{le="2000"} 1
+keeper_order_exec_latency_ms_bucket{le="4000"} 1
+keeper_order_exec_latency_ms_bucket{le="8000"} 1
+keeper_order_exec_latency_ms_bucket{le="+Inf"} 1
+keeper_order_exec_latency_ms_sum 1851
+keeper_order_exec_latency_ms_count 1
+
+# HELP keeper_fills_total Orders executed, by outcome (filled, unfilled, simulated)
+# TYPE keeper_fills_total counter
+keeper_fills_total{outcome="filled"} 1
+
+# HELP keeper_filled_premium_usd_total Premium of filled orders in dollars
+# TYPE keeper_filled_premium_usd_total counter
+keeper_filled_premium_usd_total 0.66
+
+# HELP keeper_errors_total Errors, by kind
+# TYPE keeper_errors_total counter
+keeper_errors_total{kind="mirror_mismatch"} 2
+
+# HELP keeper_halts_total Quotes pulled, by reason
+# TYPE keeper_halts_total counter
+keeper_halts_total{reason="PRICE_UNHEALTHY"} 1
+keeper_halts_total{reason="SOURCE_DIVERGENCE"} 1
+
+# HELP keeper_halt_latency_blocks Blocks between the first block seen after the trigger and the block that included the halt
+# TYPE keeper_halt_latency_blocks histogram
+keeper_halt_latency_blocks_bucket{le="0"} 0
+keeper_halt_latency_blocks_bucket{le="1"} 0
+keeper_halt_latency_blocks_bucket{le="2"} 0
+keeper_halt_latency_blocks_bucket{le="3"} 0
+keeper_halt_latency_blocks_bucket{le="5"} 1
+keeper_halt_latency_blocks_bucket{le="10"} 1
+keeper_halt_latency_blocks_bucket{le="+Inf"} 1
+keeper_halt_latency_blocks_sum 4
+keeper_halt_latency_blocks_count 1
+
+# HELP keeper_quote_violations_total Crossed, off-grid or out-of-bounds levels seen in the live ladder
+# TYPE keeper_quote_violations_total counter
+
+# HELP keeper_loop_duration_ms Duration of a slow tick
+# TYPE keeper_loop_duration_ms histogram
+keeper_loop_duration_ms_bucket{le="10"} 0
+keeper_loop_duration_ms_bucket{le="50"} 0
+keeper_loop_duration_ms_bucket{le="100"} 0
+keeper_loop_duration_ms_bucket{le="250"} 0
+keeper_loop_duration_ms_bucket{le="500"} 0
+keeper_loop_duration_ms_bucket{le="1000"} 0
+keeper_loop_duration_ms_bucket{le="2000"} 5
+keeper_loop_duration_ms_bucket{le="5000"} 41
+keeper_loop_duration_ms_bucket{le="+Inf"} 45
+keeper_loop_duration_ms_sum 160864
+keeper_loop_duration_ms_count 45
+
+# HELP keeper_alerts_total Alerts raised, by key
+# TYPE keeper_alerts_total counter
+keeper_alerts_total{key="low-balance"} 1
+keeper_alerts_total{key="halt:PRICE_UNHEALTHY"} 1
+keeper_alerts_total{key="unhalt"} 1
+
+# HELP keeper_halted 1 while the keeper has pulled its quotes
+# TYPE keeper_halted gauge
+keeper_halted 0
+
+# HELP keeper_killed 1 while the kill switch is on
+# TYPE keeper_killed gauge
+keeper_killed 0
+
+# HELP keeper_vault_paused 1 while the vault is paused (guardian, owner or breaker)
+# TYPE keeper_vault_paused gauge
+keeper_vault_paused 0
+
+# HELP keeper_mode 1 for the running mode
+# TYPE keeper_mode gauge
+keeper_mode{mode="live"} 1
+
+# HELP keeper_block_height Latest block seen
+# TYPE keeper_block_height gauge
+keeper_block_height 68725247
+
+# HELP keeper_block_lag_ms Milliseconds since the last block
+# TYPE keeper_block_lag_ms gauge
+keeper_block_lag_ms 0
+
+# HELP keeper_orders_total Orders this keeper closed, by outcome (executed, expired without being executed)
+# TYPE keeper_orders_total counter
+keeper_orders_total{outcome="executed"} 1
+
+# HELP keeper_rpc_requests_total JSON-RPC calls made, by method
+# TYPE keeper_rpc_requests_total counter
+keeper_rpc_requests_total{method="eth_call"} 706
+keeper_rpc_requests_total{method="eth_getBlockByNumber"} 70
+keeper_rpc_requests_total{method="eth_fillTransaction"} 8
+keeper_rpc_requests_total{method="eth_maxPriorityFeePerGas"} 3
+keeper_rpc_requests_total{method="eth_getTransactionCount"} 1
+keeper_rpc_requests_total{method="eth_sendRawTransaction"} 8
+keeper_rpc_requests_total{method="eth_getTransactionReceipt"} 15
+
+# HELP keeper_rpc_consecutive_errors Consecutive failed RPC calls
+# TYPE keeper_rpc_consecutive_errors gauge
+keeper_rpc_consecutive_errors 0
+
+# HELP keeper_reference_price Reference price (median of the healthy sources)
+# TYPE keeper_reference_price gauge
+keeper_reference_price{asset="TEST/USD"} 2710.7200000000003
+
+# HELP keeper_price_healthy 1 when the reference price may be used
+# TYPE keeper_price_healthy gauge
+keeper_price_healthy{asset="TEST/USD"} 1
+
+# HELP keeper_source_healthy 1 when a price source is fresh
+# TYPE keeper_source_healthy gauge
+keeper_source_healthy{asset="TEST/USD",source="binance"} 1
+keeper_source_healthy{asset="TEST/USD",source="coinbase"} 1
+
+# HELP keeper_source_age_ms Age of the last tick of a source
+# TYPE keeper_source_age_ms gauge
+keeper_source_age_ms{asset="TEST/USD",source="binance"} 86
+keeper_source_age_ms{asset="TEST/USD",source="coinbase"} 332
+
+# HELP keeper_price_shock_bps Largest recent move of the median (bps)
+# TYPE keeper_price_shock_bps gauge
+keeper_price_shock_bps{asset="TEST/USD"} 1.8723715946757435
+
+# HELP keeper_source_divergence_bps Largest distance of a source from the median (bps)
+# TYPE keeper_source_divergence_bps gauge
+keeper_source_divergence_bps{asset="TEST/USD"} 1.051436456854409
+
+# HELP keeper_chainlink_distance_bps Distance of the median from Chainlink (bps)
+# TYPE keeper_chainlink_distance_bps gauge
+
+# HELP keeper_sigma Annual volatility stored in the vault
+# TYPE keeper_sigma gauge
+keeper_sigma{asset="TEST/USD"} 1.077994843
+
+# HELP keeper_sigma_estimate The keeper's own volatility estimate
+# TYPE keeper_sigma_estimate gauge
+keeper_sigma_estimate{asset="TEST/USD"} 1.2
+
+# HELP keeper_eligible_markets Open rounds the keeper should keep quoted
+# TYPE keeper_eligible_markets gauge
+keeper_eligible_markets 1
+
+# HELP keeper_tradable_markets Eligible rounds that are tradable now
+# TYPE keeper_tradable_markets gauge
+keeper_tradable_markets 1
+
+# HELP keeper_market_tradable 1 when a round is tradable
+# TYPE keeper_market_tradable gauge
+keeper_market_tradable{market="0x25884eb9c87cf0fb8bd2da9c103ff0bb2a244737"} 1
+keeper_market_tradable{market="0xa89c8406df1307d957a5dfafd25573a2682e7c99"} 1
+
+# HELP keeper_inventory_tokens Outcome tokens held by the vault
+# TYPE keeper_inventory_tokens gauge
+keeper_inventory_tokens{market="0x25884eb9c87cf0fb8bd2da9c103ff0bb2a244737",side="up"} 1
+keeper_inventory_tokens{market="0x25884eb9c87cf0fb8bd2da9c103ff0bb2a244737",side="down"} 0
+keeper_inventory_tokens{market="0xa89c8406df1307d957a5dfafd25573a2682e7c99",side="up"} 96
+keeper_inventory_tokens{market="0xa89c8406df1307d957a5dfafd25573a2682e7c99",side="down"} 100
+
+# HELP keeper_market_loss_ratio Worst-case loss over the per-market ceiling
+# TYPE keeper_market_loss_ratio gauge
+keeper_market_loss_ratio{market="0x25884eb9c87cf0fb8bd2da9c103ff0bb2a244737"} 0.029010689133464673
+keeper_market_loss_ratio{market="0xa89c8406df1307d957a5dfafd25573a2682e7c99"} 0.14205233989489616
+
+# HELP keeper_total_loss_ratio Worst-case loss of all rounds over the total ceiling
+# TYPE keeper_total_loss_ratio gauge
+keeper_total_loss_ratio 0.021382878628545106
+
+# HELP keeper_excess_nav_fraction Spare tokens over the lower NAV
+# TYPE keeper_excess_nav_fraction gauge
+keeper_excess_nav_fraction 0.005001842954045633
+
+# HELP keeper_pnl_realized_usd Realized P&L of resolved rounds
+# TYPE keeper_pnl_realized_usd gauge
+keeper_pnl_realized_usd 0
+
+# HELP keeper_pnl_unrealized_usd Unrealized P&L of open rounds at fair
+# TYPE keeper_pnl_unrealized_usd gauge
+keeper_pnl_unrealized_usd 0.3978905712282224
+
+# HELP keeper_vault_nav_lower_usd Vault lower NAV
+# TYPE keeper_vault_nav_lower_usd gauge
+keeper_vault_nav_lower_usd 999.631545
+
+# HELP keeper_vault_nav_age_seconds Age of the vault's stored NAV
+# TYPE keeper_vault_nav_age_seconds gauge
+keeper_vault_nav_age_seconds 163
+
+# HELP keeper_sigma_age_seconds Age of the sigma stored in the vault
+# TYPE keeper_sigma_age_seconds gauge
+keeper_sigma_age_seconds{asset="TEST/USD"} 9
+
+# HELP keeper_pending_orders Orders waiting to be executed
+# TYPE keeper_pending_orders gauge
+keeper_pending_orders 0
+
+# HELP keeper_wallet_balance_mon Keeper wallet balance in MON
+# TYPE keeper_wallet_balance_mon gauge
+keeper_wallet_balance_mon 0.044165006
+
+# HELP keeper_last_tick_timestamp_seconds Unix time of the last slow tick
+# TYPE keeper_last_tick_timestamp_seconds gauge
+keeper_last_tick_timestamp_seconds 1791301872.243
+
+# HELP keeper_process_process_cpu_user_seconds_total Total user CPU time spent in seconds.
+# TYPE keeper_process_process_cpu_user_seconds_total counter
+keeper_process_process_cpu_user_seconds_total 5.229414000000001
+
+# HELP keeper_process_process_cpu_system_seconds_total Total system CPU time spent in seconds.
+# TYPE keeper_process_process_cpu_system_seconds_total counter
+keeper_process_process_cpu_system_seconds_total 1.0501889999999998
+
+# HELP keeper_process_process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE keeper_process_process_cpu_seconds_total counter
+keeper_process_process_cpu_seconds_total 6.279603000000001
+
+# HELP keeper_process_process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE keeper_process_process_start_time_seconds gauge
+keeper_process_process_start_time_seconds 1791301671
+
+# HELP keeper_process_process_resident_memory_bytes Resident memory size in bytes.
+# TYPE keeper_process_process_resident_memory_bytes gauge
+keeper_process_process_resident_memory_bytes 206028800
+
+# HELP keeper_process_process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE keeper_process_process_virtual_memory_bytes gauge
+keeper_process_process_virtual_memory_bytes 36829417472
+
+# HELP keeper_process_process_heap_bytes Process heap size in bytes.
+# TYPE keeper_process_process_heap_bytes gauge
+keeper_process_process_heap_bytes 1310846976
+
+# HELP keeper_process_process_open_fds Number of open file descriptors.
+# TYPE keeper_process_process_open_fds gauge
+keeper_process_process_open_fds 40
+
+# HELP keeper_process_process_max_fds Maximum number of open file descriptors.
+# TYPE keeper_process_process_max_fds gauge
+keeper_process_process_max_fds 1048576
+
+# HELP keeper_process_nodejs_eventloop_lag_seconds Lag of event loop in seconds.
+# TYPE keeper_process_nodejs_eventloop_lag_seconds gauge
+keeper_process_nodejs_eventloop_lag_seconds 0.001025792
+
+# HELP keeper_process_nodejs_eventloop_lag_min_seconds The minimum recorded event loop delay.
+# TYPE keeper_process_nodejs_eventloop_lag_min_seconds gauge
+keeper_process_nodejs_eventloop_lag_min_seconds 0.009109504
+
+# HELP keeper_process_nodejs_eventloop_lag_max_seconds The maximum recorded event loop delay.
+# TYPE keeper_process_nodejs_eventloop_lag_max_seconds gauge
+keeper_process_nodejs_eventloop_lag_max_seconds 0.011657215
+
+# HELP keeper_process_nodejs_eventloop_lag_mean_seconds The mean of the recorded event loop delays.
+# TYPE keeper_process_nodejs_eventloop_lag_mean_seconds gauge
+keeper_process_nodejs_eventloop_lag_mean_seconds 0.01044855172413793
+
+# HELP keeper_process_nodejs_eventloop_lag_stddev_seconds The standard deviation of the recorded event loop delays.
+# TYPE keeper_process_nodejs_eventloop_lag_stddev_seconds gauge
+keeper_process_nodejs_eventloop_lag_stddev_seconds 0.00041602215950785495
+
+# HELP keeper_process_nodejs_eventloop_lag_p50_seconds The 50th percentile of the recorded event loop delays.
+# TYPE keeper_process_nodejs_eventloop_lag_p50_seconds gauge
+keeper_process_nodejs_eventloop_lag_p50_seconds 0.010387455
+
+# HELP keeper_process_nodejs_eventloop_lag_p90_seconds The 90th percentile of the recorded event loop delays.
+# TYPE keeper_process_nodejs_eventloop_lag_p90_seconds gauge
+keeper_process_nodejs_eventloop_lag_p90_seconds 0.010969087
+
+# HELP keeper_process_nodejs_eventloop_lag_p99_seconds The 99th percentile of the recorded event loop delays.
+# TYPE keeper_process_nodejs_eventloop_lag_p99_seconds gauge
+keeper_process_nodejs_eventloop_lag_p99_seconds 0.011272191
+
+# HELP keeper_process_nodejs_active_resources Number of active resources that are currently keeping the event loop alive, grouped by async resource type.
+# TYPE keeper_process_nodejs_active_resources gauge
+keeper_process_nodejs_active_resources{type="TCPSocketWrap"} 6
+keeper_process_nodejs_active_resources{type="TCPServerWrap"} 1
+keeper_process_nodejs_active_resources{type="Timeout"} 5
+keeper_process_nodejs_active_resources{type="Immediate"} 1
+
+# HELP keeper_process_nodejs_active_resources_total Total number of active resources.
+# TYPE keeper_process_nodejs_active_resources_total gauge
+keeper_process_nodejs_active_resources_total 13
+
+# HELP keeper_process_nodejs_active_handles Number of active libuv handles grouped by handle type. Every handle type is C++ class name.
+# TYPE keeper_process_nodejs_active_handles gauge
+keeper_process_nodejs_active_handles{type="TLSSocket"} 3
+keeper_process_nodejs_active_handles{type="Socket"} 3
+keeper_process_nodejs_active_handles{type="Server"} 1
+
+# HELP keeper_process_nodejs_active_handles_total Total number of active handles.
+# TYPE keeper_process_nodejs_active_handles_total gauge
+keeper_process_nodejs_active_handles_total 7
+
+# HELP keeper_process_nodejs_active_requests Number of active libuv requests grouped by request type. Every request type is C++ class name.
+# TYPE keeper_process_nodejs_active_requests gauge
+
+# HELP keeper_process_nodejs_active_requests_total Total number of active requests.
+# TYPE keeper_process_nodejs_active_requests_total gauge
+keeper_process_nodejs_active_requests_total 0
+
+# HELP keeper_process_nodejs_heap_size_total_bytes Process heap size from Node.js in bytes.
+# TYPE keeper_process_nodejs_heap_size_total_bytes gauge
+keeper_process_nodejs_heap_size_total_bytes 102940672
+
+# HELP keeper_process_nodejs_heap_size_used_bytes Process heap size used from Node.js in bytes.
+# TYPE keeper_process_nodejs_heap_size_used_bytes gauge
+keeper_process_nodejs_heap_size_used_bytes 52287024
+
+# HELP keeper_process_nodejs_external_memory_bytes Node.js external memory size in bytes.
+# TYPE keeper_process_nodejs_external_memory_bytes gauge
+keeper_process_nodejs_external_memory_bytes 5770064
+
+# HELP keeper_process_nodejs_heap_space_size_total_bytes Process heap space size total from Node.js in bytes.
+# TYPE keeper_process_nodejs_heap_space_size_total_bytes gauge
+keeper_process_nodejs_heap_space_size_total_bytes{space="read_only"} 0
+keeper_process_nodejs_heap_space_size_total_bytes{space="new"} 67108864
+keeper_process_nodejs_heap_space_size_total_bytes{space="old"} 25980928
+keeper_process_nodejs_heap_space_size_total_bytes{space="code"} 4194304
+keeper_process_nodejs_heap_space_size_total_bytes{space="shared"} 0
+keeper_process_nodejs_heap_space_size_total_bytes{space="trusted"} 4747264
+keeper_process_nodejs_heap_space_size_total_bytes{space="shared_trusted"} 0
+keeper_process_nodejs_heap_space_size_total_bytes{space="new_large_object"} 0
+keeper_process_nodejs_heap_space_size_total_bytes{space="large_object"} 745472
+keeper_process_nodejs_heap_space_size_total_bytes{space="code_large_object"} 163840
+keeper_process_nodejs_heap_space_size_total_bytes{space="shared_large_object"} 0
+keeper_process_nodejs_heap_space_size_total_bytes{space="shared_trusted_large_object"} 0
+keeper_process_nodejs_heap_space_size_total_bytes{space="trusted_large_object"} 0
+
+# HELP keeper_process_nodejs_heap_space_size_used_bytes Process heap space size used from Node.js in bytes.
+# TYPE keeper_process_nodejs_heap_space_size_used_bytes gauge
+keeper_process_nodejs_heap_space_size_used_bytes{space="read_only"} 0
+keeper_process_nodejs_heap_space_size_used_bytes{space="new"} 20043176
+keeper_process_nodejs_heap_space_size_used_bytes{space="old"} 24332616
+keeper_process_nodejs_heap_space_size_used_bytes{space="code"} 3680064
+keeper_process_nodejs_heap_space_size_used_bytes{space="shared"} 0
+keeper_process_nodejs_heap_space_size_used_bytes{space="trusted"} 3337536
+keeper_process_nodejs_heap_space_size_used_bytes{space="shared_trusted"} 0
+keeper_process_nodejs_heap_space_size_used_bytes{space="new_large_object"} 0
+keeper_process_nodejs_heap_space_size_used_bytes{space="large_object"} 736368
+keeper_process_nodejs_heap_space_size_used_bytes{space="code_large_object"} 161024
+keeper_process_nodejs_heap_space_size_used_bytes{space="shared_large_object"} 0
+keeper_process_nodejs_heap_space_size_used_bytes{space="shared_trusted_large_object"} 0
+keeper_process_nodejs_heap_space_size_used_bytes{space="trusted_large_object"} 0
+
+# HELP keeper_process_nodejs_heap_space_size_available_bytes Process heap space size available from Node.js in bytes.
+# TYPE keeper_process_nodejs_heap_space_size_available_bytes gauge
+keeper_process_nodejs_heap_space_size_available_bytes{space="read_only"} 0
+keeper_process_nodejs_heap_space_size_available_bytes{space="new"} 13509208
+keeper_process_nodejs_heap_space_size_available_bytes{space="old"} 1563712
+keeper_process_nodejs_heap_space_size_available_bytes{space="code"} 513728
+keeper_process_nodejs_heap_space_size_available_bytes{space="shared"} 0
+keeper_process_nodejs_heap_space_size_available_bytes{space="trusted"} 1408088
+keeper_process_nodejs_heap_space_size_available_bytes{space="shared_trusted"} 0
+keeper_process_nodejs_heap_space_size_available_bytes{space="new_large_object"} 33554432
+keeper_process_nodejs_heap_space_size_available_bytes{space="large_object"} 0
+keeper_process_nodejs_heap_space_size_available_bytes{space="code_large_object"} 0
+keeper_process_nodejs_heap_space_size_available_bytes{space="shared_large_object"} 0
+keeper_process_nodejs_heap_space_size_available_bytes{space="shared_trusted_large_object"} 0
+keeper_process_nodejs_heap_space_size_available_bytes{space="trusted_large_object"} 0
+
+# HELP keeper_process_nodejs_version_info Node.js version info.
+# TYPE keeper_process_nodejs_version_info gauge
+keeper_process_nodejs_version_info{version="v24.10.0",major="24",minor="10",patch="0"} 1
+
+# HELP keeper_process_nodejs_gc_duration_seconds Garbage collection duration by kind, one of major, minor, incremental or weakcb.
+# TYPE keeper_process_nodejs_gc_duration_seconds histogram
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.001",kind="minor"} 26
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.01",kind="minor"} 47
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.1",kind="minor"} 47
+keeper_process_nodejs_gc_duration_seconds_bucket{le="1",kind="minor"} 47
+keeper_process_nodejs_gc_duration_seconds_bucket{le="2",kind="minor"} 47
+keeper_process_nodejs_gc_duration_seconds_bucket{le="5",kind="minor"} 47
+keeper_process_nodejs_gc_duration_seconds_bucket{le="+Inf",kind="minor"} 47
+keeper_process_nodejs_gc_duration_seconds_sum{kind="minor"} 0.05188838199339807
+keeper_process_nodejs_gc_duration_seconds_count{kind="minor"} 47
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.001",kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.01",kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.1",kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="1",kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="2",kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="5",kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="+Inf",kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_sum{kind="incremental"} 0.004067693998105824
+keeper_process_nodejs_gc_duration_seconds_count{kind="incremental"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.001",kind="major"} 0
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.01",kind="major"} 7
+keeper_process_nodejs_gc_duration_seconds_bucket{le="0.1",kind="major"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="1",kind="major"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="2",kind="major"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="5",kind="major"} 8
+keeper_process_nodejs_gc_duration_seconds_bucket{le="+Inf",kind="major"} 8
+keeper_process_nodejs_gc_duration_seconds_sum{kind="major"} 0.04188213799893855
+keeper_process_nodejs_gc_duration_seconds_count{kind="major"} 8

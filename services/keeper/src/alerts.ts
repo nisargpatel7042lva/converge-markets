@@ -1,4 +1,5 @@
 import type { Logger } from "pino";
+import { errText } from "./errors";
 
 export interface Alerter {
   alert(key: string, message: string): Promise<void>;
@@ -27,7 +28,7 @@ export class WebhookAlerter implements Alerter {
     const t = this.now();
     const last = this.lastSent.get(key);
     if (last !== undefined && t - last < this.cooldownMs) return;
-    this.lastSent.set(key, t);
+    this.lastSent.set(key, t); // set first: concurrent callers must not send the same alert twice
     this.sent.push({ key, message, atMs: t });
     if (this.sent.length > 500) this.sent.shift();
     this.onAlert?.(key);
@@ -40,10 +41,15 @@ export class WebhookAlerter implements Alerter {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(5_000),
       });
-      if (!res.ok) this.log.error({ status: res.status }, "alert delivery failed");
+      if (!res.ok) {
+        this.log.error({ status: res.status }, "alert delivery failed");
+        this.lastSent.delete(key); // not delivered: the next occurrence tries again
+      }
     } catch (e) {
-      this.log.error({ err: String(e).slice(0, 100) }, "alert delivery failed");
+      this.log.error({ err: errText(e, 100) }, "alert delivery failed");
+      this.lastSent.delete(key);
     }
   }
 }

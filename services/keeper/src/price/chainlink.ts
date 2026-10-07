@@ -1,6 +1,7 @@
 import { aggregatorV3Abi } from "@converge/sdk";
 import { createPublicClient, http, type Address } from "viem";
 import type { Logger } from "pino";
+import { errText } from "../errors";
 
 /** Polls a Chainlink push feed (sanity check for the reference price). */
 export class ChainlinkSanity {
@@ -44,7 +45,7 @@ export class ChainlinkSanity {
       });
       this.onAnswer(Number(answer) / 10 ** this.decimals, Number(updatedAt) * 1000);
     } catch (e) {
-      this.log.warn({ err: String(e).slice(0, 120) }, "chainlink sanity read failed");
+      this.log.warn({ err: errText(e, 120) }, "chainlink sanity read failed");
     }
   }
 }

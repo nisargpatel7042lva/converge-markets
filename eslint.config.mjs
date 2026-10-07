@@ -5,6 +5,7 @@ export default tseslint.config(
   {
     ignores: [
       "**/node_modules/**",
+      ".claude/**",
       "**/dist/**",
       "**/.next/**",
       "contracts/**",

@@ -1,0 +1,55 @@
+{
+  "price": {
+    "staleMs": 3000,
+    "minSources": 2,
+    "divergenceBps": 60,
+    "shockBps": 100,
+    "shockWindowMs": 5000,
+    "sanityBps": 200,
+    "chainlinkMaxAgeMs": 900000,
+    "staleMsBySource": {
+      "coinbase": 12000
+    }
+  },
+  "risk": {
+    "rpcErrorsToPull": 5,
+    "maxBlockLagMs": 5000,
+    "inventoryLossRatioCap": 0.9,
+    "excessNavFractionCap": 0.25,
+    "hysteresisMs": 15000,
+    "maxHysteresisMs": 300000,
+    "drawdownAlert": 0.02
+  },
+  "assets": [
+    {
+      "label": "TEST/USD",
+      "feedId": "0x0003000000000000000000000000000000000000000000000000000000000001",
+      "binance": "ETHUSDT",
+      "coinbase": "ETH-USD",
+      "vol": {
+        "halfLifeSec": 1800,
+        "priorAnnualVol": 0.6,
+        "minAnnualVol": 0.4,
+        "maxAnnualVol": 1.2,
+        "scale": 1.1
+      }
+    }
+  ],
+  "slowTickMs": 2000,
+  "sigmaRefreshSec": 600,
+  "sigmaMoveFraction": 0.05,
+  "targetPairFraction": 0.05,
+  "topUpBelowFraction": 0.5,
+  "minSecondsLeftToSplit": 120,
+  "checkpointEverySec": 600,
+  "tx": {
+    "stuckMs": 4000,
+    "maxReplacements": 3,
+    "bumpPct": 25,
+    "pollMs": 150,
+    "haltFeeBoost": 3
+  },
+  "executeUnfilled": true,
+  "startupGraceMs": 20000,
+  "reserveMon": 0.05
+}

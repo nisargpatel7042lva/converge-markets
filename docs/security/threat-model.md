@@ -18,7 +18,7 @@ Scope: `ConvergeVault`, `ForwardVenue`, `QuoteMath`, `ReportLib` (contracts/src/
 |---|---|---|
 | Owner (Safe) | parameters inside hard limits, venue replacement (2 day timelock), keeper/guardian/treasury, asset whitelist and sigma bands | cannot move funds: there is no withdrawal or transfer function |
 | Guardian | pausing quoting | cannot resume, cannot touch funds or exits |
-| Keeper | nothing beyond three bounded calls (`setSigma`, `splitForInventory`, `mergeInventory`) | treated as fully malicious |
+| Keeper | nothing beyond five bounded calls (`setSigma`, `splitForInventory`, `mergeInventory`, and, from ADR-006, `haltQuoting` / `unhaltQuoting`) | treated as fully malicious |
 | Venue contract | pricing logic and escrow handling | the vault re-checks every fill; replacement is timelocked |
 | Chainlink Data Streams DON | the price in a verified report | `ReportLib` only accepts reports that the real VerifierProxy verifies for the configured feed |
 | USDC (Circle) | transfers | freeze/blacklist of the vault is out of our control |
@@ -51,7 +51,12 @@ steal or destroy LP value through the keeper key
 │    └─ A6c mis-price inside the band ................................ loss ceilings + breaker (K10); residual risk R3
 ├─ A7 move the NAV through sigma ............................................ NAV uses the whole band, not the keeper value (K8)
 ├─ A8 pause, unpause, change parameters, change venue ........ owner/guardian only (K7, O1-O4)
-└─ A9 stop quoting by letting sigma go stale ...................... liveness only; recovers on the next setSigma; exits unaffected
+├─ A9 stop quoting by letting sigma go stale ...................... liveness only; recovers on the next setSigma; exits unaffected
+└─ A10 halt quoting and never resume (denial of quotes), or clear a guardian/owner/breaker pause with `unhaltQuoting`
+     ├─ the halt is a separate flag (`keeperHalt`): `unhaltQuoting` never touches `quotingPaused` (tests `test_halt_isIndependentOfThePause`, invariant handler `h_halt`)
+     ├─ only the keeper can call either function (`test_halt_onlyTheKeeperMayHaltOrUnhalt`, invariant handler `h_haltAttack`)
+     ├─ a halt blocks fills only: splits, merges, settlement, claims and every exit work (ADR-006)
+     └─ the owner rotates the keeper (`setKeeper`) to end a hostile halt; residual: quotes are down until then (liveness, not funds)
 ```
 
 ### B. Oracle manipulation (P2, P3, P7)
@@ -116,7 +121,7 @@ get shares cheaply or redeem dearly by choosing when the price is struck
 
 | ID | Mitigation | Code | Tests |
 |---|---|---|---|
-| K1 | The keeper's only mutators are three bounded functions; owner/guardian/venue functions reject it | `onlyKeeper`, `onlyOwner`, `onlyVenue` | `unit/VaultInventory::test_ownerSetters_authAndZeroChecks`, `::test_setSigma_revertsForNonKeeperAndUnknownAsset`, `::test_split_revertsForNonKeeper`, `::test_venueFill_onlyVenue`, `invariant::invariant_keeperAndGuardianHoldNothing`, Attack picks 4-10, 14 |
+| K1 | The keeper's only mutators are five bounded functions (three strategy actions and the halt pair, ADR-006); owner/guardian/venue functions reject it | `onlyKeeper`, `onlyOwner`, `onlyVenue` | `unit/VaultInventory::test_ownerSetters_authAndZeroChecks`, `::test_setSigma_revertsForNonKeeperAndUnknownAsset`, `::test_split_revertsForNonKeeper`, `::test_venueFill_onlyVenue`, `invariant::invariant_keeperAndGuardianHoldNothing`, Attack picks 4-10, 14 |
 | K2 | `setSigma`: owner band, ±20% step on a fresh value, 30 s rate limit | `setSigma` | `unit/VaultInventory::test_setSigma_bandStepAndRate`, `::test_setSigma_firstValueAndEvent`, Attack picks 0, 1 |
 | K3 | Splits only on factory markets of an enabled Data Streams asset (`factory.getMarket(...) == market`) | `_checkMarket` | `unit/VaultInventory::test_split_rejectsForeignAndUnsupportedMarkets`, `::test_enableAsset_rules`, Attack picks 2, 3 |
 | K4 | Per-market 30% and total 50% pair caps; registry of at most 16 markets; state and no-quote window | `splitForInventory` | `unit/VaultInventory::test_split_pairAndInventoryCaps`, `::test_split_registryIsBounded`, `::test_split_rejectsResolvedAndNoQuoteWindow`, `::test_split_revertsZeroAndPaused`, Attack pick 15 |
@@ -220,3 +225,18 @@ Who can move it, and by how much:
 - **R10 Owner has no parameter timelock.** Only venue replacement is delayed (2 days). A compromised owner could widen the sigma band, raise the risk limits within the hard limits and rotate the keeper, then run R3. Mitigation is operational: the owner must be a `TimelockController` behind the Safe on mainnet (Phase 9). Spread floor (0.02) and hard limits are in the contract.
 - **R11 Venue-supplied marks.** The venue passes the report price it priced from; the vault stores it as the last known mark used by the breaker and the automatic re-valuation (which can only lower the sizing NAV). A hostile venue could poison that mark; the venue is already trusted to its caps and replacement is timelocked.
 - **R12 The executor's option.** Up to `maxLateness` (4 s deployed, 10 s maximum) after the pricing time the executor may decide whether to execute: a small option worth the price drift in those seconds.
+
+## 6. Keeper service (Phase 5)
+
+The service in `services/keeper` holds one key (the keeper role above) and a test-only report signer on testnet. What a bug or an intrusion there can do is bounded by section 4A: it cannot move funds. The service-level risks and what stops them:
+
+| Risk | Mitigation | Evidence |
+|---|---|---|
+| Bad price in (one feed wrong, stale, jumped) pulls or mis-prices quotes | median of at least 2 sources, staleness per source, divergence and shock triggers, Chainlink sanity; fewer than 2 healthy sources halts | `services/keeper/test/unit/price.test.ts`, `risk.test.ts`; chaos tests (stale feed, 2% jump) |
+| RPC outage leaves quotes live | 5 consecutive failures halt; a halt that could not be sent stays wanted and is retried; a rate limiter keeps the keeper under the public endpoint's cap | chaos test "RPC killed mid-run" |
+| Inventory runs past the vault's ceiling | pull at 90% of the ceiling, projected-fill check before each execution, resume only under 75% | chaos test "floods of fills" |
+| Flapping halt/unhalt costs gas and exposes quotes | hysteresis, doubling flap guard | `risk.test.ts` |
+| Keeper key leaks | key is the keeper role only; never logged (pino redaction); `.env` is not committed; rotate with `setKeeper` | runbook |
+| Kill switch abused | HTTP endpoint needs a bearer token (constant-time compare), is off without a token, binds to localhost by default | `test/unit/ops.test.ts` |
+| Test signer used on mainnet | `STREAMS_SOURCE=test-signer` is testnet only; mainnet verifier would reject it (real VerifierProxy rejects forged reports, fork test) | `VaultFork.t.sol` |
+| Process crash with open exposure | restart rebuilds state from the chain; halts first if checks fail | runbook |

@@ -139,3 +139,23 @@ describe("ReferencePrice", () => {
     expect(p.snapshot(2000).price).toBe(3000);
   });
 });
+
+describe("per-source staleness", () => {
+  it("a trade-driven source gets its own, longer window", () => {
+    const ref = new ReferencePrice(
+      PriceCfgSchema.parse({ staleMs: 3000, staleMsBySource: { coinbase: 12000 } }),
+      ["binance", "coinbase"],
+    );
+    ref.ingest({ source: "binance", price: 3000, tsMs: 100_000 });
+    ref.ingest({ source: "coinbase", price: 3000, tsMs: 100_000 });
+    expect(ref.snapshot(104_000).healthy).toBe(false); // binance quiet for 4 s: stale
+    ref.ingest({ source: "binance", price: 3000, tsMs: 104_000 });
+    expect(ref.snapshot(108_000).healthy).toBe(false); // binance 4 s again
+    ref.ingest({ source: "binance", price: 3000, tsMs: 108_000 });
+    const s = ref.snapshot(110_000); // coinbase is 10 s old: still inside its 12 s window
+    expect(s.healthy).toBe(true);
+    expect(s.sources.find((x) => x.name === "coinbase")?.healthy).toBe(true);
+    ref.ingest({ source: "binance", price: 3000, tsMs: 113_000 });
+    expect(ref.snapshot(113_500).healthy).toBe(false); // coinbase 13.5 s: now stale
+  });
+});

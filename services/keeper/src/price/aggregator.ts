@@ -68,7 +68,11 @@ export class ReferencePrice {
     if (healthy.length >= 1) {
       this.history.push({ tsMs: t.tsMs, price: median(healthy.map((x) => x.price)) });
       const cutoff = t.tsMs - 3_600_000;
-      if (this.history.length > 50_000 || (this.history[0] && this.history[0].tsMs < cutoff)) {
+      // trim in batches (a minute of slack), not on every tick
+      if (
+        this.history.length > 50_000 ||
+        (this.history[0] && this.history[0].tsMs < cutoff - 60_000)
+      ) {
         this.history = this.history.filter((h) => h.tsMs >= cutoff).slice(-50_000);
       }
     }
@@ -78,9 +82,13 @@ export class ReferencePrice {
     if (Number.isFinite(price) && price > 0) this.chainlink = { price, updatedAtMs };
   }
 
+  private staleFor(source: string): number {
+    return this.cfg.staleMsBySource[source] ?? this.cfg.staleMs;
+  }
+
   private healthyTicks(nowMs: number): Tick[] {
     const out: Tick[] = [];
-    for (const t of this.last.values()) if (nowMs - t.tsMs <= this.cfg.staleMs) out.push(t);
+    for (const t of this.last.values()) if (nowMs - t.tsMs <= this.staleFor(t.source)) out.push(t);
     return out;
   }
 
@@ -93,7 +101,7 @@ export class ReferencePrice {
         name,
         price: t ? t.price : null,
         ageMs: age,
-        healthy: t !== undefined && (age as number) <= this.cfg.staleMs,
+        healthy: t !== undefined && (age as number) <= this.staleFor(name),
       };
     });
     const reasons: PriceReason[] = [];

@@ -89,6 +89,16 @@ describe("evaluateRisk", () => {
   });
 });
 
+describe("inventory hysteresis", () => {
+  it("pulls at 90% of the ceiling and only resumes below 75%", () => {
+    const inv = (r: number) => ({ maxLossRatio: r, totalLossRatio: 0, excessNavFraction: 0 });
+    expect(evaluateRisk(base({ inventory: inv(0.85) }), cfg).pull).toBe(false); // quoting: fine
+    expect(evaluateRisk(base({ inventory: inv(0.9) }), cfg).pull).toBe(true);
+    expect(evaluateRisk(base({ inventory: inv(0.85), halted: true }), cfg).pull).toBe(true); // still too much
+    expect(evaluateRisk(base({ inventory: inv(0.74), halted: true }), cfg).pull).toBe(false); // back down
+  });
+});
+
 describe("HaltController", () => {
   const pull = { pull: true, reasons: ["PRICE_SHOCK" as const] };
   const clean = { pull: false, reasons: [] };

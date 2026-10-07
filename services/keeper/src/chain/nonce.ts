@@ -27,6 +27,14 @@ export class NonceManager {
     });
   }
 
+  /** Take over a nonce that is already in use on the chain (a replacement of the transaction there). */
+  adopt(nonce: number): void {
+    this.inflight.add(nonce);
+    const gap = this.gaps.indexOf(nonce);
+    if (gap >= 0) this.gaps.splice(gap, 1);
+    if (this.next !== null && nonce >= this.next) this.next = nonce + 1;
+  }
+
   /** The transaction with this nonce was mined (or replaced): it is done. */
   settle(nonce: number): void {
     this.inflight.delete(nonce);

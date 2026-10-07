@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-6 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -97,3 +97,14 @@ check-6:
 	pnpm exec prettier --check indexer packages/sdk scripts/reconcile
 	@test -f indexer/QUERIES.md && test -f docs/phases/PHASE-6-plan.md
 	@echo "check-6 OK"
+
+check-5: check-all
+	# the keeper's anvil tests deploy the contracts from contracts/out, test mocks included
+	cd contracts && forge build
+	pnpm --filter @converge/keeper typecheck
+	pnpm --filter @converge/keeper test
+	pnpm --filter @converge/keeper test:integration
+	pnpm --filter @converge/keeper test:chaos
+	@test -f docs/adr/ADR-006-keeper.md && test -f docs/ops/keeper-runbook.md
+	@test -f services/keeper/Dockerfile && test -f docker-compose.yml
+	@echo "check-5 OK"

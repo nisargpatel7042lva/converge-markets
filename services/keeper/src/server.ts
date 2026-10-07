@@ -69,10 +69,13 @@ export function startServer(
           res.writeHead(401).end();
           return;
         }
-        deps.kill.setHttp(url === "/kill");
+        const persisted = deps.kill.setHttp(url === "/kill");
         deps.onKill?.(url === "/kill");
-        res.writeHead(200, { "content-type": "application/json" });
-        res.end(JSON.stringify({ killed: deps.kill.killed, sources: deps.kill.sources }));
+        // 500 when the kill could not be written to disk: it holds now but not across a restart
+        res.writeHead(persisted ? 200 : 500, { "content-type": "application/json" });
+        res.end(
+          JSON.stringify({ killed: deps.kill.killed, persisted, sources: deps.kill.sources }),
+        );
         return;
       }
       res.writeHead(404).end();

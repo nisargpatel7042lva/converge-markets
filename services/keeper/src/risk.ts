@@ -20,6 +20,8 @@ export type RiskInputs = {
   blockLagMs: number | null;
   inventory: InventoryView | null;
   killed: boolean;
+  /** True while quotes are pulled: the inventory checks then use the lower resume threshold. */
+  halted?: boolean;
 };
 
 export type RiskReason =
@@ -53,12 +55,16 @@ export function evaluateRisk(i: RiskInputs, cfg: RiskCfg): Risk {
   if (i.rpc.consecutiveErrors >= cfg.rpcErrorsToPull) reasons.add("RPC_ERRORS");
   if (i.blockLagMs !== null && i.blockLagMs > cfg.maxBlockLagMs) reasons.add("BLOCK_LAG");
   if (i.inventory) {
-    if (
-      i.inventory.maxLossRatio >= cfg.inventoryLossRatioCap ||
-      i.inventory.totalLossRatio >= cfg.inventoryLossRatioCap
-    )
+    // hysteresis: once halted, the inventory has to come well back under the cap
+    const lossCap = i.halted
+      ? Math.min(cfg.inventoryResumeRatio, cfg.inventoryLossRatioCap)
+      : cfg.inventoryLossRatioCap;
+    const excessCap = i.halted
+      ? cfg.excessNavFractionCap * (lossCap / cfg.inventoryLossRatioCap)
+      : cfg.excessNavFractionCap;
+    if (i.inventory.maxLossRatio >= lossCap || i.inventory.totalLossRatio >= lossCap)
       reasons.add("INVENTORY_LOSS");
-    if (i.inventory.excessNavFraction >= cfg.excessNavFractionCap) reasons.add("INVENTORY_EXCESS");
+    if (i.inventory.excessNavFraction >= excessCap) reasons.add("INVENTORY_EXCESS");
   }
   return { pull: reasons.size > 0, reasons: [...reasons] };
 }
@@ -92,6 +98,8 @@ export class HaltController {
     risk: Risk,
     vault: { keeperHalt: boolean; quotingPaused: boolean },
     nowMs: number,
+    /** The price history is long enough to trust "clean" (see Keeper.riskCheck). */
+    warm = true,
   ): Decision {
     if (risk.pull) {
       this.cleanSinceMs = null;
@@ -106,6 +114,10 @@ export class HaltController {
       return { kind: "none" };
     }
     if (vault.quotingPaused) return { kind: "none" }; // not ours to resume
+    if (!warm) {
+      this.cleanSinceMs = null;
+      return { kind: "none" };
+    }
     this.cleanSinceMs ??= nowMs;
     if (nowMs - this.cleanSinceMs < this.hysteresisMs) return { kind: "none" };
     // flap guard: a second unhalt soon after the last one doubles the wait

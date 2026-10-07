@@ -28,6 +28,13 @@ export const EnvSchema = z.object({
   DATA_STREAMS_API_SECRET: z.string().optional(),
   /** Chain used only to sanity-check the reference price (Chainlink push feed on Monad mainnet). */
   SANITY_RPC_URL: z.string().url().optional(),
+  /** Test hooks: point a price source at a relay (the testnet run injects faults through one). */
+  BINANCE_WS_URL: z.string().url().optional(),
+  COINBASE_WS_URL: z.string().url().optional(),
+  /** JSON-RPC calls per second the keeper may make (public Monad endpoints answer 429 above 15). */
+  MAX_RPS: z.coerce.number().min(0).default(10),
+  /** Multicall3 address; defaults to the canonical one on Monad (143, 10143). `none` disables. */
+  MULTICALL3: z.string().optional(),
   HTTP_PORT: z.coerce.number().int().default(9100),
   HTTP_HOST: z.string().default("127.0.0.1"),
   /** Bearer token for POST /kill and /unkill. Without it the endpoints are disabled. */
@@ -69,6 +76,11 @@ export function loadEnv(src: NodeJS.ProcessEnv = process.env): Env {
 export const PriceCfgSchema = z.object({
   /** A source with no tick for this long is dropped. */
   staleMs: z.number().int().positive().default(3_000),
+  /**
+   * Per-source override of `staleMs`. A source that only publishes on trades (Coinbase's ticker:
+   * measured gaps up to 7.4 s on ETH-USD) needs a longer window than a book-ticker stream.
+   */
+  staleMsBySource: z.record(z.number().int().positive()).default({}),
   /** Fewer healthy sources than this: pull all quotes. */
   minSources: z.number().int().min(1).default(2),
   /** Healthy sources further than this from their median: divergence. */
@@ -92,8 +104,15 @@ export const RiskCfgSchema = z.object({
   maxBlockLagMs: z.number().int().positive().default(5_000),
   /** Pull when a market's worst-case loss reaches this share of its loss ceiling. */
   inventoryLossRatioCap: z.number().positive().max(1).default(0.9),
+  /** While halted, quotes come back only once the loss is below this share of the ceiling (hysteresis). */
+  inventoryResumeRatio: z.number().positive().max(1).default(0.75),
   /** Pull when the excess tokens of all markets are worth more than this share of the NAV. */
   excessNavFractionCap: z.number().positive().default(0.25),
+  /**
+   * After a start, quotes are not put back until the price has been healthy for this long (the
+   * shock detector needs its history; a restart in the middle of a crash must not unhalt).
+   */
+  warmupMs: z.number().int().min(0).default(15_000),
   /** Quotes come back after the checks have been clean for this long (doubles after a flap). */
   hysteresisMs: z.number().int().positive().default(15_000),
   maxHysteresisMs: z
@@ -130,6 +149,8 @@ export const KeeperFileSchema = z.object({
   price: PriceCfgSchema.default({}),
   risk: RiskCfgSchema.default({}),
   assets: z.array(AssetCfgSchema).min(1),
+  /** After start the price sources get this long to connect before a missing price pulls quotes. */
+  startupGraceMs: z.number().int().min(0).default(8_000),
   /** How often the slow duties (state read, planner) run. */
   slowTickMs: z.number().int().min(200).default(2_000),
   /** Refresh sigma at least this often (the vault needs it fresher than 15 minutes). */
@@ -155,6 +176,8 @@ export const KeeperFileSchema = z.object({
       haltFeeBoost: z.number().positive().default(3),
     })
     .default({}),
+  /** Below this wallet balance (MON) only halts are sent: gas to pull quotes is never spent on anything else. */
+  reserveMon: z.number().min(0).default(0.15),
   /** Paper/live: execute orders even when the simulation shows no fill (the taker is refunded). */
   executeUnfilled: z.boolean().default(true),
 });

@@ -19,3 +19,5 @@ indexer/config.local.yaml
 .local-indexer/
 docs/evidence/phase-6/**/*.json
 indexer/src/lib/deployment-defaults.ts
+
+.claude/

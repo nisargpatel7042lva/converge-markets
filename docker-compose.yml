@@ -1,0 +1,64 @@
+# Keeper + Prometheus + Grafana. Secrets come from a file that is never committed:
+#   cp services/keeper/.env.example services/keeper/.env   (fill it)
+#   docker compose up -d --build
+# Grafana: http://127.0.0.1:3000 (provisioned dashboard "Converge keeper"), Prometheus: :9090.
+services:
+  keeper:
+    build:
+      context: .
+      dockerfile: services/keeper/Dockerfile
+    image: converge-keeper:local
+    env_file: ${KEEPER_ENV_FILE:-services/keeper/.env}
+    restart: unless-stopped
+    volumes:
+      - keeper-data:/var/lib/converge-keeper
+    ports:
+      - "127.0.0.1:${KEEPER_PORT:-9100}:9100"
+    logging:
+      driver: json-file
+      options: { max-size: "50m", max-file: "5" }
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=14d
+    volumes:
+      - ./ops/prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    depends_on: [keeper, alertmanager]
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    volumes:
+      - ./ops/alertmanager:/etc/alertmanager:ro
+    secrets: [alert_webhook]
+    ports:
+      - "127.0.0.1:${ALERTMANAGER_PORT:-9093}:9093"
+  grafana:
+    image: grafana/grafana:11.3.0
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin
+    secrets: [grafana_admin]
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    depends_on: [prometheus]
+secrets:
+  alert_webhook:
+    file: ${ALERT_WEBHOOK_FILE:-./ops/alertmanager/webhook_url}
+  grafana_admin:
+    file: ${GRAFANA_ADMIN_FILE:-./ops/grafana/admin_password}
+volumes:
+  keeper-data:
+  prometheus-data:
+  grafana-data:
