@@ -1,0 +1,13 @@
+reconcile (testnet-rpc): indexer http://localhost:8080/v1/graphql, rpc http://127.0.0.1:8612, target N=250
+population 23; sampling 23: Market 4/4, UserPosition 4/4, Trade 4/4, NavSnapshotSettlement 1/1, NavSnapshot 3/3, LPPosition 1/1, VaultEpoch 1/1, Order 4/4, Vault 1/1
+ok   invariant: per market: sum of holder balances (incl. vault and venue) == token total supply (4 markets, 0 violations)
+ok   invariant: no negative balance, escrow or cost (4 positions, 0 violations)
+ok   invariant: costBasis == upCost + downCost (0 violations)
+ok   invariant: sum of LP wallet shares <= vault share supply (0 <= 1000000000)
+ok   invariant: protocol totals == sum over markets == vault fill totals (trades 4/4, volume 4290000/4290000)
+ok   invariant: Vault apy7d / apy30d / apySinceInception == recomputed from the NavSnapshot rows (4 snapshots; indexer apy7d null, apy30d null; recomputed undefined, undefined)
+FAIL: sampled 24, matched 23, mismatched 1 (95.83%)
+[{"field":"venue","indexer":"null","chain":"0x28dbcf1631f51c9021d999b46e5d9439b4ed913c"}] Vault 0xbeaf85d2682bad7ca09fd869037065350cf4a3b5
+undefined
+/home/mysterioxplorer/converge/.claude/worktrees/agent-a67fbb3b3a8a06acc/scripts/reconcile:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: tsx reconcile.ts --addresses /home/mysterioxplorer/converge/.claude/worktrees/agent-a67fbb3b3a8a06acc/deployments/testnet.json --rpc 'http://127.0.0.1:8612' --indexer 'http://localhost:8080/v1/graphql' --headers 'x-hasura-admin-secret=testing' --n 250 --aggregates --allow-small --log-chunk 100 --rps 5 --concurrency 3 --label testnet-rpc

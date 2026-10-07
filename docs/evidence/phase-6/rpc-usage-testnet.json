@@ -1,0 +1,16 @@
+{
+  "upstream": "https://testnet-rpc.monad.xyz",
+  "ceilingRps": 10,
+  "totalRequests": 11953,
+  "retries": 0,
+  "peakRequestsInAnySecondSlot": 10,
+  "seconds": 4609,
+  "averageRps": 2.59,
+  "methods": {
+    "eth_getLogs": 7627,
+    "eth_getBlockByNumber": 4221,
+    "eth_call": 103,
+    "eth_blockNumber": 1,
+    "eth_chainId": 1
+  }
+}

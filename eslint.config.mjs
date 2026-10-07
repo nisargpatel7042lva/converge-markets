@@ -10,6 +10,8 @@ export default tseslint.config(
       "**/.next/**",
       "contracts/**",
       "**/generated/**",
+      "**/.envio/**",
+      "**/envio-env.d.ts",
       "**/.cre_build_tmp.js",
       "services/scheduler/cre/**/node_modules/**",
     ],

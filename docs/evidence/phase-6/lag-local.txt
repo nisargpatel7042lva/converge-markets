@@ -1,0 +1,5 @@
+lag monitor -> http://localhost:8080/v1/graphql for 114s every 500ms (label local)
+FAIL: max lag 6 blocks over 242 samples (483 blocks advanced)
+undefined
+/home/mysterioxplorer/converge/.claude/worktrees/agent-a67fbb3b3a8a06acc/scripts/reconcile:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: tsx lag.ts --indexer 'http://localhost:8080/v1/graphql' --headers 'x-hasura-admin-secret=testing' --rpc 'http://127.0.0.1:8611' --duration 114 --interval 500 --label local

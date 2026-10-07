@@ -10,3 +10,5 @@ export * from "./snapshot";
 export * from "./time";
 export * from "./report";
 export * from "./lens";
+export * from "./indexer";
+export * from "./indexer-math";

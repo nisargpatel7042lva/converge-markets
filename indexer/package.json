@@ -4,7 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "codegen": "envio codegen",
+    "gen:config": "node scripts/gen-config.mjs",
+    "check:config": "node scripts/gen-config.mjs --check",
+    "typecheck": "envio codegen && tsc -p tsconfig.json",
+    "test": "envio codegen && vitest run",
+    "dev": "envio dev",
+    "start": "envio start"
+  },
+  "dependencies": {
+    "envio": "3.14.0"
+  },
+  "devDependencies": {
+    "viem": "^2.57.2",
+    "vitest": "^2.1.9"
   }
 }

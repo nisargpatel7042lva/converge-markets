@@ -1,0 +1,13 @@
+{
+  "label": "local",
+  "note": "LOCAL: anvil chain 31337, Envio HyperIndex 3.14.0 with an RPC data source (no HyperSync), Postgres + Hasura in Docker, mock prices. NOT HyperSync, NOT hosted.",
+  "fromBlock": 1,
+  "toBlock": 898,
+  "blocks": 898,
+  "eventsProcessed": 1424,
+  "contractEventsOnChainIncludingUnindexed": null,
+  "wallClockLaunchToReadySeconds": 9.55,
+  "storageInitToReadySeconds": 4.57,
+  "txs": 786,
+  "markets": 30
+}

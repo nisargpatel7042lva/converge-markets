@@ -1,0 +1,9 @@
+reconcile (local): indexer http://localhost:8080/v1/graphql, rpc http://127.0.0.1:8611, target N=200
+population 561; sampling 200: Market 30/30, UserPosition 68/143, Trade 36/131, NavSnapshot 18/114, LPPosition 3/3, VaultEpoch 8/8, Order 36/131, Vault 1/1
+ok   invariant: per market: sum of holder balances (incl. vault and venue) == token total supply (30 markets, 0 violations)
+ok   invariant: no negative balance, escrow or cost (143 positions, 0 violations)
+ok   invariant: costBasis == upCost + downCost (0 violations)
+ok   invariant: sum of LP wallet shares <= vault share supply (1157773452 <= 1157774453)
+ok   invariant: protocol totals == sum over markets == vault fill totals (trades 131/131, volume 471489741/471489741)
+ok   invariant: Vault apy7d / apy30d / apySinceInception == recomputed from the NavSnapshot rows (114 snapshots; indexer apy7d 0, apy30d 0; recomputed 0, 0)
+PASS: sampled 201, matched 201, mismatched 0 (100.00%)

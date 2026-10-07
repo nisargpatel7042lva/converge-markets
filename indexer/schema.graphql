@@ -1,0 +1,390 @@
+"""
+Converge Markets read-side schema. Conventions:
+- ids are lowercase 0x addresses unless stated; composite ids are joined with "_".
+- money is integer collateral units (USDC, 6 decimals); shares and price-per-share are WAD (18 decimals).
+- prices (UP/DOWN token price in collateral per token) are BigDecimal in [0, 1].
+- timestamps are unix seconds (Int), block numbers are Int.
+"""
+enum MarketStatus {
+  CREATED
+  OPEN
+  RESOLVED_UP
+  RESOLVED_DOWN
+  INVALID
+}
+
+enum Outcome {
+  UP
+  DOWN
+  INVALID
+}
+
+enum Side {
+  UP
+  DOWN
+}
+
+enum TradeAction {
+  BUY
+  SELL
+}
+
+enum OrderKind {
+  BUY_UP
+  SELL_UP
+  BUY_DOWN
+  SELL_DOWN
+}
+
+enum OrderStatus {
+  OPEN
+  EXECUTED
+  EXPIRED
+}
+
+enum RequestStatus {
+  REQUESTED
+  CLAIMABLE
+  REFUNDABLE
+  CLAIMED
+  REFUNDED
+}
+
+enum EpochStatus {
+  SETTLED
+  EXPIRED
+}
+
+"An enabled or disabled underlying asset of the factory (label e.g. BTC/USD)."
+type Asset {
+  id: ID!
+  label: String!
+  resolver: String!
+  enabled: Boolean!
+}
+
+"One UP/DOWN round (a Market contract)."
+type Market {
+  id: ID!
+  assetId: String! @index
+  asset: String!
+  duration: Int!
+  startTime: Int! @index
+  endTime: Int! @index
+  strike: BigInt
+  endPrice: BigInt
+  status: MarketStatus! @index
+  outcome: Outcome
+  upToken: String!
+  downToken: String!
+  collateral: String!
+  resolver: String!
+  redeemFeeBps: Int!
+  createdBlock: Int!
+  createdTimestamp: Int!
+  openedTimestamp: Int
+  resolvedTimestamp: Int
+  resolvedBlock: Int
+  "Sum of premium paid in fills (collateral units)."
+  volume: BigInt!
+  tradeCount: Int!
+  "Last fill price of the UP token (a DOWN fill at price p counts as 1 - p)."
+  lastUpPrice: BigDecimal
+  "True while the vault holds the market in its registry."
+  vaultRegistered: Boolean!
+  "Vault position in this market as of the last fill (int256 basis and cash, collateral units)."
+  vaultBasis: BigInt!
+  vaultCash: BigInt!
+  upSupply: BigInt!
+  downSupply: BigInt!
+  "Cumulative redeem fees charged by this market (collateral units; the on-chain feesAccrued is reset by claimFees)."
+  redeemFeesTotal: BigInt!
+  trades: [Trade!]! @derivedFrom(field: "market")
+  tokens: [OutcomeToken!]! @derivedFrom(field: "market")
+}
+
+"UP or DOWN ERC-20 of a market."
+type OutcomeToken {
+  id: ID!
+  market: Market!
+  side: Side!
+  totalSupply: BigInt!
+}
+
+"One vault fill (one ladder level of a forward-venue order). The vault is always the maker."
+type Trade {
+  id: ID!
+  market: Market!
+  side: Side!
+  "From the taker's side: BUY when the vault sold the token."
+  action: TradeAction!
+  "Token units filled (asset units)."
+  size: BigInt!
+  "Collateral exchanged (asset units)."
+  premium: BigInt!
+  "premium / size, in [0, 1]."
+  price: BigDecimal!
+  taker: String! @index
+  maker: String!
+  txHash: String!
+  block: Int! @index
+  timestamp: Int! @index
+  logIndex: Int!
+  "Vault basis and cash in this market after the fill."
+  vaultBasis: BigInt!
+  vaultCash: BigInt!
+}
+
+"A ForwardVenue order (placed at t, executed once at t + execDelay)."
+type Order {
+  "<venue address>_<order id> (order ids restart at 1 in every venue contract)"
+  id: ID!
+  venue: String!
+  orderId: BigInt!
+  taker: String! @index
+  market: Market!
+  kind: OrderKind!
+  status: OrderStatus! @index
+  shares: BigInt!
+  limit: BigInt!
+  execAt: Int!
+  "Native-token reward prepaid for the executor (wei)."
+  reward: BigInt!
+  filled: BigInt
+  premium: BigInt
+  executor: String
+  reportPrice: BigInt
+  placedBlock: Int!
+  placedTimestamp: Int!
+  placedTx: String!
+  settledBlock: Int
+  settledTimestamp: Int
+  settledTx: String
+}
+
+"A user's position in one market. Balances are wallet balances (exact ERC-20 balances)."
+type UserPosition {
+  id: ID!
+  user: String! @index
+  market: Market!
+  upBalance: BigInt!
+  downBalance: BigInt!
+  "UP/DOWN tokens locked in open ForwardVenue sell orders (still owned economically)."
+  upEscrowed: BigInt!
+  downEscrowed: BigInt!
+  "Average-cost basis of the tokens still held (wallet + escrow), collateral units."
+  upCost: BigInt!
+  downCost: BigInt!
+  costBasis: BigInt!
+  realizedPnl: BigInt!
+  "Collateral paid in (fills bought + splits) and received (fills sold + merges + redeems), cumulative."
+  totalIn: BigInt!
+  totalOut: BigInt!
+  tradeCount: Int!
+  lastUpdated: Int!
+}
+
+"Per-address aggregate."
+type User {
+  id: ID!
+  firstSeen: Int!
+  tradeCount: Int!
+  volume: BigInt!
+  "Sum of realized PnL over all market positions (collateral units)."
+  realizedPnl: BigInt!
+}
+
+"Singleton vault state, id = vault address."
+type Vault {
+  id: ID!
+  navLower: BigInt!
+  navUpper: BigInt!
+  "Lower price per share, WAD."
+  ppsLower: BigInt!
+  supply: BigInt!
+  "Exact ERC-20 total supply of the share token (from Transfer events)."
+  totalSupply: BigInt!
+  lastNavTimestamp: Int!
+  tvlCap: BigInt!
+  performanceFeeBps: Int!
+  keeper: String
+  venue: String
+  quotingPaused: Boolean!
+  "True while the keeper's halt (ADR-006 haltQuoting) is in force; independent of the guardian pause and the breaker."
+  quotingHalted: Boolean!
+  "The bytes32 reason of the last halt (hex), its block timestamp and the number of halts so far."
+  haltReason: String
+  haltedAt: Int
+  haltCount: Int!
+  "A proposed (timelocked) replacement venue and its earliest activation time; null when none."
+  pendingVenue: String
+  pendingVenueEta: Int
+  breakerTrips: Int!
+  lastSettledEpoch: Int
+  settledEpochs: Int!
+  expiredEpochs: Int!
+  totalDeposited: BigInt!
+  totalRedeemed: BigInt!
+  totalPerformanceFees: BigInt!
+  totalFillVolume: BigInt!
+  fillCount: Int!
+  "Pending performance fee emitted just before EpochSettled (internal bookkeeping)."
+  pendingFeeShares: BigInt!
+  pendingFeeAssets: BigInt!
+  "Annualised compound return of ppsLower over the window, null until history covers the window."
+  apy7d: Float
+  apy30d: Float
+  return7d: Float
+  return30d: Float
+  "Annualised return since the first snapshot."
+  apySinceInception: Float
+  firstSnapshotPps: BigInt
+  firstSnapshotTimestamp: Int
+}
+
+"One vault epoch (900 s). Present from its first request."
+type VaultEpoch {
+  id: ID!
+  epochId: Int!
+  status: EpochStatus
+  navLower: BigInt
+  navUpper: BigInt
+  "Lower price per share at settlement, WAD."
+  ppsLower: BigInt
+  supplyBefore: BigInt
+  sharesMinted: BigInt
+  sharesBurned: BigInt
+  assetsPaid: BigInt
+  depositsAccepted: BigInt
+  depositRejected: Boolean
+  feeShares: BigInt!
+  feeAssets: BigInt!
+  depositRequested: BigInt!
+  redeemRequested: BigInt!
+  settledTimestamp: Int
+  settledBlock: Int
+}
+
+"""
+NAV observation (settlement, checkpoint or automatic checkpoint). The APY source.
+navLower / navUpper are exactly as the vault emits them: for a SETTLEMENT they are taken BEFORE the epoch's
+deposits and redemptions (the contract then stores navLower + accepted deposits - assets paid).
+navLowerAfter / navUpperAfter apply that adjustment: for a settlement they equal the contract's stored
+quoteNavLower / lastNavUpper; for checkpoints they equal the raw values (an automatic checkpoint is a fresher
+valuation: the contract only ever LOWERS quoteNavLower there and leaves lastNavUpper alone).
+"""
+type NavSnapshot {
+  id: ID!
+  navLower: BigInt!
+  navUpper: BigInt!
+  navLowerAfter: BigInt!
+  navUpperAfter: BigInt!
+  ppsLower: BigInt!
+  supply: BigInt!
+  settlement: Boolean!
+  block: Int! @index
+  timestamp: Int! @index
+}
+
+"A deposit request of one owner in one epoch."
+type DepositRequest {
+  id: ID!
+  epochId: Int! @index
+  owner: String! @index
+  assets: BigInt!
+  status: RequestStatus!
+  shares: BigInt
+  refunded: BigInt
+  requestedTimestamp: Int!
+  claimedTimestamp: Int
+  receiver: String
+}
+
+"A redeem request of one owner in one epoch (requeued remainders create a new request in a later epoch)."
+type RedeemRequest {
+  id: ID!
+  epochId: Int! @index
+  owner: String! @index
+  shares: BigInt!
+  requeued: Boolean!
+  status: RequestStatus!
+  assets: BigInt
+  requeuedShares: BigInt
+  requestedTimestamp: Int!
+  claimedTimestamp: Int
+  receiver: String
+}
+
+"An LP's shares, average-cost basis and PnL."
+type LPPosition {
+  id: ID!
+  user: String! @index
+  "Share-token wallet balance (exact)."
+  shares: BigInt!
+  "Shares escrowed in open redeem requests (still owned economically)."
+  escrowedShares: BigInt!
+  "Collateral cost of the shares still held."
+  costBasis: BigInt!
+  realizedPnl: BigInt!
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  lastUpdated: Int!
+}
+
+"UTC day aggregate, id = day number (unix seconds / 86400)."
+type DailyStats {
+  id: ID!
+  day: Int! @index
+  date: String!
+  volume: BigInt!
+  trades: Int!
+  feesPerformance: BigInt!
+  feesRedeem: BigInt!
+  depositsAssets: BigInt!
+  redeemedAssets: BigInt!
+  "Vault NAV (lower) and price per share at the last snapshot of the day."
+  tvlClose: BigInt!
+  ppsOpen: BigInt
+  ppsClose: BigInt
+  activeUsers: Int!
+  newUsers: Int!
+  marketsCreated: Int!
+  marketsResolved: Int!
+}
+
+"All-time totals, id = global."
+type ProtocolStats {
+  id: ID!
+  totalVolume: BigInt!
+  totalTrades: Int!
+  totalFeesPerformance: BigInt!
+  totalFeesRedeem: BigInt!
+  totalMarkets: Int!
+  totalMarketsResolved: Int!
+  totalUsers: Int!
+  totalDeposited: BigInt!
+  totalRedeemed: BigInt!
+  "Vault NAV (lower, after the last settlement's flows) at the last NAV snapshot."
+  tvl: BigInt!
+  "Lower price per share (WAD) at the last NAV snapshot; seeds DailyStats on days without a snapshot."
+  vaultPps: BigInt!
+  lastUpdatedBlock: Int!
+}
+
+"Dedup marker for DailyStats.activeUsers (not exposed)."
+type DailyActiveUser @internal {
+  id: ID!
+}
+
+"Per-(day, epoch) helper to find the pps baseline for APY (not exposed)."
+type NavDay @internal {
+  id: ID!
+  day: Int!
+  ppsClose: BigInt!
+  timestamp: Int!
+}
+
+"Venue contracts registered at runtime (VenueSet): treated as system holders (not users). Not exposed."
+type SystemAddress @internal {
+  id: ID!
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@converge/reconcile",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Indexer tooling: reconcile (indexer vs RPC), latency harness, lag monitor, local anvil activity generator",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "reconcile": "tsx reconcile.ts",
+    "latency": "tsx latency.ts",
+    "lag": "tsx lag.ts",
+    "local:activity": "tsx local-activity.ts",
+    "gen:queries-doc": "tsx gen-queries-doc.ts",
+    "check:queries-doc": "tsx gen-queries-doc.ts --check"
+  },
+  "dependencies": {
+    "@converge/sdk": "workspace:*",
+    "viem": "^2.54.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}
