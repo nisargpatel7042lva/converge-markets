@@ -21,6 +21,9 @@ export function market(over: Partial<MarketInfo> = {}): MarketInfo {
     redeemFeeBps: 0,
     registered: true,
     tradable: true,
+    partner: null,
+    partnerActive: false,
+    partnerCap: 0n,
     upBal: USDC(50),
     downBal: USDC(50),
     basis: USDC(50),
@@ -57,6 +60,7 @@ export function state(over: Partial<VaultState> = {}): VaultState {
     markets: [market()],
     epochs: [],
     params: DEFAULT_PARAMS_ONCHAIN,
+    partners: null,
     limits: {
       maxSigmaStepBps: 2000,
       sigmaMinInterval: 30,

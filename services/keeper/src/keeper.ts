@@ -521,6 +521,14 @@ export class Keeper {
     }
   }
 
+  /** Last chain-time second a resolve with evidence was sent, per partner market. */
+  private readonly resolveAttempts = new Map<string, number>();
+
+  private chainNowSec(): number {
+    const st = this.state as VaultState;
+    return Math.max(this.head ? Number(this.head.timestamp) : 0, st.now);
+  }
+
   private planNow(): Action[] {
     const st = this.state as VaultState;
     const nowSec = this.head ? Number(this.head.timestamp) : st.now;
@@ -537,6 +545,7 @@ export class Keeper {
       venue: this.venue,
       cfg: this.d.cfg,
       pulling: this.halting || this.vaultFlags().keeperHalt || this.d.kill.killed,
+      resolveAttempts: this.resolveAttempts,
     });
   }
 
@@ -845,7 +854,20 @@ export class Keeper {
         return;
       }
       case "resolve": {
-        const data = encodeFunctionData({ abi: marketAbi, functionName: "resolve", args: ["0x"] });
+        let evidence: Hex = "0x";
+        if (a.evidence) {
+          // a partner market: submit the end price ourselves (the scheduler only knows the grid)
+          this.resolveAttempts.set(a.market.toLowerCase(), this.chainNowSec());
+          const rep = await this.d
+            .reports(a.evidence.feed)
+            .reportAt(a.evidence.feed, BigInt(a.evidence.end));
+          if (rep) evidence = rep;
+        }
+        const data = encodeFunctionData({
+          abi: marketAbi,
+          functionName: "resolve",
+          args: [evidence],
+        });
         await this.send("resolve", a.market, data);
         return;
       }

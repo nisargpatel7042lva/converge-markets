@@ -4,6 +4,7 @@ import {
   marketAbi,
   marketFactoryAbi,
   mockErc20Abi,
+  partnerRegistryAbi,
 } from "@converge/sdk";
 import type { OnchainParams } from "@converge/strategy";
 import type { Address, Hex, PublicClient } from "viem";
@@ -42,6 +43,12 @@ export type MarketInfo = {
   redeemFeeBps: number;
   registered: boolean;
   tradable: boolean;
+  /** The partner that created the market (PartnerRegistry), or null for a core round. */
+  partner: Address | null;
+  /** Registry says new allocation and quoting are allowed (partner markets only). */
+  partnerActive: boolean;
+  /** The partner's exposure cap in asset units (0 for core rounds and inactive partners). */
+  partnerCap: bigint;
   /** Token balances held by the vault (asset units, 6 dp). */
   upBal: bigint;
   downBal: bigint;
@@ -56,6 +63,17 @@ export type EpochState = {
   redeemShares: bigint;
   settled: boolean;
   plan: { feeds: Hex[]; unresolved: Address[] } | null;
+};
+
+/** What the vault and the registry allow for partner markets (null when no registry is set). */
+export type PartnerLimits = {
+  /** Registry cap on all partner markets together, asset units. */
+  globalCap: bigint;
+  /** The vault's own ceiling as a fraction of the lower NAV. */
+  fraction: number;
+  /** Registry slots partner markets can use / use now. */
+  maxMarkets: number;
+  registered: number;
 };
 
 export type VaultState = {
@@ -76,6 +94,7 @@ export type VaultState = {
   markets: MarketInfo[];
   epochs: EpochState[];
   params: OnchainParams;
+  partners: PartnerLimits | null;
   limits: {
     maxSigmaStepBps: number;
     sigmaMinInterval: number;
@@ -87,7 +106,16 @@ export type VaultState = {
   };
 };
 
-export type Addresses = { vault: Address; venue: Address; factory: Address; usdc: Address };
+export type Addresses = {
+  vault: Address;
+  venue: Address;
+  factory: Address;
+  usdc: Address;
+  /** The vault's PartnerRegistry, if it has one: its live markets are candidates too. */
+  registry?: Address;
+};
+
+const ZERO_ADDRESS: Address = "0x0000000000000000000000000000000000000000";
 
 const WAD = 1e18;
 const num = (x: bigint) => Number(x);
@@ -100,6 +128,8 @@ export class VaultReader {
   private paramsCache: { at: number; v: OnchainParams } | null = null;
   private limitsCache: VaultState["limits"] | null = null;
   private settleWindow: number | null = null;
+  private readonly partnerCache = new Map<string, Address | null>();
+  private maxPartnerMarkets: number | null = null;
 
   constructor(
     private readonly c: Clients,
@@ -188,7 +218,7 @@ export class VaultReader {
     const registered = await Promise.all(
       Array.from({ length: Number(count) }, (_, i) => v<Address>("marketAt", [BigInt(i)])),
     );
-    const candidates = await this.candidates(now);
+    const candidates = [...(await this.candidates(now)), ...(await this.partnerCandidates())];
     const addrs = [
       ...new Set([...registered, ...candidates].map((x) => x.toLowerCase() as Address)),
     ];
@@ -237,8 +267,48 @@ export class VaultReader {
       markets,
       epochs,
       params,
+      partners: await this.partnerLimits(),
       limits,
     };
+  }
+
+  /** The vault's own view of the partner caps (null without a registry). */
+  private async partnerLimits(): Promise<PartnerLimits | null> {
+    const registry = this.a.registry;
+    if (!registry) return null;
+    this.maxPartnerMarkets ??= Number(
+      await this.rd<bigint>(this.a.vault, convergeVaultAbi, "MAX_PARTNER_MARKETS"),
+    );
+    const [globalCap, fraction, registered] = await Promise.all([
+      this.rd<bigint>(registry, partnerRegistryAbi, "globalExposureCap"),
+      this.rd<bigint>(this.a.vault, convergeVaultAbi, "maxPartnerFraction"),
+      this.rd<bigint>(this.a.vault, convergeVaultAbi, "partnerMarketCount"),
+    ]);
+    return {
+      globalCap,
+      fraction: Number(fraction) / WAD,
+      maxMarkets: this.maxPartnerMarkets,
+      registered: Number(registered),
+    };
+  }
+
+  /** Partner markets that have not ended: the registry lists them in one call. */
+  private async partnerCandidates(): Promise<Address[]> {
+    const registry = this.a.registry;
+    if (!registry) return [];
+    return [...(await this.rd<readonly Address[]>(registry, partnerRegistryAbi, "liveMarkets"))];
+  }
+
+  /** The partner of a market (a static fact, read once per market), or null for a core round. */
+  private async partnerOf(m: Address): Promise<Address | null> {
+    const registry = this.a.registry;
+    if (!registry) return null;
+    const key = m.toLowerCase();
+    if (this.partnerCache.has(key)) return this.partnerCache.get(key) ?? null;
+    const info = await this.rd<{ partner: Address }>(registry, partnerRegistryAbi, "infoOf", [m]);
+    const partner = info.partner === ZERO_ADDRESS ? null : info.partner;
+    this.partnerCache.set(key, partner);
+    return partner;
   }
 
   private async getSettleWindow(): Promise<number> {
@@ -369,9 +439,25 @@ export class VaultReader {
       tradable = view.tradable;
     }
     void venue;
+    const partner = await this.partnerOf(m);
+    let partnerActive = false;
+    let partnerCap = 0n;
+    if (partner && this.a.registry) {
+      const l = await this.rd<{ active: boolean; partnerCap: bigint }>(
+        this.a.registry,
+        partnerRegistryAbi,
+        "limits",
+        [m],
+      );
+      partnerActive = l.active;
+      partnerCap = l.partnerCap;
+    }
     return {
       address: m,
       ...st,
+      partner,
+      partnerActive,
+      partnerCap,
       state: Number(state),
       strike: strike as bigint,
       registered,

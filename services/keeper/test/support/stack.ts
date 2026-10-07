@@ -9,6 +9,7 @@ import {
   marketAbi,
   marketFactoryAbi,
   mockErc20Abi,
+  partnerRegistryAbi,
   signTestReportSync,
 } from "@converge/sdk";
 import {
@@ -40,6 +41,7 @@ export const KEYS = {
   taker: "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
   signer: "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
   executor: "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba",
+  partner: "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e",
 } as const;
 
 export const TEST_LABEL = "TEST/USD";
@@ -66,6 +68,8 @@ export type Stack = {
   lp: W;
   taker: W;
   executor: W;
+  /** An approved, bonded partner of the PartnerRegistry (cap 40 USD). */
+  partner: W;
   keeperAccount: Account;
   signerKey: Hex;
   addrs: {
@@ -75,6 +79,7 @@ export type Stack = {
     vault: Address;
     venue: Address;
     verifier: Address;
+    registry: Address;
   };
   /** Moves chain time forward and mines a block. */
   warp: (seconds: number) => Promise<void>;
@@ -137,6 +142,7 @@ export async function deployStack(url: string): Promise<Stack> {
   const lp = mk(KEYS.lp);
   const taker = mk(KEYS.taker);
   const executor = mk(KEYS.executor);
+  const partner = mk(KEYS.partner);
   const keeperAccount = privateKeyToAccount(KEYS.keeper);
   const signer = privateKeyToAccount(KEYS.signer);
 
@@ -230,6 +236,44 @@ export async function deployStack(url: string): Promise<Stack> {
     abi: convergeVaultAbi,
     functionName: "setInitialVenue",
     args: [venue],
+  });
+
+  // ---- partners (ADR-008): registry, one approved partner with a bond, linked to the vault
+  const registry = await deploy("PartnerRegistry", [
+    factory,
+    admin.account.address,
+    admin.account.address,
+    admin.account.address,
+  ]);
+  const pr = async (functionName: string, args: readonly unknown[]) =>
+    tx(admin, { address: registry, abi: partnerRegistryAbi, functionName, args });
+  await pr("setConfig", [100n * U, 500n * U, 50, admin.account.address, vault]);
+  await pr("setVault", [vault]);
+  await pr("setFeed", [ASSET_ID, true]);
+  await pr("approvePartner", [partner.account.address, 40n * U, 3000, [ASSET_ID]]);
+  await tx(admin, {
+    address: vault,
+    abi: convergeVaultAbi,
+    functionName: "setPartnerRegistry",
+    args: [registry],
+  });
+  await tx(admin, {
+    address: usdc,
+    abi: mockErc20Abi,
+    functionName: "mint",
+    args: [partner.account.address, 100n * U],
+  });
+  await tx(partner, {
+    address: usdc,
+    abi: mockErc20Abi,
+    functionName: "approve",
+    args: [registry, 100n * U],
+  });
+  await tx(partner, {
+    address: registry,
+    abi: partnerRegistryAbi,
+    functionName: "postBond",
+    args: [100n * U],
   });
 
   const rpc = async (method: string, params: unknown[]) =>
@@ -368,9 +412,10 @@ export async function deployStack(url: string): Promise<Stack> {
     lp,
     taker,
     executor,
+    partner,
     keeperAccount,
     signerKey: KEYS.signer,
-    addrs: { usdc, factory, streams, vault, venue, verifier },
+    addrs: { usdc, factory, streams, vault, venue, verifier, registry },
     warp,
     now,
     report,

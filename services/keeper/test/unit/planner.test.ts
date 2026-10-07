@@ -321,3 +321,174 @@ describe("planner: inventory", () => {
     expect(types.indexOf("redeemResolved")).toBeLessThan(types.indexOf("split"));
   });
 });
+
+describe("planner: partner markets (ADR-008)", () => {
+  const P1 = MKT(901);
+  const P2 = MKT(902);
+  const partnerMarket = (n: number, partner = P1, over: Partial<ReturnType<typeof market>> = {}) =>
+    market({
+      address: MKT(n),
+      registered: false,
+      basis: 0n,
+      upBal: 0n,
+      downBal: 0n,
+      partner,
+      partnerActive: true,
+      partnerCap: USDC(40),
+      end: NOW + 3600,
+      ...over,
+    });
+  const withPartners = (markets: ReturnType<typeof market>[], over = {}) =>
+    state({
+      markets,
+      limits: { ...state().limits, marketCount: markets.filter((m) => m.registered).length },
+      partners: { globalCap: USDC(500), fraction: 0.1, maxMarkets: 6, registered: 0 },
+      ...over,
+    });
+  const splits = (a: Action[]) =>
+    of(a, "split").map((x) => (x.type === "split" ? [x.market, x.amount] : null));
+
+  it("splits into a partner market and stops at the partner's cap", () => {
+    // target is 5 % of 1000 = 50, the partner cap is 40
+    const a = run({ state: withPartners([partnerMarket(11)]) });
+    expect(splits(a)).toEqual([[MKT(11), USDC(40)]]);
+  });
+
+  it("counts every market of the same partner against its cap", () => {
+    const a = run({
+      state: withPartners([
+        partnerMarket(11, P1, {
+          registered: true,
+          basis: USDC(30),
+          upBal: USDC(30),
+          downBal: USDC(30),
+        }),
+        partnerMarket(12),
+      ]),
+    });
+    // the registered market is at 30 pairs (target 50, tops up only below half): only the new one
+    // can take the 10 left under the 40 cap
+    expect(splits(a)).toEqual([[MKT(12), USDC(10)]]);
+  });
+
+  it("gives another partner its own cap", () => {
+    const a = run({
+      state: withPartners([
+        partnerMarket(11, P1, {
+          registered: true,
+          basis: USDC(40),
+          upBal: USDC(40),
+          downBal: USDC(40),
+        }),
+        partnerMarket(12, P2),
+      ]),
+    });
+    expect(splits(a)).toEqual([[MKT(12), USDC(40)]]);
+  });
+
+  it("stops at the lower of the registry's global cap and the vault's fraction of NAV", () => {
+    // fraction 10 % of 1000 = 100 > global cap 60: the registry cap binds
+    const a = run({
+      state: withPartners([partnerMarket(11), partnerMarket(12, P2)], {
+        partners: { globalCap: USDC(60), fraction: 0.1, maxMarkets: 6, registered: 0 },
+      }),
+    });
+    expect(splits(a)).toEqual([
+      [MKT(11), USDC(40)],
+      [MKT(12), USDC(20)],
+    ]);
+    // global cap 500 > fraction 10 % of 1000 = 100: the vault's fraction binds
+    const b = run({
+      state: withPartners([
+        partnerMarket(11, P1, { partnerCap: USDC(400) }),
+        partnerMarket(12, P2, { partnerCap: USDC(400) }),
+      ]),
+    });
+    const total = splits(b).reduce((x, y) => x + Number(y?.[1] ?? 0n), 0);
+    expect(total).toBe(Number(USDC(100)));
+  });
+
+  it("skips an inactive partner and a vault without a registry", () => {
+    expect(
+      splits(run({ state: withPartners([partnerMarket(11, P1, { partnerActive: false })]) })),
+    ).toEqual([]);
+    const noRegistry = state({ markets: [partnerMarket(11)], partners: null });
+    expect(splits(run({ state: noRegistry }))).toEqual([]);
+  });
+
+  it("respects the partner slots", () => {
+    const a = run({
+      state: withPartners([partnerMarket(11), partnerMarket(12, P2)], {
+        partners: { globalCap: USDC(500), fraction: 0.3, maxMarkets: 6, registered: 6 },
+      }),
+    });
+    expect(splits(a)).toEqual([]);
+  });
+
+  it("lets the core rounds take liquidity first", () => {
+    const core = market({ address: MKT(5), registered: false, basis: 0n, upBal: 0n, downBal: 0n });
+    const a = run({
+      state: withPartners([partnerMarket(11), core], { freeLiquidity: USDC(60) }),
+    });
+    expect(splits(a)[0]).toEqual([MKT(5), USDC(50)]);
+    expect(splits(a)[1]).toEqual([MKT(11), USDC(10)]);
+  });
+
+  it("brings the end price for a partner market that ended, and retries it later", () => {
+    const ended = partnerMarket(11, P1, {
+      registered: true,
+      end: NOW - 5,
+      basis: USDC(20),
+      upBal: USDC(20),
+      downBal: USDC(20),
+    });
+    const [r] = of(run({ state: withPartners([ended]) }), "resolve");
+    expect(r?.type === "resolve" && r.evidence).toEqual({ feed: FEED, end: NOW - 5 });
+    // just tried: wait
+    const attempts = new Map([[MKT(11).toLowerCase(), NOW - 2]]);
+    expect(
+      of(run({ state: withPartners([ended]), resolveAttempts: attempts }), "resolve"),
+    ).toHaveLength(0);
+    // later: again
+    const later = new Map([[MKT(11).toLowerCase(), NOW - 20]]);
+    expect(
+      of(run({ state: withPartners([ended]), resolveAttempts: later }), "resolve"),
+    ).toHaveLength(1);
+  });
+
+  it("does not send evidence for core rounds, and does not resolve a partner market early", () => {
+    const early = partnerMarket(11, P1, {
+      registered: true,
+      end: NOW + 30,
+      basis: USDC(20),
+      upBal: USDC(20),
+      downBal: USDC(20),
+    });
+    expect(of(run({ state: withPartners([early]) }), "resolve")).toHaveLength(0);
+  });
+
+  it("attaches evidence when a settlement waits for a partner market", () => {
+    const ended = partnerMarket(11, P1, {
+      registered: true,
+      end: NOW - 5,
+      basis: USDC(20),
+      upBal: USDC(30),
+      downBal: USDC(10),
+    });
+    const s = withPartners([ended], {
+      epochs: [
+        {
+          id: 9,
+          end: NOW - 10,
+          depositAssets: USDC(10),
+          redeemShares: 0n,
+          settled: false,
+          plan: { feeds: [], unresolved: [MKT(11)] },
+        },
+      ],
+    });
+    const r = of(run({ state: s }), "resolve");
+    expect(r).toHaveLength(1); // one action for the market, not two
+    expect(r[0]?.type === "resolve" && r[0].evidence?.end).toBe(NOW - 5);
+  });
+});

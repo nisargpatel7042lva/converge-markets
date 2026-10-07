@@ -62,7 +62,7 @@ async function main(): Promise<void> {
   const kill = new KillSwitch(env.KILL, env.KILL_FILE);
 
   const vault = env.VAULT as Address;
-  const [factory, usdc] = await Promise.all([
+  const [factory, usdc, registry] = await Promise.all([
     clients.pub.readContract({
       address: vault,
       abi: convergeVaultAbi,
@@ -73,7 +73,16 @@ async function main(): Promise<void> {
       abi: convergeVaultAbi,
       functionName: "asset",
     }) as Promise<Address>,
+    // The vault knows its PartnerRegistry (zero until the owner connects one): partner markets
+    // are picked up from there with no extra configuration.
+    clients.pub.readContract({
+      address: vault,
+      abi: convergeVaultAbi,
+      functionName: "partnerRegistry",
+    }) as Promise<Address>,
   ]);
+  const partnerRegistry =
+    registry === "0x0000000000000000000000000000000000000000" ? undefined : registry;
 
   const names = ["binance", "coinbase"] as const;
   const assets: AssetRuntime[] = cfg.assets.map((a) => ({
@@ -114,7 +123,7 @@ async function main(): Promise<void> {
     alerter,
     kill,
     clients,
-    addrs: { vault, venue: env.VENUE as Address, factory, usdc },
+    addrs: { vault, venue: env.VENUE as Address, factory, usdc, registry: partnerRegistry },
     assets,
     reports: makeReportSource(env, refs, () => keeperRef?.chainOffsetMs() ?? 0),
     tx,

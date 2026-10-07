@@ -123,6 +123,7 @@ export function makeRig(
       venue: stack.addrs.venue,
       factory: stack.addrs.factory,
       usdc: stack.addrs.usdc,
+      registry: stack.addrs.registry,
     },
     assets: [asset],
     reports: makeReportSource(

@@ -7,7 +7,17 @@ export type Action =
   | { type: "executeOrder"; key: string; priority: number; order: OrderRow }
   | { type: "expireOrder"; key: string; priority: number; order: OrderRow }
   | { type: "settle"; key: string; priority: number; epochId: number; end: number; feeds: Hex[] }
-  | { type: "resolve"; key: string; priority: number; market: Address }
+  | {
+      type: "resolve";
+      key: string;
+      priority: number;
+      market: Address;
+      /**
+       * Partner markets are not on the scheduler's grid, so nobody else submits their end price:
+       * the keeper brings the Data Streams report for the end time itself.
+       */
+      evidence?: { feed: Hex; end: number };
+    }
   | {
       type: "setSigma";
       key: string;
@@ -55,7 +65,12 @@ export type PlanInput = {
   >;
   /** True while the keeper has pulled its quotes (or is about to): nothing that adds exposure. */
   pulling: boolean;
+  /** Last time (seconds) a resolve was sent per partner market, so it is retried, not spammed. */
+  resolveAttempts?: ReadonlyMap<string, number>;
 };
+
+/** A partner market's end price is submitted, then finalized: try again after this long. */
+export const RESOLVE_RETRY_SEC = 8;
 
 const NAV_DEC = 1e6; // the vault's asset has 6 decimals
 
@@ -140,7 +155,14 @@ export function plan(p: PlanInput): Action[] {
     if (p.nowSec < e.end || p.nowSec > e.end + s.settleWindow - 3) continue;
     if (e.plan.unresolved.length > 0) {
       for (const m of e.plan.unresolved) {
-        out.push({ type: "resolve", key: `resolve:${m}`, priority: PRIORITY.resolve, market: m });
+        const info = s.markets.find((x) => x.address.toLowerCase() === m.toLowerCase());
+        out.push({
+          type: "resolve",
+          key: `resolve:${m}`,
+          priority: PRIORITY.resolve,
+          market: m,
+          evidence: info?.partner ? evidenceOf(info, s) : undefined,
+        });
       }
     } else {
       out.push({
@@ -152,6 +174,22 @@ export function plan(p: PlanInput): Action[] {
         feeds: e.plan.feeds,
       });
     }
+  }
+
+  // ---- partner markets that ended: bring the end price (nobody else does)
+  for (const m of s.markets) {
+    if (!m.partner || !m.registered || !isOpen(m) || p.nowSec < m.end) continue;
+    if (out.some((x) => x.type === "resolve" && x.market.toLowerCase() === m.address.toLowerCase()))
+      continue;
+    const last = p.resolveAttempts?.get(m.address.toLowerCase());
+    if (last !== undefined && p.nowSec - last < RESOLVE_RETRY_SEC) continue;
+    out.push({
+      type: "resolve",
+      key: `resolve:${m.address}`,
+      priority: PRIORITY.resolve,
+      market: m.address,
+      evidence: evidenceOf(m, s),
+    });
   }
 
   // ---- sigma
@@ -222,15 +260,39 @@ export function plan(p: PlanInput): Action[] {
     const pairCap = BigInt(Math.floor(navUnits * s.limits.maxPairFraction));
     let free = s.freeLiquidity - reservedForRedemptions(s);
     let slots = 16 - s.limits.marketCount;
+    // Partner allocation, mirrored from the vault: per partner, all partners together (the lower
+    // of the registry's cap and the vault's fraction of NAV) and the partner slots. The vault
+    // enforces these anyway; planning inside them avoids sending transactions that revert.
+    const partnerBasis = new Map<string, bigint>();
+    let allPartnerBasis = 0n;
     for (const m of s.markets) {
+      if (!m.partner || !m.registered || m.basis <= 0n) continue;
+      const k = m.partner.toLowerCase();
+      partnerBasis.set(k, (partnerBasis.get(k) ?? 0n) + m.basis);
+      allPartnerBasis += m.basis;
+    }
+    const pl = s.partners;
+    const partnerGlobal = pl
+      ? BigInt(Math.floor(Math.min(Number(pl.globalCap), navUnits * pl.fraction)))
+      : 0n;
+    let partnerSlots = pl ? pl.maxMarkets - pl.registered : 0;
+    // core rounds first: partner markets must never take liquidity the core rounds need
+    const ordered = [...s.markets.filter((m) => !m.partner), ...s.markets.filter((m) => m.partner)];
+    for (const m of ordered) {
       const a = s.assets.find((x) => x.assetId.toLowerCase() === m.assetId.toLowerCase());
       if (!a || !a.enabled || !isOpen(m) || m.end - p.nowSec <= cfg.minSecondsLeftToSplit) continue;
       const pairs = m.registered ? pairsOf(m) : 0n;
       if (m.registered && Number(pairs) >= Number(target) * cfg.topUpBelowFraction) continue;
       if (!m.registered && slots <= 0) continue;
+      if (m.partner && (!pl || !m.partnerActive || (!m.registered && partnerSlots <= 0))) continue;
       let amount = target - pairs;
       if (m.basis + amount > pairCap) amount = pairCap - m.basis;
       if (totalBasis + amount > invCap) amount = invCap - totalBasis;
+      if (m.partner) {
+        const mine = partnerBasis.get(m.partner.toLowerCase()) ?? 0n;
+        if (mine + amount > m.partnerCap) amount = m.partnerCap - mine;
+        if (allPartnerBasis + amount > partnerGlobal) amount = partnerGlobal - allPartnerBasis;
+      }
       if (amount > free) amount = free;
       if (amount < BigInt(NAV_DEC)) continue; // less than one unit: not worth a transaction
       out.push({
@@ -243,10 +305,22 @@ export function plan(p: PlanInput): Action[] {
       totalBasis += amount;
       free -= amount;
       if (!m.registered) slots -= 1;
+      if (m.partner) {
+        const k = m.partner.toLowerCase();
+        partnerBasis.set(k, (partnerBasis.get(k) ?? 0n) + amount);
+        allPartnerBasis += amount;
+        if (!m.registered) partnerSlots -= 1;
+      }
     }
   }
 
   return out.sort((a, b) => a.priority - b.priority);
+}
+
+/** The report a partner market's resolution needs: its asset's feed at the market's end. */
+function evidenceOf(m: MarketInfo, s: VaultState): { feed: Hex; end: number } | undefined {
+  const a = s.assets.find((x) => x.assetId.toLowerCase() === m.assetId.toLowerCase());
+  return a ? { feed: a.feedId, end: m.end } : undefined;
 }
 
 /** Collateral owed to the redeem requests of the epochs still to be settled (lower NAV per share). */
