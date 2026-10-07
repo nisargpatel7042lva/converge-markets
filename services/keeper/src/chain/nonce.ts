@@ -27,6 +27,17 @@ export class NonceManager {
     });
   }
 
+  /**
+   * Reads the chain's count once, so that the first send does not have to. It never hands out a
+   * nonce: acquiring and releasing one to "warm up" races with real sends and leaves a hole that
+   * holds up everything behind it.
+   */
+  prime(): Promise<void> {
+    return this.serial(async () => {
+      if (this.next === null) this.next = await this.fetchPending();
+    });
+  }
+
   /** Take over a nonce that is already in use on the chain (a replacement of the transaction there). */
   adopt(nonce: number): void {
     this.inflight.add(nonce);

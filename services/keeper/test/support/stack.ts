@@ -282,7 +282,7 @@ export async function deployStack(url: string): Promise<Stack> {
       functionName: "submit",
       args: [ASSET_ID, BigInt(start), report(start, price)],
     });
-    await warp(21);
+    await warp(25); // the finalization window is 20 s: keep a margin
     await tx(admin, { address: market, abi: marketAbi, functionName: "open", args: ["0x"] });
     return { market, start, end: start + 900 };
   };
@@ -295,7 +295,7 @@ export async function deployStack(url: string): Promise<Stack> {
       functionName: "submit",
       args: [ASSET_ID, BigInt(end), report(end, price)],
     });
-    await warp(21);
+    await warp(25); // the finalization window is 20 s: keep a margin
     await tx(admin, { address: market, abi: marketAbi, functionName: "resolve", args: ["0x"] });
   };
 

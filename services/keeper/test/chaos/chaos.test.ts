@@ -218,8 +218,10 @@ describe("keeper chaos", () => {
       );
       await waitFor(async () => !(await halted()), 40_000, "automatic unhalt");
       await waitFor(tradable, 20_000, "tradable again");
+      // which check notices first depends on timing: five failed calls or five seconds without a block
       expect(
-        await counter(rig.metrics, "keeper_halts_total", { reason: "RPC_ERRORS" }),
+        (await counter(rig.metrics, "keeper_halts_total", { reason: "RPC_ERRORS" })) +
+          (await counter(rig.metrics, "keeper_halts_total", { reason: "BLOCK_LAG" })),
       ).toBeGreaterThanOrEqual(1);
     } finally {
       feed.stop();

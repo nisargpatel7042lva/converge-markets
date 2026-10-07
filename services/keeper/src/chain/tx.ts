@@ -149,7 +149,7 @@ export class TxManager {
   async warm(): Promise<void> {
     try {
       await this.chain.fees();
-      if (this.nonces.pendingCount === 0) this.nonces.release(await this.nonces.acquire());
+      await this.nonces.prime();
     } catch {
       // the real submission reports its own errors
     }
@@ -276,7 +276,9 @@ export class TxManager {
         }
         lastSent = this.now();
       }
-      await this.sleep(this.cfg.pollMs);
+      // poll less often the longer it takes (receipts share the urgent lane with every other send)
+      const waited = this.now() - sentAtMs;
+      await this.sleep(Math.min(this.cfg.pollMs * (1 + Math.floor(waited / 1_000)), 500));
     }
   }
 

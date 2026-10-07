@@ -53,12 +53,12 @@ export function limitedFetch(
   now: () => number = Date.now,
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
   base: typeof fetch = fetch,
-  urgentRps = 5,
+  urgentRps = 8,
   maxWaitMs = 2_000,
 ): typeof fetch {
   const bucket = (rps: number) => ({ rps, tokens: rps, last: now() });
   const bulk = bucket(maxRps);
-  const urgent = bucket(urgentRps);
+  const urgent = bucket(maxRps > 0 ? urgentRps : 0); // no limit at all when maxRps is 0
   const take = async (b: ReturnType<typeof bucket>, n: number): Promise<void> => {
     if (b.rps <= 0) return;
     const need = Math.min(n, b.rps);

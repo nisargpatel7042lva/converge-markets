@@ -1,4 +1,4 @@
-import { convergeVaultAbi } from "@converge/sdk";
+import { convergeVaultAbi, forwardVenueAbi } from "@converge/sdk";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -121,20 +121,32 @@ describe("keeper safety", () => {
     const feed = rig.feed(() => px.v);
     feeds.push(feed);
     await rig.keeper.start();
-    await sleep(5_000);
-    expect(
-      await counter(rig.metrics, "keeper_tx_sent_total", { kind: "setSigma", result: "reserve" }),
-    ).toBeGreaterThanOrEqual(0);
-    const reserveSkips =
+    await sleep(2_000);
+    // an order that needs a transaction from the keeper: below the reserve it is not sent
+    const id = await stack.placeOrder(market, 0, 1_000_000n, 900_000_000_000_000_000n);
+    await sleep(8_000);
+    const skipped =
       (await counter(rig.metrics, "keeper_tx_sent_total", {
-        kind: "setSigma",
+        kind: "executeOrder",
         result: "reserve",
       })) +
       (await counter(rig.metrics, "keeper_tx_sent_total", {
-        kind: "splitForInventory",
+        kind: "expireOrder",
         result: "reserve",
       }));
-    expect(reserveSkips).toBeGreaterThan(0);
+    expect(skipped).toBeGreaterThan(0);
+    expect(
+      Number(
+        (
+          await stack.read<readonly [Address, number, number]>(
+            stack.addrs.venue,
+            forwardVenueAbi,
+            "orders",
+            [id],
+          )
+        )[2],
+      ),
+    ).toBe(1); // still open: nothing was sent for it
     expect(rig.alerter.sent.some((x) => x.key === "reserve")).toBe(true);
     // a halt still goes out
     rig.kill.setHttp(true);

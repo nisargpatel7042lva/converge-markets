@@ -1029,6 +1029,20 @@ export class Keeper {
     const r = await this.send("executeOrder", venue, data, gas === undefined ? {} : { gas });
     if (!r) return;
     const seen = this.orders.firstSeenMs.get(o.id);
+    if (r.status !== "success") {
+      // The order may still be open (a revert leaves it so): keep it, it is retried inside its
+      // window and expired after it. Forgetting it would leave it open on chain for ever.
+      this.d.log.warn(
+        {
+          id: o.id.toString(),
+          hash: r.hash,
+          gasLimit: r.gasLimit.toString(),
+          gasUsed: r.gasUsed.toString(),
+        },
+        "executeOrder reverted on chain",
+      );
+      return;
+    }
     this.orders.forget(o.id);
     if (r.status === "success") {
       const outcome = filled > 0n ? "filled" : "unfilled";

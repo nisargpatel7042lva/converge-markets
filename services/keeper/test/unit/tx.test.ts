@@ -349,4 +349,20 @@ describe("TxManager", () => {
     });
     expect(halt.nonce).toBe(1);
   });
+
+  it("warming up reads the chain's nonce without taking one, even while sends are in flight", async () => {
+    const chain = new FakeChain();
+    chain.chainNonce = 5;
+    const tm = make(chain);
+    await Promise.all([
+      tm.warm(),
+      tm.submit("a", TO, DATA),
+      tm.warm(),
+      tm.submit("b", TO, DATA),
+      tm.warm(),
+    ]);
+    const more = await tm.submit("c", TO, DATA);
+    expect(chain.sent.map((r) => r.nonce).sort()).toEqual([5, 6, 7]); // no hole, no reuse
+    expect(more.nonce).toBe(7);
+  });
 });
