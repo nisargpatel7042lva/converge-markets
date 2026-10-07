@@ -1,23 +1,69 @@
 {
   "name": "@converge/sdk",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Put a Converge prediction market, with the Converge Vault's depth behind it, on any Monad app: create threshold markets, read two-sided quotes, trade, resolve, redeem, follow fills.",
+  "keywords": [
+    "monad",
+    "prediction-markets",
+    "defi",
+    "viem",
+    "chainlink",
+    "liquidity"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/nisargpatel7042lva/converge-markets/tree/main/packages/sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nisargpatel7042lva/converge-markets.git",
+    "directory": "packages/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/nisargpatel7042lva/converge-markets/issues"
+  },
   "type": "module",
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "gen:abi": "node scripts/gen-abi.mjs",
     "check:abi": "node scripts/gen-abi.mjs --check",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build": "tsup",
+    "check:pack": "node scripts/check-pack.mjs",
+    "prepublishOnly": "pnpm run check:abi && pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "peerDependencies": {
+    "viem": "^2.54.2"
   },
   "dependencies": {
+    "@noble/curves": "1.9.1",
     "@noble/hashes": "2.2.0",
-    "viem": "^2.54.2",
-    "zod": "3.25.76",
-    "@noble/curves": "1.9.1"
+    "zod": "3.25.76"
   },
-  "sideEffects": false
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "viem": "^2.54.2"
+  }
 }
