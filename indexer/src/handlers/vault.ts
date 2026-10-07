@@ -42,6 +42,8 @@ const WINDOWS = [
 ] as const;
 /** How many empty days the baseline search may skip before it gives up (quiet vault). */
 const BASELINE_WALK_DAYS = 21;
+/** The since-inception APY is withheld until the history spans a week. */
+const MIN_INCEPTION_SECONDS = 7 * 86_400;
 
 const zeroVault = (id: string, chainId: number): Vault => ({
   id,
@@ -203,11 +205,11 @@ indexer.onEvent(
     const id = Number(event.params.epochId);
     const owner = lc(event.params.owner);
     const rid = `${id}_${owner}`;
-    const req = await context.DepositRequest.get(rid);
-    if (!req) {
-      context.log.error(`DepositClaimed without a DepositRequest ${rid}`);
-      return;
-    }
+    // Halt loudly (never skip): a missing request would silently drop an LP cost-basis update.
+    const req = await context.DepositRequest.getOrThrow(
+      rid,
+      `DepositClaimed without a DepositRequest ${rid}`,
+    );
     const refunded = event.params.refunded > 0n;
     context.DepositRequest.set({
       ...req,
@@ -217,7 +219,7 @@ indexer.onEvent(
       claimedTimestamp: ts,
       receiver: lc(event.params.receiver),
     });
-    if (!refunded && !isSystem(event.chainId, event.params.receiver)) {
+    if (!refunded && !(await isSystem(context, event.chainId, event.params.receiver))) {
       // The shares (Transfer vault -> receiver) and their cost land with the receiver.
       const lp = await loadLp(context, event.params.receiver, ts);
       saveLp(context, lp, applyDepositClaim(lpState(lp), req.assets), ts);
@@ -233,11 +235,10 @@ indexer.onEvent(
     const id = Number(event.params.epochId);
     const owner = lc(event.params.owner);
     const rid = `${id}_${owner}`;
-    const req = await context.RedeemRequest.get(rid);
-    if (!req) {
-      context.log.error(`RedeemClaimed without a RedeemRequest ${rid}`);
-      return;
-    }
+    const req = await context.RedeemRequest.getOrThrow(
+      rid,
+      `RedeemClaimed without a RedeemRequest ${rid}`,
+    );
     const rest = event.params.requeuedShares;
     const burned = req.shares > rest ? req.shares - rest : 0n;
     context.RedeemRequest.set({
@@ -356,10 +357,30 @@ indexer.onEvent(
 indexer.onEvent({ contract: "ConvergeVault", event: "NavSnapshot" }, async ({ event, context }) => {
   const ts = event.block.timestamp;
   const p = event.params;
+  // ConvergeVault.settleEpoch emits the NAV taken BEFORE the epoch's flows but stores
+  // navLower/navUpper + accepted deposits - assets paid: apply the same adjustment.
+  let navLowerAfter = p.navLower;
+  let navUpperAfter = p.navUpper;
+  if (p.settlement) {
+    const v0 = await context.Vault.get(lc(event.srcAddress));
+    const ep =
+      v0?.lastSettledEpoch !== undefined
+        ? await context.VaultEpoch.get(String(v0.lastSettledEpoch))
+        : undefined;
+    if (!ep || ep.depositsAccepted === undefined || ep.assetsPaid === undefined) {
+      throw new Error(
+        `settlement NavSnapshot at block ${event.block.number} without its EpochSettled`,
+      );
+    }
+    navLowerAfter = p.navLower + ep.depositsAccepted - ep.assetsPaid;
+    navUpperAfter = p.navUpper + ep.depositsAccepted - ep.assetsPaid;
+  }
   context.NavSnapshot.set({
     id: `${event.block.number}_${event.logIndex}`,
     navLower: p.navLower,
     navUpper: p.navUpper,
+    navLowerAfter,
+    navUpperAfter,
     ppsLower: p.ppsLower,
     supply: p.supply,
     settlement: p.settlement,
@@ -400,12 +421,15 @@ indexer.onEvent({ contract: "ConvergeVault", event: "NavSnapshot" }, async ({ ev
       metrics.return30d = perf?.periodReturn;
     }
   }
+  // Annualising a few minutes or hours of the 5-point mark band gives absurd figures: only report
+  // the since-inception APY once at least a week of history exists.
   const sinceFirst = first ? performance(cur, first) : undefined;
-  metrics.apySinceInception = sinceFirst?.apy;
+  metrics.apySinceInception =
+    sinceFirst && sinceFirst.elapsedSeconds >= MIN_INCEPTION_SECONDS ? sinceFirst.apy : undefined;
 
   await updateVault(context, event, () => ({
-    navLower: p.navLower,
-    navUpper: p.navUpper,
+    navLower: navLowerAfter,
+    navUpper: navUpperAfter,
     ppsLower: p.ppsLower,
     supply: p.supply,
     lastNavTimestamp: ts,
@@ -414,9 +438,12 @@ indexer.onEvent({ contract: "ConvergeVault", event: "NavSnapshot" }, async ({ ev
     ...metrics,
   }));
 
-  await updateProtocol(context, event.block.number, () => ({ tvl: p.navLower }));
+  await updateProtocol(context, event.block.number, () => ({
+    tvl: navLowerAfter,
+    vaultPps: p.ppsLower,
+  }));
   await updateDaily(context, ts, (d) => ({
-    tvlClose: p.navLower,
+    tvlClose: navLowerAfter,
     ppsClose: p.ppsLower,
     ppsOpen: d.ppsOpen ?? p.ppsLower,
   }));
@@ -456,20 +483,15 @@ indexer.onEvent({ contract: "ConvergeVault", event: "Fill" }, async ({ event, co
     vaultCash: p.cash,
   });
 
-  const m = await context.Market.get(marketId);
-  if (m) {
-    const upPrice = p.upToken ? price : new BigDecimal(1).minus(price);
-    context.Market.set({
-      ...m,
-      volume: m.volume + p.premium,
-      tradeCount: m.tradeCount + 1,
-      lastUpPrice: upPrice,
-      vaultBasis: p.basis,
-      vaultCash: p.cash,
-    });
-  } else {
-    context.log.error(`Fill for unknown market ${marketId}`);
-  }
+  const m = await context.Market.getOrThrow(marketId, `Fill for unknown market ${marketId}`);
+  context.Market.set({
+    ...m,
+    volume: m.volume + p.premium,
+    tradeCount: m.tradeCount + 1,
+    lastUpPrice: p.upToken ? price : new BigDecimal(1).minus(price),
+    vaultBasis: p.basis,
+    vaultCash: p.cash,
+  });
 
   await updateVault(context, event, (v) => ({
     totalFillVolume: v.totalFillVolume + p.premium,
@@ -580,7 +602,17 @@ indexer.onEvent({ contract: "ConvergeVault", event: "FeeSet" }, async ({ event, 
 indexer.onEvent({ contract: "ConvergeVault", event: "KeeperSet" }, async ({ event, context }) => {
   await updateVault(context, event, () => ({ keeper: lc(event.params.keeper) }));
 });
+// A timelocked venue replacement (ADR-005) deploys a NEW ForwardVenue: index it from the block it is
+// accepted; isSystem reads the registered addresses, so it is treated as a system holder too.
+indexer.contractRegister(
+  { contract: "ConvergeVault", event: "VenueSet" },
+  async ({ event, context }) => {
+    context.chain.ForwardVenue.add(event.params.venue);
+  },
+);
+
 indexer.onEvent({ contract: "ConvergeVault", event: "VenueSet" }, async ({ event, context }) => {
+  context.SystemAddress.set({ id: lc(event.params.venue) });
   await updateVault(context, event, () => ({ venue: lc(event.params.venue) }));
 });
 
@@ -598,8 +630,8 @@ indexer.onEvent({ contract: "ConvergeVault", event: "Transfer" }, async ({ event
   }
   if (lc(from) === lc(to)) return;
 
-  const fromReal = !mint && !isSystem(event.chainId, from);
-  const toReal = !burn && !isSystem(event.chainId, to);
+  const fromReal = !mint && !(await isSystem(context, event.chainId, from));
+  const toReal = !burn && !(await isSystem(context, event.chainId, to));
   const fromLp = fromReal ? await loadLp(context, from, ts) : undefined;
   const toLp = toReal ? await loadLp(context, to, ts) : undefined;
   let fromS = fromLp ? lpState(fromLp) : undefined;

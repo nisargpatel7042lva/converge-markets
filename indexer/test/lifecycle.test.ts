@@ -6,6 +6,7 @@ import {
   Chain,
   DEAD,
   LP,
+  LP2,
   OTHER,
   TAKER,
   VAULT,
@@ -37,20 +38,22 @@ describe("full lifecycle", () => {
 
     // LP: deposit 1000 USDC (epoch 0), settle at 1:1 with 1000 dead shares, claim.
     c.tx().depositRequested(0, LP, 1000n * U);
+    // Contract order (ConvergeVault.settleEpoch): the mints happen in _settleDeposits, THEN EpochSettled and
+    // NavSnapshot are emitted with the NAV taken BEFORE the epoch's flows (0 for the very first deposit).
     c.tx(900)
+      .shareTransfer(ZERO, DEAD, 1000n)
+      .shareTransfer(ZERO, VAULT, 1000n * U - 1000n)
       .epochSettled({
         epochId: 0,
-        navLower: 1000n * U,
-        navUpper: 1000n * U,
+        navLower: 0n,
+        navUpper: 0n,
         supplyBefore: 0n,
         sharesMinted: 1000n * U - 1000n,
         sharesBurned: 0n,
         assetsPaid: 0n,
         depositsAccepted: 1000n * U,
       })
-      .shareTransfer(ZERO, DEAD, 1000n)
-      .shareTransfer(ZERO, VAULT, 1000n * U - 1000n)
-      .navSnapshot(1000n * U, 1000n * U, WAD, 1000n * U, true);
+      .navSnapshot(0n, 0n, WAD, 1000n * U, true);
     c.tx()
       .shareTransfer(VAULT, LP, 1000n * U - 1000n)
       .depositClaimed(0, LP, LP, 1000n * U - 1000n, 0n);
@@ -132,7 +135,9 @@ describe("full lifecycle", () => {
     c.tx()
       .transfer(VAULT, LP, VAULT, 500n * U, "ConvergeVault")
       .redeemRequested(1, LP, 500n * U);
+    // pre-flow NAV 1020 / 1022 (pps 1.02 over 1000 shares); 510 is paid out: the vault stores 510 / 512
     c.tx(900)
+      .shareTransfer(VAULT, ZERO, 500n * U)
       .epochSettled({
         epochId: 1,
         navLower: 1020n * U,
@@ -143,8 +148,7 @@ describe("full lifecycle", () => {
         assetsPaid: 510n * U,
         depositsAccepted: 0n,
       })
-      .shareTransfer(VAULT, ZERO, 500n * U)
-      .navSnapshot(510n * U, 511n * U, (102n * WAD) / 100n, 500n * U, true);
+      .navSnapshot(1020n * U, 1022n * U, (102n * WAD) / 100n, 500n * U, true);
     c.tx().redeemClaimed(1, LP, LP, 510n * U, 0n);
 
     const idx = await run(c);
@@ -185,7 +189,8 @@ describe("full lifecycle", () => {
     expect(sell.txHash).toMatch(/^0x[0-9a-f]{64}$/);
 
     // ---- orders
-    const o1 = await idx.Order.getOrThrow("1");
+    const o1 = await idx.Order.getOrThrow(`${VENUE}_1`);
+    expect([o1.venue, o1.orderId]).toEqual([VENUE, 1n]);
     expect([o1.status, o1.kind, o1.filled, o1.premium, o1.executor]).toEqual([
       "EXECUTED",
       "BUY_UP",
@@ -193,7 +198,7 @@ describe("full lifecycle", () => {
       5_480_000n,
       OTHER,
     ]);
-    const o2 = await idx.Order.getOrThrow("2");
+    const o2 = await idx.Order.getOrThrow(`${VENUE}_2`);
     expect([o2.status, o2.kind, o2.filled]).toEqual(["EXECUTED", "SELL_UP", 4n * U]);
 
     // ---- taker position: bought 10 for 5.48, sold 4 for 2.20 (removed cost floor(5.48*4/10) = 2.192),
@@ -239,9 +244,22 @@ describe("full lifecycle", () => {
     expect([e0.status, e0.ppsLower, e0.navLower, e0.depositsAccepted]).toEqual([
       "SETTLED",
       WAD,
+      0n, // as emitted (before the epoch's own deposits)
+      1000n * U,
+    ]);
+    // the stored NAV applies the flows exactly like the contract: nav + accepted - paid
+    const snaps = (await idx.NavSnapshot.getAll()).sort((a, b) => a.block - b.block);
+    expect([snaps[0]!.navLower, snaps[0]!.navLowerAfter, snaps[0]!.navUpperAfter]).toEqual([
+      0n,
       1000n * U,
       1000n * U,
     ]);
+    expect([snaps[1]!.navLower, snaps[1]!.navLowerAfter, snaps[1]!.navUpperAfter]).toEqual([
+      1020n * U,
+      510n * U,
+      512n * U,
+    ]);
+    expect([vault.navLower, vault.navUpper]).toEqual([510n * U, 512n * U]);
     const e1 = await idx.VaultEpoch.getOrThrow("1");
     expect([e1.ppsLower, e1.assetsPaid, e1.sharesBurned, e1.redeemRequested]).toEqual([
       (102n * WAD) / 100n,
@@ -271,6 +289,7 @@ describe("full lifecycle", () => {
     expect(stats.totalDeposited).toBe(1000n * U);
     expect(stats.totalRedeemed).toBe(510n * U);
     expect(stats.tvl).toBe(510n * U);
+    expect(stats.vaultPps).toBe((102n * WAD) / 100n);
     expect(stats.totalUsers).toBe(2); // LP and TAKER; the vault, venue and dead address are not users
     const days = await idx.DailyStats.getAll();
     expect(days.reduce((s, d) => s + d.trades, 0)).toBe(3);
@@ -313,7 +332,7 @@ describe("orders, escrow, expiry", () => {
       10n * U,
       0n,
     ]);
-    const o = await idx.Order.getOrThrow("7");
+    const o = await idx.Order.getOrThrow(`${VENUE}_7`);
     expect([o.status, o.filled, o.premium]).toEqual(["EXPIRED", 0n, 0n]);
   });
 
@@ -380,18 +399,18 @@ describe("vault epochs and requests", () => {
     // LP holds 1000 shares at cost 1000 (deposit claimed earlier)
     c.tx().depositRequested(0, LP, 1000n * U);
     c.tx(900)
+      .shareTransfer(ZERO, VAULT, 1000n * U)
       .epochSettled({
         epochId: 0,
-        navLower: 1000n * U,
-        navUpper: 1000n * U,
+        navLower: 0n,
+        navUpper: 0n,
         supplyBefore: 0n,
         sharesMinted: 1000n * U,
         sharesBurned: 0n,
         assetsPaid: 0n,
         depositsAccepted: 1000n * U,
       })
-      .shareTransfer(ZERO, VAULT, 1000n * U)
-      .navSnapshot(1000n * U, 1000n * U, WAD, 1000n * U, true);
+      .navSnapshot(0n, 0n, WAD, 1000n * U, true);
     c.tx()
       .shareTransfer(VAULT, LP, 1000n * U)
       .depositClaimed(0, LP, LP, 1000n * U, 0n);
@@ -400,6 +419,7 @@ describe("vault epochs and requests", () => {
       .shareTransfer(LP, VAULT, 1000n * U)
       .redeemRequested(1, LP, 1000n * U);
     c.tx(900)
+      .shareTransfer(VAULT, ZERO, 250n * U)
       .epochSettled({
         epochId: 1,
         navLower: 1000n * U,
@@ -410,8 +430,7 @@ describe("vault epochs and requests", () => {
         assetsPaid: 250n * U,
         depositsAccepted: 0n,
       })
-      .shareTransfer(VAULT, ZERO, 250n * U)
-      .navSnapshot(750n * U, 750n * U, WAD, 750n * U, true);
+      .navSnapshot(1000n * U, 1000n * U, WAD, 750n * U, true);
     c.tx()
       .redeemRequested(2, LP, 750n * U, true)
       .redeemClaimed(1, LP, LP, 250n * U, 750n * U);
@@ -427,40 +446,129 @@ describe("vault epochs and requests", () => {
     expect((await idx.VaultEpoch.getOrThrow("2")).redeemRequested).toBe(750n * U);
   });
 
-  it("the performance fee is attached to the epoch it was charged in and counted once", async () => {
+  it("the performance fee (shares to the treasury) is attached to the epoch it was charged in and counted once", async () => {
+    const TREASURY = addr(0x4001);
     const c = new Chain(T0);
     c.tx().depositRequested(0, LP, 1000n * U);
     c.tx(900)
-      .performanceFee(5n * U, 6n * U, WAD)
+      .shareTransfer(ZERO, VAULT, 1000n * U)
       .epochSettled({
         epochId: 0,
-        navLower: 1000n * U,
-        navUpper: 1000n * U,
+        navLower: 0n,
+        navUpper: 0n,
         supplyBefore: 0n,
         sharesMinted: 1000n * U,
         sharesBurned: 0n,
         assetsPaid: 0n,
         depositsAccepted: 1000n * U,
       })
-      .navSnapshot(1000n * U, 1000n * U, WAD, 1000n * U, true);
+      .navSnapshot(0n, 0n, WAD, 1000n * U, true);
+    // epoch 1: NAV grew to 1100, the vault mints 5 fee shares to the treasury BEFORE the settlement event
     c.tx(900)
+      .shareTransfer(ZERO, TREASURY, 5n * U)
+      .performanceFee(5n * U, 6n * U, WAD)
       .epochSettled({
         epochId: 1,
-        navLower: 1000n * U,
-        navUpper: 1000n * U,
+        navLower: 1100n * U,
+        navUpper: 1100n * U,
         supplyBefore: 1000n * U,
         sharesMinted: 0n,
         sharesBurned: 0n,
         assetsPaid: 0n,
         depositsAccepted: 0n,
       })
-      .navSnapshot(1000n * U, 1000n * U, WAD, 1000n * U, true);
+      .navSnapshot(1100n * U, 1100n * U, (1095n * WAD) / 1000n, 1005n * U, true);
+    c.tx(900)
+      .epochSettled({
+        epochId: 2,
+        navLower: 1100n * U,
+        navUpper: 1100n * U,
+        supplyBefore: 1005n * U,
+        sharesMinted: 0n,
+        sharesBurned: 0n,
+        assetsPaid: 0n,
+        depositsAccepted: 0n,
+      })
+      .navSnapshot(1100n * U, 1100n * U, (1095n * WAD) / 1000n, 1005n * U, true);
     const idx = await run(c);
-    expect((await idx.VaultEpoch.getOrThrow("0")).feeAssets).toBe(6n * U);
-    expect((await idx.VaultEpoch.getOrThrow("1")).feeAssets).toBe(0n);
+    expect((await idx.VaultEpoch.getOrThrow("0")).feeAssets).toBe(0n);
+    expect((await idx.VaultEpoch.getOrThrow("1")).feeAssets).toBe(6n * U);
+    expect((await idx.VaultEpoch.getOrThrow("1")).feeShares).toBe(5n * U);
+    expect((await idx.VaultEpoch.getOrThrow("2")).feeAssets).toBe(0n);
     const v = await idx.Vault.getOrThrow(VAULT);
-    expect([v.totalPerformanceFees, v.pendingFeeAssets]).toEqual([6n * U, 0n]);
+    expect([v.totalPerformanceFees, v.pendingFeeAssets, v.totalSupply]).toEqual([
+      6n * U,
+      0n,
+      1005n * U,
+    ]);
     expect((await idx.ProtocolStats.getOrThrow("global")).totalFeesPerformance).toBe(6n * U);
+    // the treasury's fee shares are a holder row with no cost
+    expect((await idx.LPPosition.getOrThrow(TREASURY)).shares).toBe(5n * U);
+  });
+
+  it("settlement makes requests CLAIMABLE; a claim to a different receiver puts shares and cost with the receiver", async () => {
+    const c = new Chain(T0);
+    c.tx().depositRequested(0, LP, 1000n * U);
+    c.tx(900)
+      .shareTransfer(ZERO, VAULT, 1000n * U)
+      .epochSettled({
+        epochId: 0,
+        navLower: 0n,
+        navUpper: 0n,
+        supplyBefore: 0n,
+        sharesMinted: 1000n * U,
+        sharesBurned: 0n,
+        assetsPaid: 0n,
+        depositsAccepted: 1000n * U,
+      })
+      .navSnapshot(0n, 0n, WAD, 1000n * U, true);
+    let idx = await run(c);
+    expect((await idx.DepositRequest.getOrThrow(`0_${LP}`)).status).toBe("CLAIMABLE");
+    c.tx()
+      .shareTransfer(VAULT, LP2, 1000n * U)
+      .depositClaimed(0, LP, LP2, 1000n * U, 0n);
+    idx = await run(c);
+    const r = await idx.DepositRequest.getOrThrow(`0_${LP}`);
+    expect([r.status, r.receiver]).toEqual(["CLAIMED", LP2]);
+    const lp2 = await idx.LPPosition.getOrThrow(LP2);
+    expect([lp2.shares, lp2.costBasis, lp2.totalDeposited]).toEqual([
+      1000n * U,
+      1000n * U,
+      1000n * U,
+    ]);
+    expect((await idx.LPPosition.getOrThrow(LP)).costBasis).toBe(0n);
+  });
+
+  it("TVL after a settlement with flows equals the contract's stored NAV, and a day without a snapshot keeps the last TVL", async () => {
+    const DAY = 86_400;
+    const c = new Chain(T0);
+    c.tx().depositRequested(0, LP, 1000n * U);
+    c.tx(900)
+      .shareTransfer(ZERO, VAULT, 1000n * U)
+      .epochSettled({
+        epochId: 0,
+        navLower: 0n,
+        navUpper: 0n,
+        supplyBefore: 0n,
+        sharesMinted: 1000n * U,
+        sharesBurned: 0n,
+        assetsPaid: 0n,
+        depositsAccepted: 1000n * U,
+      })
+      .navSnapshot(0n, 0n, WAD, 1000n * U, true);
+    let idx = await run(c);
+    expect((await idx.ProtocolStats.getOrThrow("global")).tvl).toBe(1000n * U);
+    expect((await idx.Vault.getOrThrow(VAULT)).navUpper).toBe(1000n * U);
+    // two days later a market is created: that day has activity but no NAV snapshot
+    const m = marketAddrs(9);
+    c.tx(2 * DAY)
+      .assetSet()
+      .marketCreated(m, T0 + 3 * DAY);
+    idx = await run(c);
+    const days = (await idx.DailyStats.getAll()).sort((a, b) => a.day - b.day);
+    const last = days.at(-1)!;
+    expect(last.marketsCreated).toBe(1);
+    expect([last.tvlClose, last.ppsClose]).toEqual([1000n * U, WAD]);
   });
 });
 
@@ -543,7 +651,7 @@ describe("transfers and flags", () => {
     c.tx().redeemed(m, TAKER, 10n * U, 10n * U, 9_900_000n, 100_000n); // half a token each, 1% fee
     const idx = await run(c);
     const mk = await idx.Market.getOrThrow(m.market);
-    expect([mk.status, mk.outcome, mk.feesAccrued]).toEqual(["INVALID", "INVALID", 100_000n]);
+    expect([mk.status, mk.outcome, mk.redeemFeesTotal]).toEqual(["INVALID", "INVALID", 100_000n]);
     const pos = await idx.UserPosition.getOrThrow(`${TAKER}_${m.market}`);
     expect(pos.realizedPnl).toBe(9_900_000n - 10n * U);
     expect((await idx.ProtocolStats.getOrThrow("global")).totalFeesRedeem).toBe(100_000n);
@@ -593,7 +701,7 @@ describe("derived vault metrics", () => {
       );
     const y = await (await run(c2)).Vault.getOrThrow(VAULT);
     expect([y.apy7d, y.apy30d]).toEqual([undefined, undefined]);
-    expect(y.apySinceInception).toBeDefined();
+    expect(y.apySinceInception).toBeUndefined(); // 3 days of history: withheld
   });
 });
 
@@ -611,5 +719,56 @@ describe("routing", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       created.process({ chains: { [CHAIN]: { simulate: c.events as any } } as any }),
     ).rejects.toThrow(/never reached a handler/);
+  });
+});
+
+describe("guards", () => {
+  it("apySinceInception is withheld until a week of history exists", async () => {
+    const c = new Chain(T0);
+    c.tx().navSnapshot(1000n * U, 1000n * U, WAD, 1000n * U, false);
+    c.tx(900).navSnapshot(1010n * U, 1010n * U, (101n * WAD) / 100n, 1000n * U, false); // +1% in 15 minutes
+    let v = await (await run(c)).Vault.getOrThrow(VAULT);
+    expect(v.apySinceInception).toBeUndefined(); // would annualise to ~1e151
+    c.tx(8 * 86_400).navSnapshot(1010n * U, 1010n * U, (101n * WAD) / 100n, 1000n * U, false);
+    v = await (await run(c)).Vault.getOrThrow(VAULT);
+    expect(v.apySinceInception).toBeDefined();
+    expect(Number.isFinite(v.apySinceInception!)).toBe(true);
+  });
+
+  it("a venue replacement registers the new venue: its orders are indexed under their own key and it is a system holder", async () => {
+    const m = marketAddrs(8);
+    const NEW_VENUE = addr(0x5001);
+    const c = new Chain(T0);
+    c.tx()
+      .assetSet()
+      .tx()
+      .marketCreated(m, T0 + 900);
+    c.tx().vault("VenueSet", { venue: NEW_VENUE });
+    c.tx().split(m, OTHER, 10n * U);
+    c.tx()
+      .transfer(m.up, OTHER, NEW_VENUE, 4n * U)
+      .emit("ForwardVenue", "OrderPlaced", NEW_VENUE, {
+        id: 1n,
+        taker: OTHER,
+        market: m.market,
+        kind: 1n,
+        shares: 4n * U,
+        limit: WAD / 10n,
+        execAt: BigInt(c.now + 2),
+        reward: 1n,
+      });
+    const idx = await run(c);
+    // the same order id may exist in the old venue: the keys differ
+    expect((await idx.Order.getOrThrow(`${NEW_VENUE}_1`)).venue).toBe(NEW_VENUE);
+    const pos = await idx.UserPosition.getOrThrow(`${OTHER}_${m.market}`);
+    expect([pos.upBalance, pos.upEscrowed, pos.upCost]).toEqual([6n * U, 4n * U, 5n * U]); // cost stays with the seller
+    const venuePos = await idx.UserPosition.getOrThrow(`${NEW_VENUE}_${m.market}`);
+    expect([venuePos.upBalance, venuePos.upCost]).toEqual([4n * U, 0n]);
+  });
+
+  it("a claim without its request halts the indexer instead of silently dropping the cost basis", async () => {
+    const c = new Chain(T0);
+    c.tx().depositClaimed(3, LP, LP, 10n * U, 0n);
+    await expect(run(c)).rejects.toThrow(/DepositClaimed without a DepositRequest/);
   });
 });

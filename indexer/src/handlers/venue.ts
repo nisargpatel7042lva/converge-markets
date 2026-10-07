@@ -13,6 +13,9 @@ import { lc, loadPosition, positionState, savePosition, touchUser } from "../lib
 // ForwardVenue.Kind: 0 BUY_UP, 1 SELL_UP, 2 BUY_DOWN, 3 SELL_DOWN.
 const KINDS = ["BUY_UP", "SELL_UP", "BUY_DOWN", "SELL_DOWN"] as const;
 
+/** Order ids restart at 1 in every ForwardVenue deployment: key them by venue. */
+const orderKey = (venue: string, id: bigint): string => `${lc(venue)}_${id}`;
+
 const isSell = (kind: (typeof KINDS)[number]): boolean =>
   kind === "SELL_UP" || kind === "SELL_DOWN";
 const sideOf = (kind: (typeof KINDS)[number]): SideKey =>
@@ -22,14 +25,13 @@ indexer.onEvent({ contract: "ForwardVenue", event: "OrderPlaced" }, async ({ eve
   const p = event.params;
   const ts = event.block.timestamp;
   const kind = KINDS[Number(p.kind)];
-  if (!kind) {
-    context.log.error(`OrderPlaced with unknown kind ${p.kind}`);
-    return;
-  }
+  if (!kind) throw new Error(`OrderPlaced with unknown kind ${p.kind}`);
   const taker = lc(p.taker);
   const market = lc(p.market);
   context.Order.set({
-    id: p.id.toString(),
+    id: orderKey(event.srcAddress, p.id),
+    venue: lc(event.srcAddress),
+    orderId: p.id,
     taker,
     market_id: market,
     kind,
@@ -61,11 +63,10 @@ indexer.onEvent(
   async ({ event, context }) => {
     const p = event.params;
     const ts = event.block.timestamp;
-    const order = await context.Order.get(p.id.toString());
-    if (!order) {
-      context.log.error(`OrderExecuted for unknown order ${p.id}`);
-      return;
-    }
+    const order = await context.Order.getOrThrow(
+      orderKey(event.srcAddress, p.id),
+      `OrderExecuted for unknown order ${p.id} of venue ${event.srcAddress}`,
+    );
     context.Order.set({
       ...order,
       status: "EXECUTED",
@@ -93,11 +94,10 @@ indexer.onEvent(
 
 indexer.onEvent({ contract: "ForwardVenue", event: "OrderExpired" }, async ({ event, context }) => {
   const ts = event.block.timestamp;
-  const order = await context.Order.get(event.params.id.toString());
-  if (!order) {
-    context.log.error(`OrderExpired for unknown order ${event.params.id}`);
-    return;
-  }
+  const order = await context.Order.getOrThrow(
+    orderKey(event.srcAddress, event.params.id),
+    `OrderExpired for unknown order ${event.params.id} of venue ${event.srcAddress}`,
+  );
   context.Order.set({
     ...order,
     status: "EXPIRED",

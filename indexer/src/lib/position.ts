@@ -135,11 +135,13 @@ export function releaseEscrow(s: PositionState, k: SideKey, amount: bigint): Pos
   return k === "up" ? { ...s, upEscrowed: n } : { ...s, downEscrowed: n };
 }
 
-/** Wallet balance change (Transfer). Never goes below zero: a negative result is a data gap and is clamped. */
+/**
+ * Wallet balance change (Transfer). Not clamped: a negative balance can only come from an indexing
+ * gap and must stay visible (the reconciliation's invariants report it).
+ */
 export function addBalance(s: PositionState, k: SideKey, delta: bigint): PositionState {
   const b = bal(s, k) + delta;
-  const nb = b < 0n ? 0n : b;
-  return k === "up" ? { ...s, upBalance: nb } : { ...s, downBalance: nb };
+  return k === "up" ? { ...s, upBalance: b } : { ...s, downBalance: b };
 }
 
 /**
@@ -161,15 +163,15 @@ export function moveCost(
  * unresolved market, or exact settlement values for a resolved one. Pure helper shared with the SDK.
  */
 export type MarketValuation =
-  { kind: "live"; upPriceWad: bigint } | { kind: "resolved"; outcome: "UP" | "DOWN" | "INVALID" };
+  | { kind: "live"; upPriceWad: bigint }
+  | { kind: "resolved"; outcome: "UP" | "DOWN" | "INVALID"; redeemFeeBps?: number };
 
 export function positionValue(s: PositionState, v: MarketValuation): bigint {
   const up = held(s, "up");
   const down = held(s, "down");
   if (v.kind === "resolved") {
-    if (v.outcome === "UP") return up;
-    if (v.outcome === "DOWN") return down;
-    return (up + down) / 2n;
+    const gross = v.outcome === "UP" ? up : v.outcome === "DOWN" ? down : (up + down) / 2n;
+    return gross - (gross * BigInt(v.redeemFeeBps ?? 0)) / 10_000n;
   }
   const WAD = 10n ** 18n;
   return (up * v.upPriceWad) / WAD + (down * (WAD - v.upPriceWad)) / WAD;

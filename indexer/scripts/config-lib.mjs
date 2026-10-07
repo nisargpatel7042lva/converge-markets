@@ -79,6 +79,8 @@ export function render(o) {
     lines.push("    rpc:");
     lines.push(`      - url: ${o.rpc}`);
     lines.push("        for: sync");
+    // Default 1000 ms; the local anvil chain makes ~4 blocks/s, so poll faster than the block time.
+    lines.push("        polling_interval: 250");
   }
   lines.push("    contracts:");
   lines.push("      - name: MarketFactory");

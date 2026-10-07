@@ -179,7 +179,7 @@ export interface PositionRow {
   market: Pick<
     MarketRow,
     "id" | "asset" | "status" | "outcome" | "lastUpPrice" | "startTime" | "endTime"
-  >;
+  > & { redeemFeeBps: number };
 }
 
 export interface VaultRow {
@@ -211,8 +211,12 @@ export interface VaultRow {
 
 export interface NavSnapshotRow {
   id: string;
+  /** As emitted by the vault: for a settlement, BEFORE the epoch's deposits and redemptions. */
   navLower: bigint;
   navUpper: bigint;
+  /** After the epoch's flows (equal to the raw values for checkpoints): the NAV the vault stores. */
+  navLowerAfter: bigint;
+  navUpperAfter: bigint;
   ppsLower: bigint;
   supply: bigint;
   settlement: boolean;
@@ -317,9 +321,9 @@ export interface ProtocolStatsRow {
 
 const MARKET_FIELDS = `id asset assetId duration startTime endTime strike endPrice status outcome upToken downToken volume tradeCount lastUpPrice vaultRegistered vaultBasis vaultCash upSupply downSupply`;
 const TRADE_FIELDS = `id market_id side action size premium price taker txHash block timestamp`;
-const POSITION_FIELDS = `id user market_id upBalance downBalance upEscrowed downEscrowed upCost downCost costBasis realizedPnl totalIn totalOut tradeCount market { id asset status outcome lastUpPrice startTime endTime }`;
+const POSITION_FIELDS = `id user market_id upBalance downBalance upEscrowed downEscrowed upCost downCost costBasis realizedPnl totalIn totalOut tradeCount market { id asset status outcome lastUpPrice startTime endTime redeemFeeBps }`;
 const VAULT_FIELDS = `id navLower navUpper ppsLower supply totalSupply lastNavTimestamp tvlCap performanceFeeBps quotingPaused quotingHalted breakerTrips settledEpochs expiredEpochs totalDeposited totalRedeemed totalPerformanceFees totalFillVolume fillCount apy7d apy30d return7d return30d apySinceInception`;
-const NAV_FIELDS = `id navLower navUpper ppsLower supply settlement block timestamp`;
+const NAV_FIELDS = `id navLower navUpper navLowerAfter navUpperAfter ppsLower supply settlement block timestamp`;
 const EPOCH_FIELDS = `epochId status navLower navUpper ppsLower sharesMinted sharesBurned assetsPaid depositsAccepted feeAssets depositRequested redeemRequested settledTimestamp`;
 const LP_FIELDS = `id user shares escrowedShares costBasis realizedPnl totalDeposited totalWithdrawn`;
 const DEPOSIT_FIELDS = `id epochId owner assets status shares refunded`;
@@ -384,8 +388,9 @@ export const INDEXER_QUERIES = {
   NavSnapshot(order_by: { block: desc }, limit: 1) { ${NAV_FIELDS} }
 }`,
 
+  /** Newest first, so a limit never drops the most recent rows; the client reverses to chronological order. */
   navHistory: `query NavHistory($since: Int!, $limit: Int!) {
-  NavSnapshot(where: { timestamp: { _gte: $since } }, order_by: { timestamp: asc }, limit: $limit) { ${NAV_FIELDS} }
+  NavSnapshot(where: { timestamp: { _gte: $since } }, order_by: { timestamp: desc }, limit: $limit) { ${NAV_FIELDS} }
 }`,
 
   /** Newest first. */
@@ -478,6 +483,7 @@ export function parsePosition(r: Raw): PositionRow {
       lastUpPrice: nNum(m.lastUpPrice as Num | null),
       startTime: n(m.startTime),
       endTime: n(m.endTime),
+      redeemFeeBps: n(m.redeemFeeBps),
     },
   };
 }
@@ -516,6 +522,8 @@ export function parseNavSnapshot(r: Raw): NavSnapshotRow {
     id: s(r.id),
     navLower: toBig(r.navLower as Num),
     navUpper: toBig(r.navUpper as Num),
+    navLowerAfter: toBig(r.navLowerAfter as Num),
+    navUpperAfter: toBig(r.navUpperAfter as Num),
     ppsLower: toBig(r.ppsLower as Num),
     supply: toBig(r.supply as Num),
     settlement: Boolean(r.settlement),
@@ -740,7 +748,7 @@ export function createIndexerClient(o: IndexerClientOptions): IndexerClient {
     },
     async navHistory(since, limit = 1000) {
       const d = await q<{ NavSnapshot: Raw[] }>(INDEXER_QUERIES.navHistory, { since, limit });
-      return d.NavSnapshot.map(parseNavSnapshot);
+      return d.NavSnapshot.map(parseNavSnapshot).reverse();
     },
     async epochs(limit = 20) {
       const d = await q<{ VaultEpoch: Raw[] }>(INDEXER_QUERIES.epochs, { limit });

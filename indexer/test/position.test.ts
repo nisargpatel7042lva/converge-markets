@@ -124,8 +124,8 @@ describe("transfers", () => {
     expect(held(b, "up")).toBe(5n);
   });
 
-  it("a balance never goes negative (data gap is clamped)", () => {
-    expect(addBalance(emptyState(), "up", -5n).upBalance).toBe(0n);
+  it("a balance is NOT clamped: an indexing gap shows up as a negative number the reconciliation reports", () => {
+    expect(addBalance(emptyState(), "up", -5n).upBalance).toBe(-5n);
   });
 });
 

@@ -45,9 +45,9 @@ export function applyRedeemClaim(s: LpState, burned: bigint, assets: bigint): Lp
   };
 }
 
+/** Not clamped: a negative balance is an indexing gap and must stay visible (see reconcile invariants). */
 export function addShares(s: LpState, delta: bigint): LpState {
-  const n = s.shares + delta;
-  return { ...s, shares: n < 0n ? 0n : n };
+  return { ...s, shares: s.shares + delta };
 }
 
 export function addEscrowShares(s: LpState, delta: bigint): LpState {

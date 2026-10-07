@@ -49,7 +49,9 @@ export function windowPerformance(
 }
 
 export type MarketValuation =
-  { kind: "live"; upPriceWad: bigint } | { kind: "resolved"; outcome: "UP" | "DOWN" | "INVALID" };
+  | { kind: "live"; upPriceWad: bigint }
+  /** `redeemFeeBps`: the market's fee on redeem payouts (Market.redeem pays payout minus floor(payout * bps / 10000)). */
+  | { kind: "resolved"; outcome: "UP" | "DOWN" | "INVALID"; redeemFeeBps?: number };
 
 export interface HoldingLike {
   upBalance: bigint;
@@ -66,9 +68,8 @@ export function positionValue(p: HoldingLike, v: MarketValuation): bigint {
   const up = p.upBalance + p.upEscrowed;
   const down = p.downBalance + p.downEscrowed;
   if (v.kind === "resolved") {
-    if (v.outcome === "UP") return up;
-    if (v.outcome === "DOWN") return down;
-    return (up + down) / 2n;
+    const gross = v.outcome === "UP" ? up : v.outcome === "DOWN" ? down : (up + down) / 2n;
+    return gross - (gross * BigInt(v.redeemFeeBps ?? 0)) / 10_000n;
   }
   return (up * v.upPriceWad) / WAD + (down * (WAD - v.upPriceWad)) / WAD;
 }
@@ -92,10 +93,12 @@ export function lpUnrealizedPnl(
 export function valuationOf(m: {
   status: string;
   lastUpPrice: string | number | null | undefined;
+  redeemFeeBps?: number;
 }): MarketValuation {
-  if (m.status === "RESOLVED_UP") return { kind: "resolved", outcome: "UP" };
-  if (m.status === "RESOLVED_DOWN") return { kind: "resolved", outcome: "DOWN" };
-  if (m.status === "INVALID") return { kind: "resolved", outcome: "INVALID" };
+  const fee = m.redeemFeeBps ?? 0;
+  if (m.status === "RESOLVED_UP") return { kind: "resolved", outcome: "UP", redeemFeeBps: fee };
+  if (m.status === "RESOLVED_DOWN") return { kind: "resolved", outcome: "DOWN", redeemFeeBps: fee };
+  if (m.status === "INVALID") return { kind: "resolved", outcome: "INVALID", redeemFeeBps: fee };
   const p = m.lastUpPrice === null || m.lastUpPrice === undefined ? 0.5 : Number(m.lastUpPrice);
   const clamped = Math.min(1, Math.max(0, p));
   return { kind: "live", upPriceWad: BigInt(Math.round(clamped * 1e9)) * 10n ** 9n };

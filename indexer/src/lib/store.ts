@@ -24,8 +24,12 @@ export const GLOBAL_ID = "global";
 
 export const lc = (a: string): string => a.toLowerCase();
 
-/** Vault, venue, zero and the dead address: never users (no cost basis, no stats). */
-export function isSystem(chainId: number, address: string): boolean {
+/**
+ * Vault, venues, zero and the dead address: never users (no cost basis, no stats). The configured
+ * vault and venue come from `indexer.chains`; a venue added later by a timelocked replacement
+ * (VenueSet) is recorded in the SystemAddress entity.
+ */
+export async function isSystem(context: Ctx, chainId: number, address: string): Promise<boolean> {
   const a = lc(address);
   if (a === ZERO || a === DEAD) return true;
   const chain = indexer.chains[chainId as keyof typeof indexer.chains] as unknown as
@@ -34,11 +38,12 @@ export function isSystem(chainId: number, address: string): boolean {
         ForwardVenue?: { addresses: readonly string[] };
       }
     | undefined;
-  if (!chain) return false;
-  for (const c of [chain.ConvergeVault, chain.ForwardVenue]) {
-    if (c?.addresses.some((x) => lc(x) === a)) return true;
+  if (chain) {
+    for (const c of [chain.ConvergeVault, chain.ForwardVenue]) {
+      if (c?.addresses.some((x) => lc(x) === a)) return true;
+    }
   }
-  return false;
+  return (await context.SystemAddress.get(a)) !== undefined;
 }
 
 // ------------------------------------------------------------------ positions
@@ -130,6 +135,7 @@ export const zeroProtocol = (): ProtocolStats => ({
   totalDeposited: 0n,
   totalRedeemed: 0n,
   tvl: 0n,
+  vaultPps: 0n,
   lastUpdatedBlock: 0,
 });
 
@@ -167,7 +173,17 @@ export async function updateDaily(
   fn: (d: DailyStats) => Partial<DailyStats>,
 ): Promise<void> {
   const day = dayOf(ts);
-  const d = (await context.DailyStats.get(String(day))) ?? zeroDaily(day);
+  let d = await context.DailyStats.get(String(day));
+  if (!d) {
+    // A day without a NAV snapshot carries the previous close forward (no false zero in charts).
+    const p = await context.ProtocolStats.get(GLOBAL_ID);
+    d = {
+      ...zeroDaily(day),
+      tvlClose: p?.tvl ?? 0n,
+      ppsOpen: p && p.vaultPps > 0n ? p.vaultPps : undefined,
+      ppsClose: p && p.vaultPps > 0n ? p.vaultPps : undefined,
+    };
+  }
   context.DailyStats.set({ ...d, ...fn(d) });
 }
 
@@ -179,7 +195,7 @@ export async function touchUser(
   ts: number,
   block: number,
 ): Promise<User | undefined> {
-  if (isSystem(chainId, address)) return undefined;
+  if (await isSystem(context, chainId, address)) return undefined;
   const id = lc(address);
   let user = await context.User.get(id);
   let isNew = false;

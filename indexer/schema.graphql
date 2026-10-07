@@ -96,8 +96,8 @@ type Market {
   vaultCash: BigInt!
   upSupply: BigInt!
   downSupply: BigInt!
-  "Redeem fees accrued by the market (collateral units)."
-  feesAccrued: BigInt!
+  "Cumulative redeem fees charged by this market (collateral units; the on-chain feesAccrued is reset by claimFees)."
+  redeemFeesTotal: BigInt!
   trades: [Trade!]! @derivedFrom(field: "market")
   tokens: [OutcomeToken!]! @derivedFrom(field: "market")
 }
@@ -136,7 +136,10 @@ type Trade {
 
 "A ForwardVenue order (placed at t, executed once at t + execDelay)."
 type Order {
+  "<venue address>_<order id> (order ids restart at 1 in every venue contract)"
   id: ID!
+  venue: String!
+  orderId: BigInt!
   taker: String! @index
   market: Market!
   kind: OrderKind!
@@ -253,11 +256,19 @@ type VaultEpoch {
   settledBlock: Int
 }
 
-"NAV observation (settlement, checkpoint or automatic checkpoint). The APY source."
+"""
+NAV observation (settlement, checkpoint or automatic checkpoint). The APY source.
+navLower / navUpper are exactly as the vault emits them: for a SETTLEMENT they are taken BEFORE the epoch's
+deposits and redemptions (the contract then stores navLower + accepted deposits - assets paid).
+navLowerAfter / navUpperAfter apply that adjustment and are the NAV after the epoch (equal to the raw
+values for checkpoints).
+"""
 type NavSnapshot {
   id: ID!
   navLower: BigInt!
   navUpper: BigInt!
+  navLowerAfter: BigInt!
+  navUpperAfter: BigInt!
   ppsLower: BigInt!
   supply: BigInt!
   settlement: Boolean!
@@ -343,7 +354,10 @@ type ProtocolStats {
   totalUsers: Int!
   totalDeposited: BigInt!
   totalRedeemed: BigInt!
+  "Vault NAV (lower, after the last settlement's flows) at the last NAV snapshot."
   tvl: BigInt!
+  "Lower price per share (WAD) at the last NAV snapshot; seeds DailyStats on days without a snapshot."
+  vaultPps: BigInt!
   lastUpdatedBlock: Int!
 }
 
@@ -358,4 +372,9 @@ type NavDay @internal {
   day: Int!
   ppsClose: BigInt!
   timestamp: Int!
+}
+
+"Venue contracts registered at runtime (VenueSet): treated as system holders (not users). Not exposed."
+type SystemAddress @internal {
+  id: ID!
 }

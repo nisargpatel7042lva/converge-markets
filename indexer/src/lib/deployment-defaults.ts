@@ -7,5 +7,9 @@ export interface VaultDefaults {
 }
 
 export const VAULT_DEFAULTS: Record<number, VaultDefaults> = {
-  10143: { keeper: "0x6e5008e79b3f6bcf314467c8b325b3784a9e9af4", tvlCap: 5000000000n, performanceFeeBps: 1000 },
+  10143: {
+    keeper: "0x6e5008e79b3f6bcf314467c8b325b3784a9e9af4",
+    tvlCap: 5000000000n,
+    performanceFeeBps: 1000,
+  },
 };

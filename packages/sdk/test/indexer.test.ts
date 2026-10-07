@@ -298,10 +298,12 @@ describe("APY and PnL math", () => {
     expect(valuationOf({ status: "RESOLVED_UP", lastUpPrice: 0.3 })).toEqual({
       kind: "resolved",
       outcome: "UP",
+      redeemFeeBps: 0,
     });
-    expect(valuationOf({ status: "INVALID", lastUpPrice: null })).toEqual({
+    expect(valuationOf({ status: "INVALID", lastUpPrice: null, redeemFeeBps: 100 })).toEqual({
       kind: "resolved",
       outcome: "INVALID",
+      redeemFeeBps: 100,
     });
     expect(valuationOf({ status: "OPEN", lastUpPrice: "0.56" })).toEqual({
       kind: "live",
@@ -317,5 +319,53 @@ describe("APY and PnL math", () => {
     expect(
       lpUnrealizedPnl({ shares: 600n, escrowedShares: 0n, costBasis: 600n }, (11n * WAD) / 10n),
     ).toBe(60n);
+  });
+});
+
+describe("redeem fee and history order", () => {
+  it("a resolved winner is valued net of the market's redeem fee (Market.redeem pays payout - floor(payout * bps / 10000))", () => {
+    const p = {
+      upBalance: 10_000_000n,
+      downBalance: 0n,
+      upEscrowed: 0n,
+      downEscrowed: 0n,
+      upCost: 5_500_000n,
+      downCost: 0n,
+      realizedPnl: 0n,
+    };
+    expect(positionValue(p, { kind: "resolved", outcome: "UP", redeemFeeBps: 100 })).toBe(
+      9_900_000n,
+    );
+    expect(positionValue(p, { kind: "resolved", outcome: "UP" })).toBe(10_000_000n);
+    expect(positionValue(p, { kind: "resolved", outcome: "DOWN", redeemFeeBps: 100 })).toBe(0n);
+    // INVALID pays half a token, then the fee: (10 + 0) / 2 = 5 -> 4.95
+    expect(positionValue(p, { kind: "resolved", outcome: "INVALID", redeemFeeBps: 100 })).toBe(
+      4_950_000n,
+    );
+    expect(
+      valuationOf({ status: "RESOLVED_UP", lastUpPrice: null, redeemFeeBps: 100 }),
+    ).toMatchObject({ redeemFeeBps: 100 });
+  });
+
+  it("navHistory asks for the NEWEST rows first (a limit never drops the latest) and returns them chronologically", async () => {
+    const row = (block: number, ts: number) => ({
+      id: `${block}_0`,
+      navLower: "1",
+      navUpper: "1",
+      navLowerAfter: "2",
+      navUpperAfter: "3",
+      ppsLower: "1000000000000000000",
+      supply: "1",
+      settlement: false,
+      block,
+      timestamp: ts,
+    });
+    const { f, calls } = fakeFetch({
+      data: { NavSnapshot: [row(30, 300), row(20, 200), row(10, 100)] },
+    });
+    const out = await createIndexerClient({ url: "u", fetch: f }).navHistory(0, 3);
+    expect(bodyOf(calls[0]!).query).toContain("order_by: { timestamp: desc }");
+    expect(out.map((r) => r.timestamp)).toEqual([100, 200, 300]);
+    expect([out[0]!.navLowerAfter, out[0]!.navUpperAfter]).toEqual([2n, 3n]);
   });
 });

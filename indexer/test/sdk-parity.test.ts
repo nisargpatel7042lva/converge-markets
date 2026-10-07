@@ -52,6 +52,8 @@ describe("indexer lib == SDK math", () => {
       { kind: "resolved", outcome: "UP" },
       { kind: "resolved", outcome: "DOWN" },
       { kind: "resolved", outcome: "INVALID" },
+      { kind: "resolved", outcome: "UP", redeemFeeBps: 100 },
+      { kind: "resolved", outcome: "INVALID", redeemFeeBps: 37 },
     ] as const) {
       expect(sdkValue(s, v)).toBe(positionValue(s, v));
       expect(sdkUnrealized(s, v)).toBe(unrealizedPnl(s, v));

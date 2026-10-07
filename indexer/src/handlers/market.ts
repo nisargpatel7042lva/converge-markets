@@ -81,7 +81,7 @@ indexer.onEvent(
       vaultCash: 0n,
       upSupply: 0n,
       downSupply: 0n,
-      feesAccrued: 0n,
+      redeemFeesTotal: 0n,
     });
     context.OutcomeToken.set({ id: lc(p.up), market_id: id, side: "UP", totalSupply: 0n });
     context.OutcomeToken.set({ id: lc(p.down), market_id: id, side: "DOWN", totalSupply: 0n });
@@ -154,7 +154,7 @@ indexer.onEvent({ contract: "Market", event: "Invalidated" }, async ({ event, co
 
 indexer.onEvent({ contract: "Market", event: "Split" }, async ({ event, context }) => {
   const who = event.params.account;
-  if (isSystem(event.chainId, who)) return;
+  if (await isSystem(context, event.chainId, who)) return;
   const ts = event.block.timestamp;
   await touchUser(context, event.chainId, who, ts, event.block.number);
   const pos = await loadPosition(context, who, event.srcAddress, ts);
@@ -163,7 +163,7 @@ indexer.onEvent({ contract: "Market", event: "Split" }, async ({ event, context 
 
 indexer.onEvent({ contract: "Market", event: "Merged" }, async ({ event, context }) => {
   const who = event.params.account;
-  if (isSystem(event.chainId, who)) return;
+  if (await isSystem(context, event.chainId, who)) return;
   const ts = event.block.timestamp;
   await touchUser(context, event.chainId, who, ts, event.block.number);
   const pos = await loadPosition(context, who, event.srcAddress, ts);
@@ -178,14 +178,14 @@ indexer.onEvent({ contract: "Market", event: "Redeemed" }, async ({ event, conte
   const fee = event.params.fee;
   if (fee !== 0n) {
     const m = await mustMarket(context, event.srcAddress);
-    if (m) context.Market.set({ ...m, feesAccrued: m.feesAccrued + fee });
+    if (m) context.Market.set({ ...m, redeemFeesTotal: m.redeemFeesTotal + fee });
     await updateProtocol(context, event.block.number, (s) => ({
       totalFeesRedeem: s.totalFeesRedeem + fee,
     }));
     await updateDaily(context, ts, (d) => ({ feesRedeem: d.feesRedeem + fee }));
   }
   const who = event.params.account;
-  if (isSystem(event.chainId, who)) return;
+  if (await isSystem(context, event.chainId, who)) return;
   await touchUser(context, event.chainId, who, ts, event.block.number);
   const pos = await loadPosition(context, who, event.srcAddress, ts);
   const before = positionState(pos);
@@ -236,7 +236,12 @@ indexer.onEvent({ contract: "OutcomeToken", event: "Transfer" }, async ({ event,
 
   // Cost travels only between two ordinary holders; vault / venue / mint / burn legs are
   // accounted for by the economic events (Fill, Split, Merged, Redeemed, order escrow).
-  if (fromState && toState && !isSystem(event.chainId, from) && !isSystem(event.chainId, to)) {
+  if (
+    fromState &&
+    toState &&
+    !(await isSystem(context, event.chainId, from)) &&
+    !(await isSystem(context, event.chainId, to))
+  ) {
     [fromState, toState] = moveCost(fromState, toState, k, value);
   }
   if (fromState) fromState = addBalance(fromState, k, -value);
