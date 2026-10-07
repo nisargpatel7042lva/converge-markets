@@ -119,7 +119,7 @@ Variables: `user: String!`
 
 ```graphql
 query UserPositions($user: String!) {
-  UserPosition(where: { user: { _eq: $user } }, order_by: { lastUpdated: desc }) { id user market_id upBalance downBalance upEscrowed downEscrowed upCost downCost costBasis realizedPnl totalIn totalOut tradeCount market { id asset status outcome lastUpPrice startTime endTime } }
+  UserPosition(where: { user: { _eq: $user } }, order_by: { lastUpdated: desc }) { id user market_id upBalance downBalance upEscrowed downEscrowed upCost downCost costBasis realizedPnl totalIn totalOut tradeCount market { id asset status outcome lastUpPrice startTime endTime redeemFeeBps } }
 }
 ```
 
@@ -153,7 +153,7 @@ Variables: none
 query VaultOverview {
   Vault(limit: 1) { id navLower navUpper ppsLower supply totalSupply lastNavTimestamp tvlCap performanceFeeBps quotingPaused quotingHalted breakerTrips settledEpochs expiredEpochs totalDeposited totalRedeemed totalPerformanceFees totalFillVolume fillCount apy7d apy30d return7d return30d apySinceInception }
   ProtocolStats_by_pk(id: "global") { totalVolume totalTrades totalFeesPerformance totalFeesRedeem totalMarkets totalMarketsResolved totalUsers totalDeposited totalRedeemed tvl lastUpdatedBlock }
-  NavSnapshot(order_by: { block: desc }, limit: 1) { id navLower navUpper ppsLower supply settlement block timestamp }
+  NavSnapshot(order_by: { block: desc }, limit: 1) { id navLower navUpper navLowerAfter navUpperAfter ppsLower supply settlement block timestamp }
 }
 ```
 
@@ -169,7 +169,7 @@ Variables: `since: Int!` (unix seconds), `limit: Int!`
 
 ```graphql
 query NavHistory($since: Int!, $limit: Int!) {
-  NavSnapshot(where: { timestamp: { _gte: $since } }, order_by: { timestamp: asc }, limit: $limit) { id navLower navUpper ppsLower supply settlement block timestamp }
+  NavSnapshot(where: { timestamp: { _gte: $since } }, order_by: { timestamp: desc }, limit: $limit) { id navLower navUpper navLowerAfter navUpperAfter ppsLower supply settlement block timestamp }
 }
 ```
 

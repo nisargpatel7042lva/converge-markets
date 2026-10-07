@@ -77,6 +77,8 @@ export function render(o) {
   lines.push("chains:");
   lines.push(`  - id: ${o.chainId}`);
   lines.push(`    start_block: ${o.factoryBlock}`);
+  // Bounded evidence runs on a slow RPC source: stop at this block (the chain is read to here only).
+  if (o.endBlock) lines.push(`    end_block: ${o.endBlock}`);
   if (o.rpc) {
     lines.push("    rpc:");
     lines.push(`      - url: ${o.rpc}`);

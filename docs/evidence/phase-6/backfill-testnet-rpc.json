@@ -1,0 +1,10 @@
+{
+  "label": "testnet-rpc",
+  "note": "REAL Monad testnet data (chain 10143), LOCAL indexer (Envio HyperIndex 3.14.0) with an RPC data source behind a <=6 rps proxy, Postgres + Hasura in Docker. NOT HyperSync, NOT the hosted Envio service.",
+  "fromBlock": 68644575,
+  "toBlock": 68726000,
+  "blocks": 81426,
+  "eventsProcessed": 79,
+  "wallClockLaunchToReadySeconds": 1211.1,
+  "storageInitToReadySeconds": 1206.2
+}

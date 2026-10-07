@@ -4,6 +4,7 @@ export function render(o: {
   header: string;
   factory: string;
   factoryBlock: number;
+  endBlock?: number;
   vault: string;
   venue: string;
   vaultBlock: number;

@@ -1,0 +1,17 @@
+latency harness -> http://localhost:8080/v1/graphql (label testnet-rpc-local-hasura, n=200, concurrency=10)
+status (_meta)                       seq p50 3.4 p95 38.5  conc p95 11.7 ms
+marketList open+created              seq p50 4.2 p95 6.5  conc p95 9.5 ms
+marketList by asset (BTC)            seq p50 2.9 p95 4.8  conc p95 11.1 ms
+marketList resolved (page of 50)     seq p50 2.9 p95 4.1  conc p95 7.1 ms
+marketDetail + 50 trades             seq p50 4.1 p95 6.2  conc p95 11.0 ms
+recentTrades 50                      seq p50 3.3 p95 5.2  conc p95 8.2 ms
+userPositions                        seq p50 3.3 p95 4.7  conc p95 12.3 ms
+userTrades 50                        seq p50 2.7 p95 3.9  conc p95 8.7 ms
+userOrders 50                        seq p50 2.7 p95 4.0  conc p95 7.7 ms
+vaultOverview                        seq p50 5.2 p95 7.2  conc p95 14.2 ms
+navHistory 7d                        seq p50 2.7 p95 4.0  conc p95 7.7 ms
+epochs 20                            seq p50 2.6 p95 3.3  conc p95 10.0 ms
+lpOverview                           seq p50 4.6 p95 6.6  conc p95 11.2 ms
+dailyStats 30                        seq p50 2.6 p95 4.3  conc p95 5.4 ms
+protocolStats                        seq p50 2.2 p95 3.0  conc p95 5.9 ms
+PASS: worst p95 sequential 38.5 ms, concurrent 14.2 ms

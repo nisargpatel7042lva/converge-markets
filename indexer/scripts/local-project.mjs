@@ -58,7 +58,9 @@ writeFileSync(
       : a.factoryBlock,
     vault: a.vault,
     venue: a.venue,
-    vaultBlock: a.vaultBlock,
+    // VAULT_FROM_BLOCK / END_BLOCK: bound an evidence run to a window of a slow RPC source
+    vaultBlock: process.env.VAULT_FROM_BLOCK ? Number(process.env.VAULT_FROM_BLOCK) : a.vaultBlock,
+    endBlock: process.env.END_BLOCK ? Number(process.env.END_BLOCK) : undefined,
     rpc,
     rollbackOnReorg: process.env.ROLLBACK === "false" ? false : undefined,
     maxBlockRange: process.env.MAX_BLOCK_RANGE ? Number(process.env.MAX_BLOCK_RANGE) : undefined,

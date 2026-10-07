@@ -41,7 +41,7 @@ PROXY_PID=$!
 for i in $(seq 1 40); do (echo > "/dev/tcp/127.0.0.1/$PROXY_PORT") 2>/dev/null && break; sleep 0.5; done
 
 echo "== 2. indexer project for chain 10143 (rpc source, from the deploy block)"
-FACTORY_FROM_BLOCK=${FACTORY_FROM_BLOCK:-} ROLLBACK=${ROLLBACK:-} MAX_BLOCK_RANGE=100 POLL_MS=${POLL_MS:-500} node indexer/scripts/local-project.mjs deployments/testnet.json "$PROXY" "$LOCAL/testnet-project" || exit 1
+FACTORY_FROM_BLOCK=${FACTORY_FROM_BLOCK:-} VAULT_FROM_BLOCK=${VAULT_FROM_BLOCK:-} END_BLOCK=${END_BLOCK:-} ROLLBACK=${ROLLBACK:-} MAX_BLOCK_RANGE=100 POLL_MS=${POLL_MS:-500} node indexer/scripts/local-project.mjs deployments/testnet.json "$PROXY" "$LOCAL/testnet-project" || exit 1
 
 echo "== 3. envio dev (backfill timing)"
 START_MS=$(date +%s%3N)
@@ -69,8 +69,8 @@ def ts(pat):
 t0 = ts("Initializing the indexer storage"); t1 = ts("Ready\\. Fully indexed")
 rec = {
   "label": "testnet-rpc",
-  "note": "REAL Monad testnet data (chain 10143), LOCAL indexer (Envio HyperIndex 3.14.0) with an RPC data source behind a <=6 rps proxy, Postgres + Hasura in Docker. NOT HyperSync, NOT the hosted Envio service.",
-  "fromBlock": dep["deployBlock"], "toBlock": m["progressBlock"], "blocks": m["progressBlock"] - dep["deployBlock"] + 1,
+  "note": "REAL Monad testnet data (chain 10143), LOCAL indexer (Envio HyperIndex 3.14.0) with an RPC data source behind a rate-limited proxy (PROXY_RPS, see rpc-usage-testnet.json), Postgres + Hasura in Docker. NOT HyperSync, NOT the hosted Envio service.",
+  "fromBlock": m["startBlock"], "toBlock": m["progressBlock"], "blocks": m["progressBlock"] - m["startBlock"] + 1,
   "eventsProcessed": m["eventsProcessed"],
   "wallClockLaunchToReadySeconds": round((int(e) - int(s)) / 1000, 1),
   "storageInitToReadySeconds": round(t1 - t0, 1) if t0 is not None and t1 is not None else None,
@@ -79,7 +79,7 @@ json.dump(rec, open(f"{ev}/backfill-testnet-rpc.json", "w"), indent=2)
 open(f"{ev}/backfill-testnet-rpc.md", "w").write(
   "# Full backfill from the deploy block on Monad testnet (LOCAL indexer, RPC source)\n\n"
   + f"- {rec['note']}\n"
-  + f"- Range: block {rec['fromBlock']} (factory deploy) to {rec['toBlock']} ({rec['blocks']} blocks), {rec['eventsProcessed']} events processed by handlers\n"
+  + f"- Range: block {rec['fromBlock']} to {rec['toBlock']} ({rec['blocks']} blocks), {rec['eventsProcessed']} events processed by handlers\n"
   + f"- Wall clock from launching `envio dev -r` to `_meta.isReady = true`: **{rec['wallClockLaunchToReadySeconds']} s** (includes codegen, handler type check, Hasura metadata, index creation)\n"
   + f"- Indexer log: storage initialised to `Ready. Fully indexed for queries.`: **{rec['storageInitToReadySeconds']} s**\n"
   + "- Request volume and peak rate: `rpc-usage-testnet.json`.\n"
@@ -95,9 +95,15 @@ echo "== 5. latency (local Hasura serving the real testnet data)"
 pnpm --filter @converge/reconcile exec tsx latency.ts --indexer "$HASURA" --headers "$SECRET" --n 200 --concurrency 10 --label testnet-rpc-local-hasura | tee "$EVIDENCE/latency-testnet-rpc.txt"
 LAT=${PIPESTATUS[0]}
 
+if [ "${LAG_SECONDS}" != "0" ]; then
 echo "== 6. lag against the live testnet head (${LAG_SECONDS}s, head read every 5 s through the proxy)"
 pnpm --filter @converge/reconcile exec tsx lag.ts --indexer "$HASURA" --headers "$SECRET" --rpc "$PROXY" --rpc-interval 5000 --duration "$LAG_SECONDS" --interval 1000 --label testnet-rpc | tee "$EVIDENCE/lag-testnet-rpc.txt"
 LAG=${PIPESTATUS[0]}
+
+LAG=0
+else
+  LAG="skipped (END_BLOCK-bounded run: the indexer stops at END_BLOCK, so the lag to the live head is not meaningful)"
+fi
 
 echo "reconcile=$RECON latency=$LAT lag=$LAG"
 sleep 6

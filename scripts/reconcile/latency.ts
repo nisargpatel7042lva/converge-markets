@@ -179,7 +179,7 @@ async function main() {
     `- Endpoint: \`${meta.endpoint}\`, run at ${meta.when}`,
     `- ${N} timed requests per query after ${WARM} warm-up requests; sequential = one client, concurrent = ${C} clients. Client-side round trip (fetch to parsed JSON).`,
     `- Dataset: ${meta.dataset ? JSON.stringify(meta.dataset) : "n/a"}`,
-    label === "local"
+    label.includes("local")
       ? "- **LOCAL measurement**: Hasura + Postgres in Docker on the development machine, tiny dataset, no network. NOT a hosted measurement."
       : "- Hosted measurement (network round trip included).",
     `- Threshold: p95 < ${THRESHOLD_MS} ms for every query. Worst sequential p95 **${f(worstSeq)} ms**, worst concurrent p95 **${f(worstConc)} ms**: **${pass ? "PASS" : "FAIL"}**`,

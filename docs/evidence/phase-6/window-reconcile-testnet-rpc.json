@@ -1,0 +1,312 @@
+{
+  "label": "testnet-rpc",
+  "when": "2026-10-07T05:30:39.201Z",
+  "indexer": "http://localhost:8080/v1/graphql",
+  "rpc": "http://127.0.0.1:8612",
+  "chainId": 10143,
+  "pinnedToIndexerBlock": true,
+  "seed": 1,
+  "requestedN": 250,
+  "populationSize": 23,
+  "sampled": 24,
+  "matched": 23,
+  "mismatched": 1,
+  "fieldComparisons": 181,
+  "percentMatching": 95.83333333333333,
+  "invariants": [
+    {
+      "name": "per market: sum of holder balances (incl. vault and venue) == token total supply",
+      "ok": true,
+      "detail": "4 markets, 0 violations"
+    },
+    {
+      "name": "no negative balance, escrow or cost",
+      "ok": true,
+      "detail": "4 positions, 0 violations"
+    },
+    {
+      "name": "costBasis == upCost + downCost",
+      "ok": true,
+      "detail": "0 violations"
+    },
+    {
+      "name": "sum of LP wallet shares <= vault share supply",
+      "ok": true,
+      "detail": "0 <= 1000000000"
+    },
+    {
+      "name": "protocol totals == sum over markets == vault fill totals",
+      "ok": true,
+      "detail": "trades 4/4, volume 4290000/4290000"
+    },
+    {
+      "name": "Vault apy7d / apy30d / apySinceInception == recomputed from the NavSnapshot rows",
+      "ok": true,
+      "detail": "4 snapshots; indexer apy7d null, apy30d null; recomputed undefined, undefined"
+    }
+  ],
+  "pass": false,
+  "byKind": {
+    "Market": {
+      "n": 4,
+      "ok": 4
+    },
+    "UserPosition": {
+      "n": 4,
+      "ok": 4
+    },
+    "Trade": {
+      "n": 4,
+      "ok": 4
+    },
+    "NavSnapshotSettlement": {
+      "n": 1,
+      "ok": 1
+    },
+    "NavSnapshot": {
+      "n": 3,
+      "ok": 3
+    },
+    "LPPosition": {
+      "n": 1,
+      "ok": 1
+    },
+    "VaultEpoch": {
+      "n": 1,
+      "ok": 1
+    },
+    "Order": {
+      "n": 4,
+      "ok": 4
+    },
+    "Vault": {
+      "n": 1,
+      "ok": 0
+    },
+    "ProtocolStats": {
+      "n": 1,
+      "ok": 1
+    }
+  },
+  "mismatches": [
+    {
+      "kind": "Vault",
+      "id": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5",
+      "block": 68726000,
+      "checks": [
+        {
+          "field": "totalSupply",
+          "indexer": "1000000000",
+          "chain": "1000000000"
+        },
+        {
+          "field": "tvlCap",
+          "indexer": "5000000000",
+          "chain": "5000000000"
+        },
+        {
+          "field": "performanceFeeBps",
+          "indexer": "1000",
+          "chain": "1000"
+        },
+        {
+          "field": "quotingPaused",
+          "indexer": "false",
+          "chain": "false"
+        },
+        {
+          "field": "keeper",
+          "indexer": "0x6e5008e79b3f6bcf314467c8b325b3784a9e9af4",
+          "chain": "0x6e5008e79b3f6bcf314467c8b325b3784a9e9af4"
+        },
+        {
+          "field": "venue",
+          "indexer": "null",
+          "chain": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c"
+        },
+        {
+          "field": "ppsLower == pricePerShareLower()",
+          "indexer": "999631545000000000",
+          "chain": "999631545000000000"
+        },
+        {
+          "field": "quotingHalted",
+          "indexer": "false",
+          "chain": "false"
+        }
+      ],
+      "ok": false,
+      "attempts": 3
+    }
+  ],
+  "results": [
+    {
+      "kind": "Market",
+      "id": "0x25884eb9c87cf0fb8bd2da9c103ff0bb2a244737",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xa89c8406df1307d957a5dfafd25573a2682e7c99",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xf5169f21576f5fac0dbdf97ba35db09ce65b0c2f",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x7e320331ed54d11e5ede8d1cfd2d4bed659bf5dc",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5_0x25884eb9c87cf0fb8bd2da9c103ff0bb2a244737",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xebd259f883bd4faa8ed79b213dff6933e08e9d91_0x25884eb9c87cf0fb8bd2da9c103ff0bb2a244737",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xebd259f883bd4faa8ed79b213dff6933e08e9d91_0xa89c8406df1307d957a5dfafd25573a2682e7c99",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5_0xa89c8406df1307d957a5dfafd25573a2682e7c99",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "68721239_44",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "68724200_4",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "68722641_4",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "68724689_69",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshotSettlement",
+      "id": "68721092_87",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "68724689_70",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "68724200_5",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "68722641_5",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "LPPosition",
+      "id": "0xe36848e8654a86fd2f7f97ddb3c56042ffd54dd1",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "25",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c_3",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c_1",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c_2",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c_4",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Vault",
+      "id": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5",
+      "block": 68726000,
+      "ok": false,
+      "attempts": 3
+    },
+    {
+      "kind": "ProtocolStats",
+      "id": "global",
+      "block": 68726000,
+      "ok": true,
+      "attempts": 1
+    }
+  ]
+}
