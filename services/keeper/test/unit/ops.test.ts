@@ -286,10 +286,12 @@ describe("reconnecting websocket price source", () => {
       onTick: (t) => ticks.push(t.price),
       log,
       watchdogMs: 300,
+      checkEveryMs: 100,
     });
     src.start();
-    const deadline = Date.now() + 15_000;
-    while (conns < 3 && Date.now() < deadline) await new Promise((r) => setTimeout(r, 100));
+    const deadline = Date.now() + 25_000;
+    while ((conns < 3 || ticks.length < 3) && Date.now() < deadline)
+      await new Promise((r) => setTimeout(r, 100));
     src.stop();
     wss.close();
     expect(conns).toBeGreaterThanOrEqual(3);

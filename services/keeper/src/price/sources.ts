@@ -45,6 +45,8 @@ export type WsSourceOpts = {
   log: Logger;
   /** No message for this long: the socket is considered dead and reopened. */
   watchdogMs?: number;
+  /** How often the watchdog looks (default 2 s; tests use less). */
+  checkEveryMs?: number;
   now?: () => number;
 };
 
@@ -70,7 +72,7 @@ export class WsPriceSource {
         this.o.log.warn({ source: this.o.name }, "price socket silent, reconnecting");
         this.ws.terminate();
       }
-    }, 2_000);
+    }, this.o.checkEveryMs ?? 2_000);
     this.watchdog.unref();
   }
 
