@@ -105,6 +105,7 @@ export default async function globalSetup() {
     FAUCET_ENABLED: "1",
     DRIP_PRIVATE_KEY: KEYS.admin, // the public anvil dev key: not a secret
     DRIP_RPC_URL: anvil.url,
+    REGION_BYPASS_TOKEN: "e2e-bypass-token-0123456789",
   };
   const log = openSync(resolve(root, "e2e-results/server.log"), "w");
   await run("pnpm", ["exec", "next", "build"], env, log);

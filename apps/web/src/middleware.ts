@@ -10,6 +10,26 @@ export function middleware(req: NextRequest) {
   const region = req.headers.get("x-vercel-ip-country-region");
   const d = regionDecision(country, region, process.env.RESTRICTED_COUNTRIES);
   if (!d.blocked) return NextResponse.next();
+
+  // Optional reviewer bypass (DECISION NEEDED, see config/regions.json): only exists when the
+  // operator sets REGION_BYPASS_TOKEN; ?region_bypass=<token> sets a cookie for a week.
+  const token = process.env.REGION_BYPASS_TOKEN;
+  if (token && token.length >= 16) {
+    if (req.cookies.get("region_ok")?.value === token) return NextResponse.next();
+    if (req.nextUrl.searchParams.get("region_bypass") === token) {
+      const clean = req.nextUrl.clone();
+      clean.searchParams.delete("region_bypass");
+      const res = NextResponse.redirect(clean);
+      res.cookies.set("region_ok", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        maxAge: 7 * 86400,
+        path: "/",
+      });
+      return res;
+    }
+  }
   const url = req.nextUrl.clone();
   if (url.pathname.startsWith("/api/"))
     return NextResponse.json({ error: "Not available in your region" }, { status: 451 });

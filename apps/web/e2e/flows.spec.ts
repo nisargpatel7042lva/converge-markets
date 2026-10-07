@@ -74,7 +74,18 @@ test.describe("static pages and the edge", () => {
       data: { address: "0x0000000000000000000000000000000000000001" },
     });
     expect(api.status()).toBe(451);
+    // the optional reviewer bypass: wrong token stays blocked, the right one sets a cookie
+    const wrong = await ctx.request.get("/?region_bypass=nope", { maxRedirects: 0 });
+    expect(wrong.status()).toBe(451);
     await ctx.close();
+    const rev = await browser.newContext({
+      extraHTTPHeaders: { "x-vercel-ip-country": "IN" },
+      baseURL: info().baseURL,
+    });
+    const rp = await rev.newPage();
+    expect((await rp.goto("/?region_bypass=e2e-bypass-token-0123456789"))?.status()).toBe(200);
+    expect((await rp.goto("/markets"))?.status()).toBe(200); // the cookie keeps it open
+    await rev.close();
     const ok = await browser.newContext({
       extraHTTPHeaders: { "x-vercel-ip-country": "DE" },
       baseURL: info().baseURL,

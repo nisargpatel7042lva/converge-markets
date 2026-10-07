@@ -7,6 +7,6 @@
   },
   "decisionsNeeded": [
     "Confirm or change the list above with counsel (US, UK, Singapore, France, Australia and others restrict prediction markets or derivatives).",
-    "Decide whether judges and reviewers get a bypass link while the product is in a legal grey zone."
+    "Decide whether judges and reviewers get a bypass link while the product is in a legal grey zone. Implemented but OFF: set REGION_BYPASS_TOKEN (16+ characters) in the hosting env, then open /?region_bypass=<token> once on a device. Without the variable there is no bypass."
   ]
 }
