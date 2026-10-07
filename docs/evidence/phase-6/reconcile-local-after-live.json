@@ -1,0 +1,1497 @@
+{
+  "label": "local-after-live",
+  "when": "2026-10-06T16:13:30.257Z",
+  "indexer": "http://localhost:8080/v1/graphql",
+  "rpc": "http://127.0.0.1:8611",
+  "chainId": 31337,
+  "pinnedToIndexerBlock": true,
+  "seed": 2,
+  "requestedN": 200,
+  "populationSize": 566,
+  "sampled": 201,
+  "matched": 201,
+  "mismatched": 0,
+  "fieldComparisons": 1252,
+  "percentMatching": 100,
+  "invariants": [
+    {
+      "name": "per market: sum of holder balances (incl. vault and venue) == token total supply",
+      "ok": true,
+      "detail": "30 markets, 0 violations"
+    },
+    {
+      "name": "no negative balance, escrow or cost",
+      "ok": true,
+      "detail": "148 positions, 0 violations"
+    },
+    {
+      "name": "costBasis == upCost + downCost",
+      "ok": true,
+      "detail": "0 violations"
+    },
+    {
+      "name": "sum of LP wallet shares <= vault share supply",
+      "ok": true,
+      "detail": "1157773452 <= 1157774453"
+    },
+    {
+      "name": "protocol totals == sum over markets == vault fill totals",
+      "ok": true,
+      "detail": "trades 131/131, volume 471489741/471489741"
+    },
+    {
+      "name": "Vault apy7d / apy30d / apySinceInception == recomputed from the NavSnapshot rows",
+      "ok": true,
+      "detail": "114 snapshots; indexer apy7d 0, apy30d 0; recomputed 0, 0"
+    }
+  ],
+  "pass": true,
+  "byKind": {
+    "Market": {
+      "n": 30,
+      "ok": 30
+    },
+    "UserPosition": {
+      "n": 68,
+      "ok": 68
+    },
+    "Trade": {
+      "n": 36,
+      "ok": 36
+    },
+    "NavSnapshot": {
+      "n": 18,
+      "ok": 18
+    },
+    "LPPosition": {
+      "n": 3,
+      "ok": 3
+    },
+    "VaultEpoch": {
+      "n": 8,
+      "ok": 8
+    },
+    "Order": {
+      "n": 36,
+      "ok": 36
+    },
+    "Vault": {
+      "n": 1,
+      "ok": 1
+    },
+    "ProtocolStats": {
+      "n": 1,
+      "ok": 1
+    }
+  },
+  "mismatches": [],
+  "results": [
+    {
+      "kind": "Market",
+      "id": "0x4bd1b7c453062db2134bd50206528b4f4b5565a4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x616d2dc24cc35d1c1fb2ec0fe2240454b785ab64",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x03c0465c859384cd34b9f6f1dc2de9b24d71249b",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xbc5593ab9f2732e7b0bc53b162803267ab104954",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xb657c374be87c82ab29235fd9b8dc91f3169b8e9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x15db75f90dce2a44a8d5438f045ac3615fce0b39",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x5727a09f67fb5510a0abb005ade721bb3d48d4b4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x7aa820fae6191e37c52b865fa38084243da89783",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xa135afab69e1ab7da2f4cd15b327da7add2f7e6d",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x18304110b73507dad7918f3a0ca3a699238ca7da",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xc1ad191e6d40b5a9e711d125b68bfb948d583b09",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x601d103ec178ae0ba714c2cc6bec48933bf7a9a9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x2a83eb789e8a5e1332e0f52f0424e88461faa9dc",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xd62b66d33bd1560cd5f4eefbbb73cc7d4d032365",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xacfe2da56eb309a878a338979028c35a7ee45f62",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x1286dd62cf4f4296cd5ef455162620fb1c5fd2f2",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x7023bb39fa36252fb720e1967dcdd61f0edb7b5c",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x6bd7943a2fe87e4ec1d5568876cd3a1b35b3e37d",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xf21d4c5e6405d5ae3ee4ca9f8efd27667e4ac04a",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x56879ab65429a16c2ac3b6c38f46be3ff2e5f072",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x96880feaf111d5c112e8a182bdb05d973f474e18",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xe2714219d1610e66192657eba430fca87a121138",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x3877138471a458cce6c730b5bf20e6c29f18081c",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xd0ff6bacdb055c60eab6e44d52dacd3f1b9879a6",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x4bfebd37d856535a8ca41a22ade72ea05783cb17",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x49fec27db4afe9a3552ef522ea431ccb70ebaa32",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x5cf0fae9706eaff85eb4e20d0ff1b8b5d34cbe4f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x5f6a134a68ffeb98f4b42383258e0f2fd84930ff",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xf0cd9d471d186310b167c9b2bde460794f405630",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xa328478a7189f8b5619ea61f53d5ad76e544f21f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0xb657c374be87c82ab29235fd9b8dc91f3169b8e9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0x7aa820fae6191e37c52b865fa38084243da89783",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0x5cf0fae9706eaff85eb4e20d0ff1b8b5d34cbe4f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0x2a83eb789e8a5e1332e0f52f0424e88461faa9dc",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0x5cf0fae9706eaff85eb4e20d0ff1b8b5d34cbe4f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0x96880feaf111d5c112e8a182bdb05d973f474e18",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0xb657c374be87c82ab29235fd9b8dc91f3169b8e9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0xa135afab69e1ab7da2f4cd15b327da7add2f7e6d",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0x5727a09f67fb5510a0abb005ade721bb3d48d4b4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0xe2714219d1610e66192657eba430fca87a121138",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0xf0cd9d471d186310b167c9b2bde460794f405630",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0xf0cd9d471d186310b167c9b2bde460794f405630",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0x18304110b73507dad7918f3a0ca3a699238ca7da",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x56879ab65429a16c2ac3b6c38f46be3ff2e5f072",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0xd0ff6bacdb055c60eab6e44d52dacd3f1b9879a6",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0xd0ff6bacdb055c60eab6e44d52dacd3f1b9879a6",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x15db75f90dce2a44a8d5438f045ac3615fce0b39",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x4bd1b7c453062db2134bd50206528b4f4b5565a4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x14dc79964da2c08b23698b3d3cc7ca32193d9955_0xc1ad191e6d40b5a9e711d125b68bfb948d583b09",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0x7023bb39fa36252fb720e1967dcdd61f0edb7b5c",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0x15db75f90dce2a44a8d5438f045ac3615fce0b39",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x1286dd62cf4f4296cd5ef455162620fb1c5fd2f2",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0x18304110b73507dad7918f3a0ca3a699238ca7da",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0x4bd1b7c453062db2134bd50206528b4f4b5565a4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0xbc5593ab9f2732e7b0bc53b162803267ab104954",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0xc1ad191e6d40b5a9e711d125b68bfb948d583b09",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0x616d2dc24cc35d1c1fb2ec0fe2240454b785ab64",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0xb657c374be87c82ab29235fd9b8dc91f3169b8e9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0xf21d4c5e6405d5ae3ee4ca9f8efd27667e4ac04a",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0x96880feaf111d5c112e8a182bdb05d973f474e18",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0xf21d4c5e6405d5ae3ee4ca9f8efd27667e4ac04a",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x96880feaf111d5c112e8a182bdb05d973f474e18",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x14dc79964da2c08b23698b3d3cc7ca32193d9955_0x18304110b73507dad7918f3a0ca3a699238ca7da",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0x6bd7943a2fe87e4ec1d5568876cd3a1b35b3e37d",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0x6bd7943a2fe87e4ec1d5568876cd3a1b35b3e37d",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0x49fec27db4afe9a3552ef522ea431ccb70ebaa32",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0x601d103ec178ae0ba714c2cc6bec48933bf7a9a9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0x5727a09f67fb5510a0abb005ade721bb3d48d4b4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x14dc79964da2c08b23698b3d3cc7ca32193d9955_0x601d103ec178ae0ba714c2cc6bec48933bf7a9a9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0x4bfebd37d856535a8ca41a22ade72ea05783cb17",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0xe2714219d1610e66192657eba430fca87a121138",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x4bfebd37d856535a8ca41a22ade72ea05783cb17",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0x56879ab65429a16c2ac3b6c38f46be3ff2e5f072",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x14dc79964da2c08b23698b3d3cc7ca32193d9955_0xa328478a7189f8b5619ea61f53d5ad76e544f21f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0xd62b66d33bd1560cd5f4eefbbb73cc7d4d032365",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0xa328478a7189f8b5619ea61f53d5ad76e544f21f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x49fec27db4afe9a3552ef522ea431ccb70ebaa32",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0xbc5593ab9f2732e7b0bc53b162803267ab104954",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x5727a09f67fb5510a0abb005ade721bb3d48d4b4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x14dc79964da2c08b23698b3d3cc7ca32193d9955_0x96880feaf111d5c112e8a182bdb05d973f474e18",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0x4bd1b7c453062db2134bd50206528b4f4b5565a4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0x4bfebd37d856535a8ca41a22ade72ea05783cb17",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0x56879ab65429a16c2ac3b6c38f46be3ff2e5f072",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x14dc79964da2c08b23698b3d3cc7ca32193d9955_0x4bfebd37d856535a8ca41a22ade72ea05783cb17",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc_0xf21d4c5e6405d5ae3ee4ca9f8efd27667e4ac04a",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0xc1ad191e6d40b5a9e711d125b68bfb948d583b09",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0xb657c374be87c82ab29235fd9b8dc91f3169b8e9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0x4bfebd37d856535a8ca41a22ade72ea05783cb17",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0x5cf0fae9706eaff85eb4e20d0ff1b8b5d34cbe4f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x7aa820fae6191e37c52b865fa38084243da89783",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0xd0ff6bacdb055c60eab6e44d52dacd3f1b9879a6",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0xbc5593ab9f2732e7b0bc53b162803267ab104954",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f_0xa328478a7189f8b5619ea61f53d5ad76e544f21f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318_0xf0cd9d471d186310b167c9b2bde460794f405630",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0x5cf0fae9706eaff85eb4e20d0ff1b8b5d34cbe4f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720_0xa328478a7189f8b5619ea61f53d5ad76e544f21f",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x610178da211fef7d417bc0e6fed39f05609ad788_0x2a83eb789e8a5e1332e0f52f0424e88461faa9dc",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x976ea74026e726554db657fa54763abd0c3a0aa9_0x616d2dc24cc35d1c1fb2ec0fe2240454b785ab64",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "281_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "419_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "236_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "64_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "373_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "514_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "467_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "580_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "524_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "431_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "433_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "568_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "170_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "337_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "520_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "659_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "421_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "185_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "166_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "631_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "183_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "627_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "178_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "129_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "180_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "679_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "610_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "224_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "477_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "533_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "663_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "168_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "624_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "622_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "112_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "676_3",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "141_4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "744_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "363_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "752_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "512_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "860_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "158_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "214_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "806_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "896_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "868_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "874_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "852_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "772_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "580_4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "848_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "862_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "770_0",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "LPPosition",
+      "id": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "LPPosition",
+      "id": "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "LPPosition",
+      "id": "0x90f79bf6eb2c4f870365e785982e1f101e93b906",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "4",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "7",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "9",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "6",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "2",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "5",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "13",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "11",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "84",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "122",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "121",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "1",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "126",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "69",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "60",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "92",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "74",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "113",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "128",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "75",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "58",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "17",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "40",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "107",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "51",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "131",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "100",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "95",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "44",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "77",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "80",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "71",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "65",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "10",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "56",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "13",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "42",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "19",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "120",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "53",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "25",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "103",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "110",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "14",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Vault",
+      "id": "0x8a791620dd6260079bf849dc5567adc3f2fdc318",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "ProtocolStats",
+      "id": "global",
+      "block": 1415,
+      "ok": true,
+      "attempts": 1
+    }
+  ]
+}

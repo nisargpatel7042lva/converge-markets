@@ -1,0 +1,1970 @@
+{
+  "label": "local",
+  "endpoint": "http://localhost:8080/v1/graphql",
+  "when": "2026-10-06T16:13:25.875Z",
+  "durationS": 114,
+  "intervalMs": 500,
+  "maxLagThreshold": 5,
+  "samples": [
+    {
+      "t": 1791303091508,
+      "progress": 921,
+      "source": 921,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303092030,
+      "progress": 921,
+      "source": 921,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303092535,
+      "progress": 925,
+      "source": 925,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303093040,
+      "progress": 925,
+      "source": 925,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303093544,
+      "progress": 929,
+      "source": 929,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303094049,
+      "progress": 929,
+      "source": 929,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303094556,
+      "progress": 933,
+      "source": 933,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303095060,
+      "progress": 933,
+      "source": 933,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303095567,
+      "progress": 937,
+      "source": 937,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303096074,
+      "progress": 937,
+      "source": 937,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303096577,
+      "progress": 941,
+      "source": 941,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303097081,
+      "progress": 941,
+      "source": 941,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303097583,
+      "progress": 945,
+      "source": 945,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303098086,
+      "progress": 945,
+      "source": 945,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303098590,
+      "progress": 949,
+      "source": 949,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303099094,
+      "progress": 949,
+      "source": 949,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303099599,
+      "progress": 953,
+      "source": 953,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303100107,
+      "progress": 953,
+      "source": 953,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303100610,
+      "progress": 957,
+      "source": 957,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303101114,
+      "progress": 957,
+      "source": 957,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303101617,
+      "progress": 961,
+      "source": 961,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303102121,
+      "progress": 961,
+      "source": 961,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303102624,
+      "progress": 965,
+      "source": 965,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303103127,
+      "progress": 965,
+      "source": 965,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303103631,
+      "progress": 969,
+      "source": 969,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303104137,
+      "progress": 969,
+      "source": 969,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303104639,
+      "progress": 973,
+      "source": 973,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303105145,
+      "progress": 973,
+      "source": 973,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303105649,
+      "progress": 977,
+      "source": 977,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303106152,
+      "progress": 977,
+      "source": 977,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303106654,
+      "progress": 981,
+      "source": 981,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303107158,
+      "progress": 981,
+      "source": 981,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303107661,
+      "progress": 985,
+      "source": 985,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303108166,
+      "progress": 985,
+      "source": 985,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791303108669,
+      "progress": 988,
+      "source": 988,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303109171,
+      "progress": 988,
+      "source": 988,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303109674,
+      "progress": 992,
+      "source": 992,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303110178,
+      "progress": 992,
+      "source": 992,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303110681,
+      "progress": 996,
+      "source": 996,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303111184,
+      "progress": 996,
+      "source": 996,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303111688,
+      "progress": 1000,
+      "source": 1000,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303112193,
+      "progress": 1000,
+      "source": 1000,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303112695,
+      "progress": 1004,
+      "source": 1004,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303113200,
+      "progress": 1004,
+      "source": 1004,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303111805,
+      "progress": 1008,
+      "source": 1008,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303112308,
+      "progress": 1008,
+      "source": 1008,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303112812,
+      "progress": 1012,
+      "source": 1012,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303113316,
+      "progress": 1012,
+      "source": 1012,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303113819,
+      "progress": 1016,
+      "source": 1016,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303114323,
+      "progress": 1016,
+      "source": 1016,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303114827,
+      "progress": 1020,
+      "source": 1020,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303115331,
+      "progress": 1020,
+      "source": 1020,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303115834,
+      "progress": 1024,
+      "source": 1024,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303116338,
+      "progress": 1024,
+      "source": 1024,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303116841,
+      "progress": 1028,
+      "source": 1028,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303117344,
+      "progress": 1028,
+      "source": 1028,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303117847,
+      "progress": 1032,
+      "source": 1032,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303118350,
+      "progress": 1032,
+      "source": 1032,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303118852,
+      "progress": 1036,
+      "source": 1036,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303119355,
+      "progress": 1036,
+      "source": 1036,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303119858,
+      "progress": 1040,
+      "source": 1040,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303120364,
+      "progress": 1040,
+      "source": 1040,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303120867,
+      "progress": 1044,
+      "source": 1044,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303121371,
+      "progress": 1044,
+      "source": 1044,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303121873,
+      "progress": 1048,
+      "source": 1048,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303122376,
+      "progress": 1048,
+      "source": 1048,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303122880,
+      "progress": 1052,
+      "source": 1052,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303123384,
+      "progress": 1052,
+      "source": 1052,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303123887,
+      "progress": 1056,
+      "source": 1056,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303124393,
+      "progress": 1056,
+      "source": 1056,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303124897,
+      "progress": 1060,
+      "source": 1060,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303125400,
+      "progress": 1060,
+      "source": 1060,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303125904,
+      "progress": 1064,
+      "source": 1064,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303126407,
+      "progress": 1064,
+      "source": 1064,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303126915,
+      "progress": 1064,
+      "source": 1064,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303127420,
+      "progress": 1068,
+      "source": 1068,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303127925,
+      "progress": 1068,
+      "source": 1068,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 6
+    },
+    {
+      "t": 1791303128431,
+      "progress": 1072,
+      "source": 1072,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303128935,
+      "progress": 1072,
+      "source": 1072,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303129439,
+      "progress": 1076,
+      "source": 1076,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303129943,
+      "progress": 1076,
+      "source": 1076,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303130446,
+      "progress": 1080,
+      "source": 1080,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303130949,
+      "progress": 1080,
+      "source": 1080,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303131452,
+      "progress": 1084,
+      "source": 1084,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303131956,
+      "progress": 1088,
+      "source": 1088,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303132461,
+      "progress": 1088,
+      "source": 1088,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303132964,
+      "progress": 1092,
+      "source": 1092,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303133467,
+      "progress": 1092,
+      "source": 1092,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303133970,
+      "progress": 1096,
+      "source": 1096,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303134473,
+      "progress": 1096,
+      "source": 1096,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303134977,
+      "progress": 1100,
+      "source": 1100,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303135481,
+      "progress": 1100,
+      "source": 1100,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303135984,
+      "progress": 1104,
+      "source": 1104,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303136491,
+      "progress": 1104,
+      "source": 1104,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303136995,
+      "progress": 1108,
+      "source": 1108,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303137498,
+      "progress": 1108,
+      "source": 1108,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303138002,
+      "progress": 1112,
+      "source": 1112,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303138505,
+      "progress": 1112,
+      "source": 1112,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303139011,
+      "progress": 1116,
+      "source": 1116,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303139514,
+      "progress": 1116,
+      "source": 1116,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303140018,
+      "progress": 1120,
+      "source": 1120,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303140525,
+      "progress": 1120,
+      "source": 1120,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303141027,
+      "progress": 1124,
+      "source": 1124,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303141529,
+      "progress": 1124,
+      "source": 1124,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303142032,
+      "progress": 1128,
+      "source": 1128,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303142535,
+      "progress": 1128,
+      "source": 1128,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303143039,
+      "progress": 1132,
+      "source": 1132,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303143541,
+      "progress": 1132,
+      "source": 1132,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303142197,
+      "progress": 1136,
+      "source": 1136,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303142703,
+      "progress": 1136,
+      "source": 1136,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303143206,
+      "progress": 1140,
+      "source": 1140,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303143710,
+      "progress": 1140,
+      "source": 1140,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303144217,
+      "progress": 1144,
+      "source": 1144,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303144723,
+      "progress": 1144,
+      "source": 1144,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303145226,
+      "progress": 1148,
+      "source": 1148,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303145729,
+      "progress": 1148,
+      "source": 1148,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303146234,
+      "progress": 1152,
+      "source": 1152,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303146739,
+      "progress": 1152,
+      "source": 1152,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303147243,
+      "progress": 1156,
+      "source": 1156,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303147746,
+      "progress": 1160,
+      "source": 1160,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303148249,
+      "progress": 1160,
+      "source": 1160,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303148754,
+      "progress": 1160,
+      "source": 1160,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303149258,
+      "progress": 1164,
+      "source": 1164,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303149761,
+      "progress": 1168,
+      "source": 1168,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303150264,
+      "progress": 1168,
+      "source": 1168,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303150766,
+      "progress": 1172,
+      "source": 1172,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303151270,
+      "progress": 1172,
+      "source": 1172,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303151772,
+      "progress": 1176,
+      "source": 1176,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303152276,
+      "progress": 1176,
+      "source": 1176,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303152781,
+      "progress": 1180,
+      "source": 1180,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303153284,
+      "progress": 1180,
+      "source": 1180,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303153787,
+      "progress": 1184,
+      "source": 1184,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303154290,
+      "progress": 1184,
+      "source": 1184,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303154793,
+      "progress": 1188,
+      "source": 1188,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303155296,
+      "progress": 1188,
+      "source": 1188,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303155799,
+      "progress": 1192,
+      "source": 1192,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303156303,
+      "progress": 1192,
+      "source": 1192,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303156809,
+      "progress": 1196,
+      "source": 1196,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303157313,
+      "progress": 1196,
+      "source": 1196,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303157815,
+      "progress": 1200,
+      "source": 1200,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303158318,
+      "progress": 1200,
+      "source": 1200,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303158821,
+      "progress": 1204,
+      "source": 1204,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303159324,
+      "progress": 1204,
+      "source": 1204,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303159827,
+      "progress": 1208,
+      "source": 1208,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303160330,
+      "progress": 1208,
+      "source": 1208,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303160836,
+      "progress": 1212,
+      "source": 1212,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303161340,
+      "progress": 1212,
+      "source": 1212,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303161843,
+      "progress": 1216,
+      "source": 1216,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303162348,
+      "progress": 1216,
+      "source": 1216,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303162851,
+      "progress": 1220,
+      "source": 1220,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303163355,
+      "progress": 1220,
+      "source": 1220,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303163859,
+      "progress": 1224,
+      "source": 1224,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303164363,
+      "progress": 1224,
+      "source": 1224,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303164868,
+      "progress": 1228,
+      "source": 1228,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303165371,
+      "progress": 1228,
+      "source": 1228,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303165874,
+      "progress": 1232,
+      "source": 1232,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303166377,
+      "progress": 1232,
+      "source": 1232,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303166879,
+      "progress": 1236,
+      "source": 1236,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303167383,
+      "progress": 1236,
+      "source": 1236,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303167888,
+      "progress": 1240,
+      "source": 1240,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303168391,
+      "progress": 1240,
+      "source": 1240,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 3
+    },
+    {
+      "t": 1791303168895,
+      "progress": 1244,
+      "source": 1244,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303169398,
+      "progress": 1244,
+      "source": 1244,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303169901,
+      "progress": 1248,
+      "source": 1248,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303170406,
+      "progress": 1248,
+      "source": 1248,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303170909,
+      "progress": 1252,
+      "source": 1252,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303171413,
+      "progress": 1252,
+      "source": 1252,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303171919,
+      "progress": 1256,
+      "source": 1256,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303172423,
+      "progress": 1256,
+      "source": 1256,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 3
+    },
+    {
+      "t": 1791303172930,
+      "progress": 1260,
+      "source": 1260,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303173434,
+      "progress": 1260,
+      "source": 1260,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303173937,
+      "progress": 1264,
+      "source": 1264,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303172475,
+      "progress": 1264,
+      "source": 1264,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303172977,
+      "progress": 1268,
+      "source": 1268,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303173481,
+      "progress": 1268,
+      "source": 1268,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303173984,
+      "progress": 1272,
+      "source": 1272,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303174487,
+      "progress": 1272,
+      "source": 1272,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303174990,
+      "progress": 1276,
+      "source": 1276,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303175493,
+      "progress": 1276,
+      "source": 1276,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303175996,
+      "progress": 1280,
+      "source": 1280,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303176499,
+      "progress": 1280,
+      "source": 1280,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 3
+    },
+    {
+      "t": 1791303177004,
+      "progress": 1284,
+      "source": 1284,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303177508,
+      "progress": 1284,
+      "source": 1284,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303178011,
+      "progress": 1288,
+      "source": 1288,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303178514,
+      "progress": 1288,
+      "source": 1288,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303179019,
+      "progress": 1292,
+      "source": 1292,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303179523,
+      "progress": 1292,
+      "source": 1292,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303180026,
+      "progress": 1296,
+      "source": 1296,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303180530,
+      "progress": 1296,
+      "source": 1296,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 3
+    },
+    {
+      "t": 1791303181035,
+      "progress": 1300,
+      "source": 1300,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303181538,
+      "progress": 1300,
+      "source": 1300,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303182040,
+      "progress": 1304,
+      "source": 1304,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303182543,
+      "progress": 1304,
+      "source": 1304,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303183046,
+      "progress": 1308,
+      "source": 1308,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303183549,
+      "progress": 1308,
+      "source": 1308,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303184052,
+      "progress": 1312,
+      "source": 1312,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303184555,
+      "progress": 1312,
+      "source": 1312,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 3
+    },
+    {
+      "t": 1791303185061,
+      "progress": 1316,
+      "source": 1316,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303185564,
+      "progress": 1316,
+      "source": 1316,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303186067,
+      "progress": 1320,
+      "source": 1320,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303186571,
+      "progress": 1320,
+      "source": 1320,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303187074,
+      "progress": 1324,
+      "source": 1324,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303187577,
+      "progress": 1324,
+      "source": 1324,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303188080,
+      "progress": 1328,
+      "source": 1328,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303188585,
+      "progress": 1328,
+      "source": 1328,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303189089,
+      "progress": 1332,
+      "source": 1332,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303189593,
+      "progress": 1332,
+      "source": 1332,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303190096,
+      "progress": 1336,
+      "source": 1336,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303190599,
+      "progress": 1336,
+      "source": 1336,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303191101,
+      "progress": 1340,
+      "source": 1340,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303191603,
+      "progress": 1340,
+      "source": 1340,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303192106,
+      "progress": 1340,
+      "source": 1340,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303192609,
+      "progress": 1344,
+      "source": 1344,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303193121,
+      "progress": 1344,
+      "source": 1344,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303193624,
+      "progress": 1348,
+      "source": 1348,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303194127,
+      "progress": 1348,
+      "source": 1348,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303194630,
+      "progress": 1352,
+      "source": 1352,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303195136,
+      "progress": 1356,
+      "source": 1356,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303195638,
+      "progress": 1356,
+      "source": 1356,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303196145,
+      "progress": 1360,
+      "source": 1360,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303196649,
+      "progress": 1360,
+      "source": 1360,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303197154,
+      "progress": 1364,
+      "source": 1364,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303197656,
+      "progress": 1364,
+      "source": 1364,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303198160,
+      "progress": 1368,
+      "source": 1368,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303198664,
+      "progress": 1368,
+      "source": 1368,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303199166,
+      "progress": 1372,
+      "source": 1372,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303199669,
+      "progress": 1372,
+      "source": 1372,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303200174,
+      "progress": 1375,
+      "source": 1375,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303200677,
+      "progress": 1375,
+      "source": 1375,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 3
+    },
+    {
+      "t": 1791303201185,
+      "progress": 1379,
+      "source": 1379,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303201688,
+      "progress": 1379,
+      "source": 1379,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303202192,
+      "progress": 1383,
+      "source": 1383,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303202695,
+      "progress": 1383,
+      "source": 1383,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303203201,
+      "progress": 1387,
+      "source": 1387,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303203703,
+      "progress": 1387,
+      "source": 1387,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303204208,
+      "progress": 1392,
+      "source": 1392,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303202857,
+      "progress": 1392,
+      "source": 1392,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303203361,
+      "progress": 1396,
+      "source": 1396,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303203865,
+      "progress": 1396,
+      "source": 1396,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303204368,
+      "progress": 1400,
+      "source": 1400,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791303204870,
+      "progress": 1400,
+      "source": 1400,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 2
+    },
+    {
+      "t": 1791303205375,
+      "progress": 1404,
+      "source": 1404,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    }
+  ],
+  "warmupSamplesExcluded": 4,
+  "warmupMaxLag": 1,
+  "errors": 0,
+  "notReadySamples": 0,
+  "blocksAdvancedWhileMonitoring": 483,
+  "lagVsIndexerSourceBlock": {
+    "n": 238,
+    "min": 0,
+    "mean": 0,
+    "p50": 0,
+    "p95": 0,
+    "p99": 0,
+    "max": 0
+  },
+  "lagVsRpcHead": {
+    "n": 238,
+    "min": 0,
+    "mean": 0.37815126050420167,
+    "p50": 0,
+    "p95": 2,
+    "p99": 3,
+    "max": 6
+  },
+  "pass": false
+}

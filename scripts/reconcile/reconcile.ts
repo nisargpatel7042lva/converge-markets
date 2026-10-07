@@ -224,7 +224,7 @@ const checkers: Record<string, Checker> = {
   async Market(id) {
     const { row: m, block } = await fetchOne(
       "Market",
-      "status strike endPrice startTime endTime upToken downToken redeemFeeBps assetId upSupply downSupply vaultRegistered vaultBasis vaultCash volume tradeCount createdBlock",
+      "status strike endPrice startTime endTime upToken downToken redeemFeeBps assetId upSupply downSupply vaultRegistered vaultBasis vaultCash volume tradeCount createdBlock resolvedBlock",
       id,
     );
     if (!m) return { checks: [eq("exists", "no", "yes")], block };
@@ -252,15 +252,13 @@ const checkers: Record<string, Checker> = {
     // volume and trade count from the vault's Fill logs for this market (events, not views)
     let fillChecks: Check[] = [];
     if (deep) {
-      const fills = await logsRange(
-        vault,
-        fillEvent,
-        BigInt(Number(m.createdBlock)),
-        BigInt(block),
-        {
-          market: a,
-        },
+      // from the market's creation (or the vault's deploy block) to its resolution: a market lives
+      // for minutes, so this stays a handful of getLogs calls even with a 100-block range limit
+      const fromB = BigInt(Math.max(Number(m.createdBlock), A.vaultBlock ?? 0));
+      const toB = BigInt(
+        m.resolvedBlock === null ? block : Math.min(Number(m.resolvedBlock) + 50, block),
       );
+      const fills = await logsRange(vault, fillEvent, fromB, toB, { market: a });
       fillChecks = [
         eq("tradeCount (Fill logs)", m.tradeCount, fills.length),
         eq(
@@ -501,7 +499,9 @@ const checkers: Record<string, Checker> = {
     let halted: boolean | undefined;
     try {
       halted = await rd<boolean>(vault, vaultAbi, "keeperHalt", [], b);
-    } catch {
+    } catch (e) {
+      // only "the function does not exist" (a revert) is tolerated, never a rate limit or a timeout
+      if (!/revert|execution|function selector|not found/i.test(String(e))) throw e;
       halted = undefined;
     }
     return {
@@ -547,10 +547,24 @@ async function listIds(entity: string, orderField = "id"): Promise<string[]> {
   return (await pagedRows<Raw>(entity, "id", orderField)).map((r) => String(r.id));
 }
 
+async function listIdsWhere(entity: string, where: string): Promise<string[]> {
+  const out: string[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const d = await indexerQuery<Record<string, Raw[]>>(
+      gql,
+      `{ ${entity}(where: {${where}}, order_by: {block: asc}, limit: ${pageSize}, offset: ${offset}) { id } }`,
+    );
+    out.push(...d[entity]!.map((r) => String(r.id)));
+    if (d[entity]!.length < pageSize) break;
+  }
+  return out;
+}
+
 async function runOne(kind: string, id: string): Promise<Result> {
   let last: Result | undefined;
   for (let attempt = 1; attempt <= 3; attempt++) {
-    const { checks, block } = await checkers[kind]!(id);
+    const { checks, block } =
+      await checkers[kind === "NavSnapshotSettlement" ? "NavSnapshot" : kind]!(id);
     last = {
       kind,
       id,
@@ -575,26 +589,11 @@ async function aggregatesCheck(): Promise<Result[]> {
   );
   const P = BigInt(meta._meta[0]!.progressBlock);
   const from = BigInt(meta._meta[0]!.startBlock);
-  let trades = 0;
-  let volume = 0n;
-  let markets = 0;
-  for (let s = from; s <= P; s += logChunk) {
-    const e = s + logChunk - 1n > P ? P : s + logChunk - 1n;
-    const fl = (await limiter.run(() =>
-      pub.getLogs({ address: vault, event: fillEvent, fromBlock: s, toBlock: e } as never),
-    )) as unknown as { args: { premium: bigint } }[];
-    trades += fl.length;
-    for (const l of fl) volume += l.args.premium;
-    const cl = await limiter.run(() =>
-      pub.getLogs({
-        address: A.factory as Address,
-        event: createdEvent,
-        fromBlock: s,
-        toBlock: e,
-      } as never),
-    );
-    markets += cl.length;
-  }
+  const vaultFrom = BigInt(Math.max(Number(from), A.vaultBlock ?? 0));
+  const fl = await logsRange(vault, fillEvent, vaultFrom, P);
+  const trades = fl.length;
+  const volume = fl.reduce((x, l) => x + BigInt(String(l.args.premium)), 0n);
+  const markets = (await logsRange(A.factory as Address, createdEvent, from, P)).length;
   const s = meta.ProtocolStats_by_pk;
   const checks = [
     eq("totalTrades (count of Fill logs)", s?.totalTrades, trades),
@@ -737,7 +736,9 @@ async function invariantChecks(): Promise<{ name: string; ok: boolean; detail: s
         : b !== undefined && Math.abs(Number(a) - b) <= 1e-9 * Math.max(1, Math.abs(b));
     const e7 = recompute(7);
     const e30 = recompute(30);
-    const eInc = navPerformance(lastObs, obs[0]!);
+    const incPerf = navPerformance(lastObs, obs[0]!);
+    // the handler withholds the since-inception APY until a week of history exists
+    const eInc = incPerf && incPerf.elapsedSeconds >= 7 * 86_400 ? incPerf : undefined;
     const ok =
       close(v.apy7d, e7?.apy) &&
       close(v.return7d, e7?.periodReturn) &&
@@ -766,7 +767,8 @@ async function main() {
     Market: await listIds("Market"),
     UserPosition: await listIds("UserPosition"),
     Trade: await listIds("Trade"),
-    NavSnapshot: await listIds("NavSnapshot"),
+    NavSnapshotSettlement: await listIdsWhere("NavSnapshot", "settlement: {_eq: true}"),
+    NavSnapshot: await listIdsWhere("NavSnapshot", "settlement: {_eq: false}"),
     LPPosition: await listIds("LPPosition"),
     VaultEpoch: await listIds("VaultEpoch", "epochId"),
     Order: await listIds("Order", "placedBlock"),
@@ -776,7 +778,8 @@ async function main() {
     Market: 18,
     UserPosition: 30,
     Trade: 16,
-    NavSnapshot: 8,
+    NavSnapshotSettlement: 14,
+    NavSnapshot: 6,
     LPPosition: 4,
     VaultEpoch: 6,
     Order: 16,
@@ -814,7 +817,8 @@ async function main() {
   const matched = results.filter((r) => r.ok).length;
   const fieldChecks = results.reduce((s, r) => s + r.checks.length, 0);
   const bad = results.filter((r) => !r.ok);
-  const enough = total >= N || allowSmall;
+  const shortfall = total < N;
+  const enough = !shortfall || allowSmall;
   const invariantsOk = invariants.every((i) => i.ok);
   const pass = bad.length === 0 && enough && total > 0 && invariantsOk;
 

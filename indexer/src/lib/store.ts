@@ -13,6 +13,7 @@ import {
   type UserPosition,
 } from "envio";
 import { dayOf } from "./apy";
+import { SYSTEM_ADDRESSES } from "./deployment-defaults";
 import { costBasis, type PositionState } from "./position";
 import type { LpState } from "./lp";
 
@@ -32,6 +33,7 @@ export const lc = (a: string): string => a.toLowerCase();
 export async function isSystem(context: Ctx, chainId: number, address: string): Promise<boolean> {
   const a = lc(address);
   if (a === ZERO || a === DEAD) return true;
+  if (SYSTEM_ADDRESSES[chainId]?.some((x) => x === a)) return true;
   const chain = indexer.chains[chainId as keyof typeof indexer.chains] as unknown as
     | {
         ConvergeVault?: { addresses: readonly string[] };

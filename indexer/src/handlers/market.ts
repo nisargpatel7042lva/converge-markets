@@ -73,6 +73,7 @@ indexer.onEvent(
       createdTimestamp: ts,
       openedTimestamp: undefined,
       resolvedTimestamp: undefined,
+      resolvedBlock: undefined,
       volume: 0n,
       tradeCount: 0,
       lastUpPrice: undefined,
@@ -123,6 +124,7 @@ indexer.onEvent({ contract: "Market", event: "Resolved" }, async ({ event, conte
     strike: event.params.strike,
     endPrice: event.params.endPrice,
     resolvedTimestamp: event.block.timestamp,
+    resolvedBlock: event.block.number,
   });
   await updateProtocol(context, event.block.number, (s) => ({
     totalMarketsResolved: s.totalMarketsResolved + 1,
@@ -140,6 +142,7 @@ indexer.onEvent({ contract: "Market", event: "Invalidated" }, async ({ event, co
     status: "INVALID",
     outcome: "INVALID",
     resolvedTimestamp: event.block.timestamp,
+    resolvedBlock: event.block.number,
   });
   await updateProtocol(context, event.block.number, (s) => ({
     totalMarketsResolved: s.totalMarketsResolved + 1,

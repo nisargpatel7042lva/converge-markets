@@ -13,6 +13,11 @@ export function render(o: {
   rollbackOnReorg?: boolean;
 }): string;
 export function renderDefaults(
-  entries: { chainId: number; keeper: string | undefined; tvlCap: string | number | undefined }[],
+  entries: {
+    chainId: number;
+    keeper: string | undefined;
+    tvlCap: string | number | undefined;
+    systemAddresses?: string[];
+  }[],
   header: string,
 ): string;

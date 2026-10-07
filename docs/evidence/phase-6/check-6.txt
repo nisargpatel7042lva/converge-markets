@@ -1,0 +1,72 @@
+cd contracts && forge build
+No files changed, compilation skipped
+pnpm --filter @converge/indexer check:config
+$ node scripts/gen-config.mjs --check
+skip config.mainnet.yaml: deployments/mainnet.json does not exist yet (nothing deployed on that chain)
+indexer config and defaults up to date
+pnpm --filter @converge/indexer typecheck
+$ envio codegen && tsc -p tsconfig.json
+pnpm --filter @converge/indexer test
+$ envio codegen && vitest run
+
+ RUN  v2.1.9 /home/mysterioxplorer/converge/.claude/worktrees/agent-a67fbb3b3a8a06acc/indexer
+
+ ✓ test/handlers-cover-config.test.ts (2 tests) 5ms
+ ✓ src/index.test.ts (1 test) 3ms
+ ✓ test/lp-apy.test.ts (8 tests) 8ms
+ ✓ test/sdk-parity.test.ts (4 tests) 7ms
+ ✓ test/position.test.ts (11 tests) 325ms
+   ✓ conservation property > costBasis == totalIn - totalOut + realizedPnl after any sequence of ops (no rounding leak) 316ms
+ ✓ test/abi-parity.test.ts (35 tests) 13ms
+ ✓ test/lifecycle.test.ts (12 tests) 193ms
+
+ Test Files  7 passed (7)
+      Tests  73 passed (73)
+   Start at  19:08:26
+   Duration  1.30s (transform 696ms, setup 0ms, collect 1.75s, tests 553ms, environment 2ms, prepare 763ms)
+
+pnpm --filter @converge/sdk typecheck
+$ tsc -p tsconfig.json
+pnpm --filter @converge/sdk test
+$ vitest run
+
+ RUN  v2.1.9 /home/mysterioxplorer/converge/.claude/worktrees/agent-a67fbb3b3a8a06acc/packages/sdk
+
+ ✓ test/time.test.ts (5 tests) 7ms
+ ✓ test/rounds.test.ts (8 tests) 14ms
+ ✓ test/snapshot.test.ts (2 tests) 5ms
+ ✓ test/planner.test.ts (8 tests) 26ms
+ ✓ test/report.test.ts (1 test) 5ms
+ ✓ test/evidence.test.ts (5 tests) 56ms
+ ✓ test/indexer.test.ts (17 tests) 17ms
+
+ Test Files  7 passed (7)
+      Tests  46 passed (46)
+   Start at  19:08:32
+   Duration  1.03s (transform 713ms, setup 0ms, collect 2.78s, tests 130ms, environment 3ms, prepare 937ms)
+
+pnpm --filter @converge/reconcile typecheck
+$ tsc -p tsconfig.json
+pnpm --filter @converge/reconcile test
+$ vitest run
+
+ RUN  v2.1.9 /home/mysterioxplorer/converge/.claude/worktrees/agent-a67fbb3b3a8a06acc/scripts/reconcile
+
+ ✓ test/common.test.ts (9 tests) 135ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  19:08:39
+   Duration  725ms (transform 74ms, setup 0ms, collect 66ms, tests 135ms, environment 0ms, prepare 130ms)
+
+pnpm --filter @converge/reconcile check:queries-doc
+$ tsx gen-queries-doc.ts --check
+QUERIES.md up to date
+pnpm exec prettier --check indexer packages/sdk scripts/reconcile
+Checking formatting...
+All matched files use Prettier code style!
+check-6 OK
+
+real	0m23.059s
+user	0m36.672s
+sys	0m15.307s

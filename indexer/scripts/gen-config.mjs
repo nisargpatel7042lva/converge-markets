@@ -59,7 +59,11 @@ for (const t of targets) {
       vaultBlock: v.deployBlock,
     }),
   );
-  defaults.push({ chainId: d.chainId, keeper: v.vaultKeeper, tvlCap: v.tvlCap });
+  const systemAddresses = Object.entries(d)
+    .filter(([k, x]) => k.startsWith("vault") && x && typeof x === "object")
+    .flatMap(([, x]) => [x.vault, x.forwardVenue])
+    .filter(Boolean);
+  defaults.push({ chainId: d.chainId, keeper: v.vaultKeeper, tvlCap: v.tvlCap, systemAddresses });
 }
 emit(
   "src/lib/deployment-defaults.ts",

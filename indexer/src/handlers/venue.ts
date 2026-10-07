@@ -63,10 +63,15 @@ indexer.onEvent(
   async ({ event, context }) => {
     const p = event.params;
     const ts = event.block.timestamp;
-    const order = await context.Order.getOrThrow(
-      orderKey(event.srcAddress, p.id),
-      `OrderExecuted for unknown order ${p.id} of venue ${event.srcAddress}`,
-    );
+    const order = await context.Order.get(orderKey(event.srcAddress, p.id));
+    if (!order) {
+      // An order placed before this venue was indexed (anyone can place orders on any venue
+      // contract): nothing of ours changes, and a griefer must not be able to halt the indexer.
+      context.log.warn(
+        `OrderExecuted for unknown order ${p.id} of venue ${event.srcAddress}: skipped`,
+      );
+      return;
+    }
     context.Order.set({
       ...order,
       status: "EXECUTED",
@@ -94,10 +99,13 @@ indexer.onEvent(
 
 indexer.onEvent({ contract: "ForwardVenue", event: "OrderExpired" }, async ({ event, context }) => {
   const ts = event.block.timestamp;
-  const order = await context.Order.getOrThrow(
-    orderKey(event.srcAddress, event.params.id),
-    `OrderExpired for unknown order ${event.params.id} of venue ${event.srcAddress}`,
-  );
+  const order = await context.Order.get(orderKey(event.srcAddress, event.params.id));
+  if (!order) {
+    context.log.warn(
+      `OrderExpired for unknown order ${event.params.id} of venue ${event.srcAddress}: skipped`,
+    );
+    return;
+  }
   context.Order.set({
     ...order,
     status: "EXPIRED",

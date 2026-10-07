@@ -769,6 +769,69 @@ describe("guards", () => {
     expect([venuePos.upBalance, venuePos.upCost]).toEqual([4n * U, 0n]);
   });
 
+  it("an order on a PROPOSED venue is indexed from the proposal; an order the indexer never saw cannot halt it", async () => {
+    const m = marketAddrs(10);
+    const PENDING = addr(0x6001);
+    const c = new Chain(T0);
+    c.tx()
+      .assetSet()
+      .tx()
+      .marketCreated(m, T0 + 900);
+    c.tx().vault("VenueProposed", { venue: PENDING, eta: BigInt(T0 + 2 * 86_400) });
+    c.tx().split(m, OTHER, 10n * U);
+    // anyone may place an order on a venue contract that is not (yet) the vault's venue
+    c.tx()
+      .transfer(m.up, OTHER, PENDING, 3n * U)
+      .emit("ForwardVenue", "OrderPlaced", PENDING, {
+        id: 1n,
+        taker: OTHER,
+        market: m.market,
+        kind: 1n,
+        shares: 3n * U,
+        limit: WAD / 10n,
+        execAt: BigInt(c.now + 2),
+        reward: 1n,
+      });
+    c.tx(30)
+      .transfer(m.up, PENDING, OTHER, 3n * U)
+      .emit("ForwardVenue", "OrderExpired", PENDING, { id: 1n, caller: TAKER });
+    // an expiry for an order that was never indexed (unknown id) is skipped, not fatal
+    c.tx().emit("ForwardVenue", "OrderExpired", VENUE, { id: 999n, caller: TAKER });
+    const idx = await run(c);
+    expect((await idx.Order.getOrThrow(`${PENDING}_1`)).status).toBe("EXPIRED");
+    const v = await idx.Vault.getOrThrow(VAULT);
+    expect([v.pendingVenue, v.pendingVenueEta]).toEqual([PENDING, T0 + 2 * 86_400]);
+    const pos = await idx.UserPosition.getOrThrow(`${OTHER}_${m.market}`);
+    expect([pos.upBalance, pos.upEscrowed, pos.upCost]).toEqual([10n * U, 0n, 5n * U]);
+  });
+
+  it("archived (pre-v3) vaults and venues are system holders: their takers do not inherit the vault's split cost", async () => {
+    const OLD_VAULT = "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"; // vault_v2_pre_halt in deployments/testnet.json
+    const m = marketAddrs(11);
+    const c = new Chain(T0);
+    c.tx()
+      .assetSet()
+      .tx()
+      .marketCreated(m, T0 + 900);
+    c.tx().split(m, OLD_VAULT, 100n * U); // the old vault splits inventory
+    c.tx().transfer(m.up, OLD_VAULT, TAKER, 10n * U); // an old-vault fill (its Fill event is not indexed)
+    c.tx().redeemed(m, TAKER, 10n * U, 0n, 10n * U);
+    const idx = await run(c);
+    expect(await idx.User.get(OLD_VAULT)).toBeUndefined();
+    expect((await idx.ProtocolStats.getOrThrow("global")).totalUsers).toBe(1); // only TAKER
+    // no cost known for tokens bought on an archived vault: realized = full payout, never the vault's split cost
+    expect((await idx.User.getOrThrow(TAKER)).realizedPnl).toBe(10n * U);
+  });
+
+  it("a day whose first event is a checkpoint opens at the previous close, not at the checkpoint's price", async () => {
+    const DAY = 86_400;
+    const c = new Chain(T0);
+    c.tx().navSnapshot(1000n * U, 1000n * U, WAD, 1000n * U, false);
+    c.tx(DAY).navSnapshot(1010n * U, 1010n * U, (101n * WAD) / 100n, 1000n * U, false);
+    const days = (await (await run(c)).DailyStats.getAll()).sort((a, b) => a.day - b.day);
+    expect([days[1]!.ppsOpen, days[1]!.ppsClose]).toEqual([WAD, (101n * WAD) / 100n]);
+  });
+
   it("a claim without its request halts the indexer instead of silently dropping the cost basis", async () => {
     const c = new Chain(T0);
     c.tx().depositClaimed(3, LP, LP, 10n * U, 0n);

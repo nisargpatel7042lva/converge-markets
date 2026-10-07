@@ -60,6 +60,8 @@ const zeroVault = (id: string, chainId: number): Vault => ({
   venue: undefined,
   quotingPaused: false,
   quotingHalted: false,
+  pendingVenue: undefined,
+  pendingVenueEta: undefined,
   haltReason: undefined,
   haltedAt: undefined,
   haltCount: 0,
@@ -441,16 +443,16 @@ indexer.onEvent({ contract: "ConvergeVault", event: "NavSnapshot" }, async ({ ev
     ...metrics,
   }));
 
-  await updateProtocol(context, event.block.number, () => ({
-    tvl: navLowerAfter,
-    vaultPps: p.ppsLower,
-  }));
   await updateDaily(context, ts, (d) => ({
     tvlClose: navLowerAfter,
     ppsClose: p.ppsLower,
     ppsOpen: d.ppsOpen ?? p.ppsLower,
   }));
 
+  await updateProtocol(context, event.block.number, () => ({
+    tvl: navLowerAfter,
+    vaultPps: p.ppsLower,
+  }));
   if (p.settlement) {
     const v = await context.Vault.get(lc(event.srcAddress));
     if (v?.lastSettledEpoch !== undefined) {
@@ -612,6 +614,26 @@ indexer.onEvent({ contract: "ConvergeVault", event: "KeeperSet" }, async ({ even
 });
 // A timelocked venue replacement (ADR-005) deploys a NEW ForwardVenue: index it from the block it is
 // accepted; isSystem reads the registered addresses, so it is treated as a system holder too.
+// ForwardVenue.placeOrder does not check that it is the vault's venue, so orders can exist on a venue
+// that is only PROPOSED: index it from the proposal (VenueProposed), not just from acceptance.
+indexer.contractRegister(
+  { contract: "ConvergeVault", event: "VenueProposed" },
+  async ({ event, context }) => {
+    context.chain.ForwardVenue.add(event.params.venue);
+  },
+);
+
+indexer.onEvent(
+  { contract: "ConvergeVault", event: "VenueProposed" },
+  async ({ event, context }) => {
+    context.SystemAddress.set({ id: lc(event.params.venue) });
+    await updateVault(context, event, () => ({
+      pendingVenue: lc(event.params.venue),
+      pendingVenueEta: Number(event.params.eta),
+    }));
+  },
+);
+
 indexer.contractRegister(
   { contract: "ConvergeVault", event: "VenueSet" },
   async ({ event, context }) => {
@@ -621,7 +643,11 @@ indexer.contractRegister(
 
 indexer.onEvent({ contract: "ConvergeVault", event: "VenueSet" }, async ({ event, context }) => {
   context.SystemAddress.set({ id: lc(event.params.venue) });
-  await updateVault(context, event, () => ({ venue: lc(event.params.venue) }));
+  await updateVault(context, event, () => ({
+    venue: lc(event.params.venue),
+    pendingVenue: undefined,
+    pendingVenueEta: undefined,
+  }));
 });
 
 // ------------------------------------------------------------------ share token (ERC-20)

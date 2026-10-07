@@ -84,6 +84,7 @@ type Market {
   createdTimestamp: Int!
   openedTimestamp: Int
   resolvedTimestamp: Int
+  resolvedBlock: Int
   "Sum of premium paid in fills (collateral units)."
   volume: BigInt!
   tradeCount: Int!
@@ -215,6 +216,9 @@ type Vault {
   haltReason: String
   haltedAt: Int
   haltCount: Int!
+  "A proposed (timelocked) replacement venue and its earliest activation time; null when none."
+  pendingVenue: String
+  pendingVenueEta: Int
   breakerTrips: Int!
   lastSettledEpoch: Int
   settledEpochs: Int!
@@ -265,8 +269,9 @@ type VaultEpoch {
 NAV observation (settlement, checkpoint or automatic checkpoint). The APY source.
 navLower / navUpper are exactly as the vault emits them: for a SETTLEMENT they are taken BEFORE the epoch's
 deposits and redemptions (the contract then stores navLower + accepted deposits - assets paid).
-navLowerAfter / navUpperAfter apply that adjustment and are the NAV after the epoch (equal to the raw
-values for checkpoints).
+navLowerAfter / navUpperAfter apply that adjustment: for a settlement they equal the contract's stored
+quoteNavLower / lastNavUpper; for checkpoints they equal the raw values (an automatic checkpoint is a fresher
+valuation: the contract only ever LOWERS quoteNavLower there and leaves lastNavUpper alone).
 """
 type NavSnapshot {
   id: ID!

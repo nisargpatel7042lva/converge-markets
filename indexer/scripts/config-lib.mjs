@@ -39,6 +39,7 @@ export const CONTRACTS = {
     "TvlCapSet(uint256 cap)",
     "FeeSet(uint256 bps)",
     "KeeperSet(address indexed keeper)",
+    "VenueProposed(address indexed venue, uint64 eta)",
     "VenueSet(address indexed venue)",
     "Transfer(address indexed from, address indexed to, uint256 value)",
   ],
@@ -120,6 +121,12 @@ export function renderDefaults(entries, header) {
         `  ${e.chainId}: { keeper: ${e.keeper ? JSON.stringify(e.keeper.toLowerCase()) : "undefined"}, tvlCap: ${BigInt(e.tvlCap ?? 0)}n, performanceFeeBps: 1000 },`,
     )
     .join("\n");
+  const sys = entries
+    .map(
+      (e) =>
+        `  ${e.chainId}: [${(e.systemAddresses ?? []).map((a) => JSON.stringify(a.toLowerCase())).join(", ")}],`,
+    )
+    .join("\n");
   return `${header}
 export interface VaultDefaults {
   keeper: string | undefined;
@@ -129,6 +136,15 @@ export interface VaultDefaults {
 
 export const VAULT_DEFAULTS: Record<number, VaultDefaults> = {
 ${rows}
+};
+
+/**
+ * Every vault and venue ever deployed on the chain (current and archived deployments): holders of
+ * outcome tokens that are protocol contracts, never users. The pre-v3 vaults' fills are not indexed,
+ * so without this list their takers would inherit the old vault's split cost.
+ */
+export const SYSTEM_ADDRESSES: Record<number, string[]> = {
+${sys}
 };
 `;
 }

@@ -51,22 +51,32 @@ export interface Addresses {
   factory: string;
   vault: string;
   venue: string;
+  /** Deploy block of the vault (start of its events). */
+  vaultBlock?: number;
 }
 
 /** Reads deployments/<net>.json (vault under "vault") or the local addresses.json. */
 export function loadAddresses(path: string): Addresses {
   const j = JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
-  const v = j.vault as { vault?: string; forwardVenue?: string } | string | undefined;
+  const v = j.vault as
+    { vault?: string; forwardVenue?: string; deployBlock?: number } | string | undefined;
   if (typeof v === "object" && v?.vault && v.forwardVenue) {
     return {
       chainId: Number(j.chainId),
       factory: String(j.marketFactory),
       vault: v.vault,
       venue: v.forwardVenue,
+      vaultBlock: Number((v as { deployBlock?: number }).deployBlock),
     };
   }
   if (typeof v === "string" && typeof j.venue === "string" && typeof j.factory === "string") {
-    return { chainId: Number(j.chainId), factory: j.factory, vault: v, venue: j.venue };
+    return {
+      chainId: Number(j.chainId),
+      factory: j.factory,
+      vault: v,
+      venue: j.venue,
+      vaultBlock: typeof j.vaultBlock === "number" ? j.vaultBlock : undefined,
+    };
   }
   throw new Error(`${path}: unrecognised addresses file`);
 }

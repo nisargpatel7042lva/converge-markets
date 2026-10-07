@@ -45,6 +45,7 @@ contracts:
       - event: "TvlCapSet(uint256 cap)"
       - event: "FeeSet(uint256 bps)"
       - event: "KeeperSet(address indexed keeper)"
+      - event: "VenueProposed(address indexed venue, uint64 eta)"
       - event: "VenueSet(address indexed venue)"
       - event: "Transfer(address indexed from, address indexed to, uint256 value)"
   - name: ForwardVenue
