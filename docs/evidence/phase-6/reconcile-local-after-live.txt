@@ -1,5 +1,5 @@
 reconcile (local-after-live): indexer http://localhost:8080/v1/graphql, rpc http://127.0.0.1:8611, target N=200
-population 566; sampling 200: Market 30/30, UserPosition 68/148, Trade 36/131, NavSnapshot 18/114, LPPosition 3/3, VaultEpoch 8/8, Order 36/131, Vault 1/1
+population 521; sampling 200: Market 30/30, UserPosition 68/103, Trade 36/131, NavSnapshotSettlement 7/7, NavSnapshot 12/107, LPPosition 3/3, VaultEpoch 8/8, Order 35/131, Vault 1/1
 ok   invariant: per market: sum of holder balances (incl. vault and venue) == token total supply (30 markets, 0 violations)
 ok   invariant: no negative balance, escrow or cost (148 positions, 0 violations)
 ok   invariant: costBasis == upCost + downCost (0 violations)

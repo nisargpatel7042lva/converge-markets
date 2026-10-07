@@ -6,8 +6,8 @@
   "blocks": 898,
   "eventsProcessed": 1424,
   "contractEventsOnChainIncludingUnindexed": null,
-  "wallClockLaunchToReadySeconds": 9.55,
-  "storageInitToReadySeconds": 4.57,
+  "wallClockLaunchToReadySeconds": 10.79,
+  "storageInitToReadySeconds": 5.91,
   "txs": 786,
   "markets": 30
 }

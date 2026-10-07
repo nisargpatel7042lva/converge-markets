@@ -12,3 +12,4 @@ export * from "./report";
 export * from "./lens";
 export * from "./indexer";
 export * from "./indexer-math";
+export * from "./trade";

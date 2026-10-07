@@ -1,13 +1,13 @@
 {
   "label": "local",
   "endpoint": "http://localhost:8080/v1/graphql",
-  "when": "2026-10-06T16:13:25.875Z",
+  "when": "2026-10-07T07:12:06.374Z",
   "durationS": 114,
   "intervalMs": 500,
   "maxLagThreshold": 5,
   "samples": [
     {
-      "t": 1791303091508,
+      "t": 1791357012116,
       "progress": 921,
       "source": 921,
       "lagSource": 0,
@@ -15,15 +15,15 @@
       "lagRpc": 1
     },
     {
-      "t": 1791303092030,
-      "progress": 921,
-      "source": 921,
+      "t": 1791357012632,
+      "progress": 923,
+      "source": 923,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 1
+      "lagRpc": 0
     },
     {
-      "t": 1791303092535,
+      "t": 1791357013138,
       "progress": 925,
       "source": 925,
       "lagSource": 0,
@@ -31,15 +31,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303093040,
-      "progress": 925,
-      "source": 925,
+      "t": 1791357013648,
+      "progress": 927,
+      "source": 927,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303093544,
+      "t": 1791357014160,
       "progress": 929,
       "source": 929,
       "lagSource": 0,
@@ -47,15 +47,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303094049,
-      "progress": 929,
-      "source": 929,
+      "t": 1791357014670,
+      "progress": 931,
+      "source": 931,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303094556,
+      "t": 1791357015177,
       "progress": 933,
       "source": 933,
       "lagSource": 0,
@@ -63,15 +63,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303095060,
-      "progress": 933,
-      "source": 933,
+      "t": 1791357015686,
+      "progress": 935,
+      "source": 935,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303095567,
+      "t": 1791357016194,
       "progress": 937,
       "source": 937,
       "lagSource": 0,
@@ -79,15 +79,15 @@
       "lagRpc": 1
     },
     {
-      "t": 1791303096074,
-      "progress": 937,
-      "source": 937,
+      "t": 1791357016702,
+      "progress": 939,
+      "source": 939,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 1
+      "lagRpc": 0
     },
     {
-      "t": 1791303096577,
+      "t": 1791357017209,
       "progress": 941,
       "source": 941,
       "lagSource": 0,
@@ -95,15 +95,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303097081,
-      "progress": 941,
-      "source": 941,
+      "t": 1791357017719,
+      "progress": 943,
+      "source": 943,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303097583,
+      "t": 1791357018225,
       "progress": 945,
       "source": 945,
       "lagSource": 0,
@@ -111,15 +111,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303098086,
-      "progress": 945,
-      "source": 945,
+      "t": 1791357018731,
+      "progress": 947,
+      "source": 947,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303098590,
+      "t": 1791357019236,
       "progress": 949,
       "source": 949,
       "lagSource": 0,
@@ -127,15 +127,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303099094,
-      "progress": 949,
-      "source": 949,
+      "t": 1791357019742,
+      "progress": 951,
+      "source": 951,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303099599,
+      "t": 1791357020251,
       "progress": 953,
       "source": 953,
       "lagSource": 0,
@@ -143,15 +143,15 @@
       "lagRpc": 1
     },
     {
-      "t": 1791303100107,
-      "progress": 953,
-      "source": 953,
+      "t": 1791357020759,
+      "progress": 955,
+      "source": 955,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 1
+      "lagRpc": 0
     },
     {
-      "t": 1791303100610,
+      "t": 1791357021267,
       "progress": 957,
       "source": 957,
       "lagSource": 0,
@@ -159,95 +159,95 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303101114,
-      "progress": 957,
-      "source": 957,
+      "t": 1791357021773,
+      "progress": 960,
+      "source": 960,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303101617,
-      "progress": 961,
-      "source": 961,
+      "t": 1791357022281,
+      "progress": 962,
+      "source": 962,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303102121,
-      "progress": 961,
-      "source": 961,
+      "t": 1791357022787,
+      "progress": 964,
+      "source": 964,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303102624,
-      "progress": 965,
-      "source": 965,
+      "t": 1791357023291,
+      "progress": 966,
+      "source": 966,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303103127,
-      "progress": 965,
-      "source": 965,
+      "t": 1791357023798,
+      "progress": 968,
+      "source": 968,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303103631,
-      "progress": 969,
-      "source": 969,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 1
-    },
-    {
-      "t": 1791303104137,
-      "progress": 969,
-      "source": 969,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 1
-    },
-    {
-      "t": 1791303104639,
-      "progress": 973,
-      "source": 973,
+      "t": 1791357024302,
+      "progress": 970,
+      "source": 970,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303105145,
-      "progress": 973,
-      "source": 973,
+      "t": 1791357024810,
+      "progress": 972,
+      "source": 972,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303105649,
-      "progress": 977,
-      "source": 977,
+      "t": 1791357025319,
+      "progress": 974,
+      "source": 974,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303106152,
-      "progress": 977,
-      "source": 977,
+      "t": 1791357025826,
+      "progress": 976,
+      "source": 976,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303106654,
+      "t": 1791357026335,
+      "progress": 978,
+      "source": 978,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357026840,
+      "progress": 979,
+      "source": 979,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357027345,
       "progress": 981,
       "source": 981,
       "lagSource": 0,
@@ -255,15 +255,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303107158,
-      "progress": 981,
-      "source": 981,
+      "t": 1791357027852,
+      "progress": 983,
+      "source": 983,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303107661,
+      "t": 1791357028358,
       "progress": 985,
       "source": 985,
       "lagSource": 0,
@@ -271,143 +271,163 @@
       "lagRpc": 1
     },
     {
-      "t": 1791303108166,
-      "progress": 985,
-      "source": 985,
+      "t": 1791357028869,
+      "progress": 987,
+      "source": 987,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357029375,
+      "progress": 989,
+      "source": 989,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357029880,
+      "progress": 991,
+      "source": 991,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357030384,
+      "progress": 993,
+      "source": 993,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357030890,
+      "progress": 995,
+      "source": 995,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357031396,
+      "progress": 997,
+      "source": 997,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357031903,
+      "progress": 999,
+      "source": 999,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357032408,
+      "progress": 1001,
+      "source": 1001,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 1
     },
     {
-      "t": 1791303108669,
-      "progress": 988,
-      "source": 988,
+      "t": 1791357032915,
+      "progress": 1003,
+      "source": 1003,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303109171,
-      "progress": 988,
-      "source": 988,
+      "t": 1791357033423,
+      "progress": 1005,
+      "source": 1005,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303109674,
-      "progress": 992,
-      "source": 992,
+      "t": 1791357033930,
+      "progress": 1007,
+      "source": 1007,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303110178,
-      "progress": 992,
-      "source": 992,
+      "t": 1791357034436,
+      "progress": 1009,
+      "source": 1009,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303110681,
-      "progress": 996,
-      "source": 996,
+      "t": 1791357034942,
+      "progress": 1011,
+      "source": 1011,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303111184,
-      "progress": 996,
-      "source": 996,
+      "t": 1791357035447,
+      "progress": 1013,
+      "source": 1013,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303111688,
-      "progress": 1000,
-      "source": 1000,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303112193,
-      "progress": 1000,
-      "source": 1000,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303112695,
-      "progress": 1004,
-      "source": 1004,
+      "t": 1791357035954,
+      "progress": 1015,
+      "source": 1015,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303113200,
-      "progress": 1004,
-      "source": 1004,
+      "t": 1791357036462,
+      "progress": 1017,
+      "source": 1017,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303111805,
-      "progress": 1008,
-      "source": 1008,
+      "t": 1791357035221,
+      "progress": 1019,
+      "source": 1019,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303112308,
-      "progress": 1008,
-      "source": 1008,
+      "t": 1791357035727,
+      "progress": 1020,
+      "source": 1020,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303112812,
-      "progress": 1012,
-      "source": 1012,
+      "t": 1791357036232,
+      "progress": 1020,
+      "source": 1020,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303113316,
-      "progress": 1012,
-      "source": 1012,
+      "t": 1791357036737,
+      "progress": 1020,
+      "source": 1020,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303113819,
-      "progress": 1016,
-      "source": 1016,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303114323,
-      "progress": 1016,
-      "source": 1016,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303114827,
+      "t": 1791357037243,
       "progress": 1020,
       "source": 1020,
       "lagSource": 0,
@@ -415,31 +435,31 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303115331,
-      "progress": 1020,
-      "source": 1020,
+      "t": 1791357037750,
+      "progress": 1022,
+      "source": 1022,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303115834,
+      "t": 1791357038255,
       "progress": 1024,
       "source": 1024,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303116338,
-      "progress": 1024,
-      "source": 1024,
+      "t": 1791357038760,
+      "progress": 1026,
+      "source": 1026,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303116841,
+      "t": 1791357039264,
       "progress": 1028,
       "source": 1028,
       "lagSource": 0,
@@ -447,15 +467,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303117344,
-      "progress": 1028,
-      "source": 1028,
+      "t": 1791357039772,
+      "progress": 1030,
+      "source": 1030,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303117847,
+      "t": 1791357040277,
       "progress": 1032,
       "source": 1032,
       "lagSource": 0,
@@ -463,15 +483,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303118350,
-      "progress": 1032,
-      "source": 1032,
+      "t": 1791357040781,
+      "progress": 1034,
+      "source": 1034,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303118852,
+      "t": 1791357041289,
       "progress": 1036,
       "source": 1036,
       "lagSource": 0,
@@ -479,111 +499,111 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303119355,
-      "progress": 1036,
-      "source": 1036,
+      "t": 1791357041797,
+      "progress": 1039,
+      "source": 1039,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303119858,
-      "progress": 1040,
-      "source": 1040,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303120364,
-      "progress": 1040,
-      "source": 1040,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303120867,
-      "progress": 1044,
-      "source": 1044,
+      "t": 1791357042306,
+      "progress": 1041,
+      "source": 1041,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303121371,
-      "progress": 1044,
-      "source": 1044,
+      "t": 1791357042833,
+      "progress": 1043,
+      "source": 1043,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303121873,
-      "progress": 1048,
-      "source": 1048,
+      "t": 1791357043345,
+      "progress": 1045,
+      "source": 1045,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303122376,
-      "progress": 1048,
-      "source": 1048,
+      "t": 1791357043854,
+      "progress": 1047,
+      "source": 1047,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303122880,
-      "progress": 1052,
-      "source": 1052,
+      "t": 1791357044359,
+      "progress": 1049,
+      "source": 1049,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303123384,
-      "progress": 1052,
-      "source": 1052,
+      "t": 1791357044863,
+      "progress": 1051,
+      "source": 1051,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303123887,
-      "progress": 1056,
-      "source": 1056,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303124393,
-      "progress": 1056,
-      "source": 1056,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303124897,
-      "progress": 1060,
-      "source": 1060,
+      "t": 1791357045370,
+      "progress": 1053,
+      "source": 1053,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303125400,
-      "progress": 1060,
-      "source": 1060,
+      "t": 1791357045875,
+      "progress": 1055,
+      "source": 1055,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303125904,
+      "t": 1791357046379,
+      "progress": 1057,
+      "source": 1057,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357046886,
+      "progress": 1059,
+      "source": 1059,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357047392,
+      "progress": 1061,
+      "source": 1061,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357047896,
+      "progress": 1062,
+      "source": 1062,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357048402,
       "progress": 1064,
       "source": 1064,
       "lagSource": 0,
@@ -591,23 +611,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303126407,
-      "progress": 1064,
-      "source": 1064,
+      "t": 1791357048908,
+      "progress": 1066,
+      "source": 1066,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303126915,
-      "progress": 1064,
-      "source": 1064,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303127420,
+      "t": 1791357049431,
       "progress": 1068,
       "source": 1068,
       "lagSource": 0,
@@ -615,31 +627,31 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303127925,
-      "progress": 1068,
-      "source": 1068,
+      "t": 1791357049937,
+      "progress": 1070,
+      "source": 1070,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 6
+      "lagRpc": 0
     },
     {
-      "t": 1791303128431,
+      "t": 1791357050443,
       "progress": 1072,
       "source": 1072,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303128935,
-      "progress": 1072,
-      "source": 1072,
+      "t": 1791357050949,
+      "progress": 1074,
+      "source": 1074,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303129439,
+      "t": 1791357051455,
       "progress": 1076,
       "source": 1076,
       "lagSource": 0,
@@ -647,15 +659,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303129943,
-      "progress": 1076,
-      "source": 1076,
+      "t": 1791357051960,
+      "progress": 1078,
+      "source": 1078,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303130446,
+      "t": 1791357052466,
       "progress": 1080,
       "source": 1080,
       "lagSource": 0,
@@ -663,15 +675,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303130949,
-      "progress": 1080,
-      "source": 1080,
+      "t": 1791357052972,
+      "progress": 1082,
+      "source": 1082,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303131452,
+      "t": 1791357053481,
       "progress": 1084,
       "source": 1084,
       "lagSource": 0,
@@ -679,23 +691,31 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303131956,
+      "t": 1791357053987,
+      "progress": 1086,
+      "source": 1086,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357054493,
       "progress": 1088,
       "source": 1088,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303132461,
-      "progress": 1088,
-      "source": 1088,
+      "t": 1791357054999,
+      "progress": 1090,
+      "source": 1090,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303132964,
+      "t": 1791357055505,
       "progress": 1092,
       "source": 1092,
       "lagSource": 0,
@@ -703,15 +723,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303133467,
-      "progress": 1092,
-      "source": 1092,
+      "t": 1791357056022,
+      "progress": 1094,
+      "source": 1094,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303133970,
+      "t": 1791357056528,
       "progress": 1096,
       "source": 1096,
       "lagSource": 0,
@@ -719,15 +739,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303134473,
-      "progress": 1096,
-      "source": 1096,
+      "t": 1791357057034,
+      "progress": 1098,
+      "source": 1098,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303134977,
+      "t": 1791357057540,
       "progress": 1100,
       "source": 1100,
       "lagSource": 0,
@@ -735,31 +755,31 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303135481,
-      "progress": 1100,
-      "source": 1100,
+      "t": 1791357058047,
+      "progress": 1102,
+      "source": 1102,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303135984,
+      "t": 1791357058552,
       "progress": 1104,
       "source": 1104,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303136491,
-      "progress": 1104,
-      "source": 1104,
+      "t": 1791357059056,
+      "progress": 1106,
+      "source": 1106,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303136995,
+      "t": 1791357059561,
       "progress": 1108,
       "source": 1108,
       "lagSource": 0,
@@ -767,15 +787,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303137498,
-      "progress": 1108,
-      "source": 1108,
+      "t": 1791357060067,
+      "progress": 1110,
+      "source": 1110,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303138002,
+      "t": 1791357060573,
       "progress": 1112,
       "source": 1112,
       "lagSource": 0,
@@ -783,15 +803,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303138505,
-      "progress": 1112,
-      "source": 1112,
+      "t": 1791357061079,
+      "progress": 1114,
+      "source": 1114,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303139011,
+      "t": 1791357061590,
       "progress": 1116,
       "source": 1116,
       "lagSource": 0,
@@ -799,167 +819,170 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303139514,
-      "progress": 1116,
-      "source": 1116,
+      "t": 1791357062097,
+      "progress": 1118,
+      "source": 1118,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303140018,
-      "progress": 1120,
-      "source": 1120,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303140525,
-      "progress": 1120,
-      "source": 1120,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303141027,
-      "progress": 1124,
-      "source": 1124,
+      "t": 1791357062602,
+      "progress": 1121,
+      "source": 1121,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303141529,
-      "progress": 1124,
-      "source": 1124,
+      "t": 1791357063107,
+      "progress": 1123,
+      "source": 1123,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303142032,
-      "progress": 1128,
-      "source": 1128,
+      "t": 1791357063614,
+      "progress": 1125,
+      "source": 1125,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303142535,
-      "progress": 1128,
-      "source": 1128,
+      "t": 1791357064120,
+      "progress": 1127,
+      "source": 1127,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303143039,
-      "progress": 1132,
-      "source": 1132,
+      "t": 1791357064625,
+      "progress": 1129,
+      "source": 1129,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303143541,
-      "progress": 1132,
-      "source": 1132,
+      "t": 1791357065132,
+      "progress": 1131,
+      "source": 1131,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303142197,
-      "progress": 1136,
-      "source": 1136,
+      "t": 1791357065639,
+      "progress": 1133,
+      "source": 1133,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303142703,
-      "progress": 1136,
-      "source": 1136,
+      "t": 1791357066142,
+      "progress": 1135,
+      "source": 1135,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303143206,
-      "progress": 1140,
-      "source": 1140,
+      "t": 1791357066647,
+      "progress": 1137,
+      "source": 1137,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303143710,
-      "progress": 1140,
-      "source": 1140,
+      "t": 1791357067151,
+      "progress": 1139,
+      "source": 1139,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303144217,
-      "progress": 1144,
-      "source": 1144,
+      "t": 1791357065181,
+      "progress": 1141,
+      "source": 1141,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
+      "ready": true
     },
     {
-      "t": 1791303144723,
-      "progress": 1144,
-      "source": 1144,
+      "t": 1791357065687,
+      "progress": 1143,
+      "source": 1143,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
+      "ready": true
     },
     {
-      "t": 1791303145226,
-      "progress": 1148,
-      "source": 1148,
+      "t": 1791357066191,
+      "progress": 1145,
+      "source": 1145,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303145729,
-      "progress": 1148,
-      "source": 1148,
+      "t": 1791357066698,
+      "progress": 1147,
+      "source": 1147,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303146234,
-      "progress": 1152,
-      "source": 1152,
+      "t": 1791357067205,
+      "progress": 1149,
+      "source": 1149,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303146739,
-      "progress": 1152,
-      "source": 1152,
+      "t": 1791357067711,
+      "progress": 1151,
+      "source": 1151,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303147243,
-      "progress": 1156,
-      "source": 1156,
+      "t": 1791357068215,
+      "progress": 1153,
+      "source": 1153,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303147746,
+      "t": 1791357068719,
+      "progress": 1155,
+      "source": 1155,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357069224,
+      "progress": 1157,
+      "source": 1157,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357069730,
+      "progress": 1158,
+      "source": 1158,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357070233,
       "progress": 1160,
       "source": 1160,
       "lagSource": 0,
@@ -967,23 +990,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303148249,
-      "progress": 1160,
-      "source": 1160,
+      "t": 1791357070738,
+      "progress": 1162,
+      "source": 1162,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303148754,
-      "progress": 1160,
-      "source": 1160,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303149258,
+      "t": 1791357071242,
       "progress": 1164,
       "source": 1164,
       "lagSource": 0,
@@ -991,7 +1006,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303149761,
+      "t": 1791357071747,
+      "progress": 1166,
+      "source": 1166,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357072252,
       "progress": 1168,
       "source": 1168,
       "lagSource": 0,
@@ -999,31 +1022,31 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303150264,
-      "progress": 1168,
-      "source": 1168,
+      "t": 1791357072758,
+      "progress": 1170,
+      "source": 1170,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303150766,
+      "t": 1791357073262,
       "progress": 1172,
       "source": 1172,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303151270,
-      "progress": 1172,
-      "source": 1172,
+      "t": 1791357073769,
+      "progress": 1174,
+      "source": 1174,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303151772,
+      "t": 1791357074273,
       "progress": 1176,
       "source": 1176,
       "lagSource": 0,
@@ -1031,15 +1054,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303152276,
-      "progress": 1176,
-      "source": 1176,
+      "t": 1791357074778,
+      "progress": 1178,
+      "source": 1178,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303152781,
+      "t": 1791357075281,
       "progress": 1180,
       "source": 1180,
       "lagSource": 0,
@@ -1047,15 +1070,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303153284,
-      "progress": 1180,
-      "source": 1180,
+      "t": 1791357075786,
+      "progress": 1182,
+      "source": 1182,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303153787,
+      "t": 1791357076290,
       "progress": 1184,
       "source": 1184,
       "lagSource": 0,
@@ -1063,31 +1086,31 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303154290,
-      "progress": 1184,
-      "source": 1184,
+      "t": 1791357076795,
+      "progress": 1186,
+      "source": 1186,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303154793,
+      "t": 1791357077299,
       "progress": 1188,
       "source": 1188,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 0
+      "lagRpc": 1
     },
     {
-      "t": 1791303155296,
-      "progress": 1188,
-      "source": 1188,
+      "t": 1791357077807,
+      "progress": 1190,
+      "source": 1190,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303155799,
+      "t": 1791357078312,
       "progress": 1192,
       "source": 1192,
       "lagSource": 0,
@@ -1095,15 +1118,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303156303,
-      "progress": 1192,
-      "source": 1192,
+      "t": 1791357078817,
+      "progress": 1194,
+      "source": 1194,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303156809,
+      "t": 1791357079321,
       "progress": 1196,
       "source": 1196,
       "lagSource": 0,
@@ -1111,15 +1134,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303157313,
-      "progress": 1196,
-      "source": 1196,
+      "t": 1791357079826,
+      "progress": 1198,
+      "source": 1198,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303157815,
+      "t": 1791357080330,
       "progress": 1200,
       "source": 1200,
       "lagSource": 0,
@@ -1127,495 +1150,515 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303158318,
-      "progress": 1200,
-      "source": 1200,
+      "t": 1791357080835,
+      "progress": 1203,
+      "source": 1203,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303158821,
-      "progress": 1204,
-      "source": 1204,
+      "t": 1791357081341,
+      "progress": 1205,
+      "source": 1205,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303159324,
-      "progress": 1204,
-      "source": 1204,
+      "t": 1791357081849,
+      "progress": 1207,
+      "source": 1207,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303159827,
-      "progress": 1208,
-      "source": 1208,
+      "t": 1791357082353,
+      "progress": 1209,
+      "source": 1209,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303160330,
-      "progress": 1208,
-      "source": 1208,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303160836,
-      "progress": 1212,
-      "source": 1212,
+      "t": 1791357082857,
+      "progress": 1211,
+      "source": 1211,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303161340,
-      "progress": 1212,
-      "source": 1212,
+      "t": 1791357083362,
+      "progress": 1213,
+      "source": 1213,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303161843,
-      "progress": 1216,
-      "source": 1216,
+      "t": 1791357083867,
+      "progress": 1215,
+      "source": 1215,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303162348,
-      "progress": 1216,
-      "source": 1216,
+      "t": 1791357084372,
+      "progress": 1217,
+      "source": 1217,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303162851,
-      "progress": 1220,
-      "source": 1220,
+      "t": 1791357084876,
+      "progress": 1219,
+      "source": 1219,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303163355,
-      "progress": 1220,
-      "source": 1220,
+      "t": 1791357085379,
+      "progress": 1221,
+      "source": 1221,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303163859,
-      "progress": 1224,
-      "source": 1224,
+      "t": 1791357085884,
+      "progress": 1223,
+      "source": 1223,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303164363,
-      "progress": 1224,
-      "source": 1224,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303164868,
-      "progress": 1228,
-      "source": 1228,
+      "t": 1791357086387,
+      "progress": 1225,
+      "source": 1225,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303165371,
-      "progress": 1228,
-      "source": 1228,
+      "t": 1791357086892,
+      "progress": 1227,
+      "source": 1227,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303165874,
-      "progress": 1232,
-      "source": 1232,
+      "t": 1791357087398,
+      "progress": 1229,
+      "source": 1229,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303166377,
-      "progress": 1232,
-      "source": 1232,
+      "t": 1791357087903,
+      "progress": 1231,
+      "source": 1231,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303166879,
-      "progress": 1236,
-      "source": 1236,
+      "t": 1791357088407,
+      "progress": 1233,
+      "source": 1233,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303167383,
-      "progress": 1236,
-      "source": 1236,
+      "t": 1791357088912,
+      "progress": 1235,
+      "source": 1235,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303167888,
-      "progress": 1240,
-      "source": 1240,
+      "t": 1791357089419,
+      "progress": 1237,
+      "source": 1237,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303168391,
-      "progress": 1240,
-      "source": 1240,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 3
-    },
-    {
-      "t": 1791303168895,
-      "progress": 1244,
-      "source": 1244,
+      "t": 1791357089927,
+      "progress": 1239,
+      "source": 1239,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303169398,
-      "progress": 1244,
-      "source": 1244,
+      "t": 1791357090433,
+      "progress": 1241,
+      "source": 1241,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303169901,
-      "progress": 1248,
-      "source": 1248,
+      "t": 1791357090936,
+      "progress": 1243,
+      "source": 1243,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303170406,
-      "progress": 1248,
-      "source": 1248,
+      "t": 1791357091442,
+      "progress": 1245,
+      "source": 1245,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303170909,
-      "progress": 1252,
-      "source": 1252,
+      "t": 1791357091948,
+      "progress": 1247,
+      "source": 1247,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303171413,
-      "progress": 1252,
-      "source": 1252,
+      "t": 1791357092454,
+      "progress": 1249,
+      "source": 1249,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303171919,
-      "progress": 1256,
-      "source": 1256,
+      "t": 1791357092959,
+      "progress": 1251,
+      "source": 1251,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303172423,
-      "progress": 1256,
-      "source": 1256,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 3
-    },
-    {
-      "t": 1791303172930,
-      "progress": 1260,
-      "source": 1260,
+      "t": 1791357093465,
+      "progress": 1253,
+      "source": 1253,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303173434,
-      "progress": 1260,
-      "source": 1260,
+      "t": 1791357093971,
+      "progress": 1255,
+      "source": 1255,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303173937,
-      "progress": 1264,
-      "source": 1264,
+      "t": 1791357094475,
+      "progress": 1257,
+      "source": 1257,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303172475,
-      "progress": 1264,
-      "source": 1264,
+      "t": 1791357094980,
+      "progress": 1259,
+      "source": 1259,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303172977,
+      "t": 1791357095485,
+      "progress": 1261,
+      "source": 1261,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357095990,
+      "progress": 1263,
+      "source": 1263,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357096494,
+      "progress": 1265,
+      "source": 1265,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357097000,
+      "progress": 1266,
+      "source": 1266,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357095550,
       "progress": 1268,
       "source": 1268,
       "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
+      "ready": true
     },
     {
-      "t": 1791303173481,
-      "progress": 1268,
-      "source": 1268,
+      "t": 1791357096055,
+      "progress": 1269,
+      "source": 1269,
+      "lagSource": 0,
+      "ready": true
+    },
+    {
+      "t": 1791357096560,
+      "progress": 1269,
+      "source": 1269,
+      "lagSource": 0,
+      "ready": true
+    },
+    {
+      "t": 1791357097065,
+      "progress": 1269,
+      "source": 1269,
+      "lagSource": 0,
+      "ready": true
+    },
+    {
+      "t": 1791357097569,
+      "progress": 1269,
+      "source": 1269,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791357098077,
+      "progress": 1271,
+      "source": 1271,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303173984,
-      "progress": 1272,
-      "source": 1272,
+      "t": 1791357098581,
+      "progress": 1273,
+      "source": 1273,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303174487,
-      "progress": 1272,
-      "source": 1272,
+      "t": 1791357099087,
+      "progress": 1275,
+      "source": 1275,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303174990,
-      "progress": 1276,
-      "source": 1276,
+      "t": 1791357099593,
+      "progress": 1277,
+      "source": 1277,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303175493,
-      "progress": 1276,
-      "source": 1276,
+      "t": 1791357100096,
+      "progress": 1279,
+      "source": 1279,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303175996,
-      "progress": 1280,
-      "source": 1280,
+      "t": 1791357100600,
+      "progress": 1281,
+      "source": 1281,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303176499,
-      "progress": 1280,
-      "source": 1280,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 3
-    },
-    {
-      "t": 1791303177004,
-      "progress": 1284,
-      "source": 1284,
+      "t": 1791357101103,
+      "progress": 1283,
+      "source": 1283,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303177508,
-      "progress": 1284,
-      "source": 1284,
+      "t": 1791357101607,
+      "progress": 1285,
+      "source": 1285,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791357102112,
+      "progress": 1287,
+      "source": 1287,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303178011,
-      "progress": 1288,
-      "source": 1288,
+      "t": 1791357102616,
+      "progress": 1289,
+      "source": 1289,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303178514,
-      "progress": 1288,
-      "source": 1288,
+      "t": 1791357103120,
+      "progress": 1291,
+      "source": 1291,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303179019,
-      "progress": 1292,
-      "source": 1292,
+      "t": 1791357103624,
+      "progress": 1293,
+      "source": 1293,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303179523,
-      "progress": 1292,
-      "source": 1292,
+      "t": 1791357104136,
+      "progress": 1295,
+      "source": 1295,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303180026,
-      "progress": 1296,
-      "source": 1296,
+      "t": 1791357104642,
+      "progress": 1297,
+      "source": 1297,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303180530,
-      "progress": 1296,
-      "source": 1296,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 3
-    },
-    {
-      "t": 1791303181035,
-      "progress": 1300,
-      "source": 1300,
+      "t": 1791357105146,
+      "progress": 1299,
+      "source": 1299,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303181538,
-      "progress": 1300,
-      "source": 1300,
+      "t": 1791357105650,
+      "progress": 1301,
+      "source": 1301,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791357106155,
+      "progress": 1303,
+      "source": 1303,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303182040,
-      "progress": 1304,
-      "source": 1304,
+      "t": 1791357106660,
+      "progress": 1305,
+      "source": 1305,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303182543,
-      "progress": 1304,
-      "source": 1304,
+      "t": 1791357107164,
+      "progress": 1307,
+      "source": 1307,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303183046,
-      "progress": 1308,
-      "source": 1308,
+      "t": 1791357107667,
+      "progress": 1309,
+      "source": 1309,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303183549,
-      "progress": 1308,
-      "source": 1308,
+      "t": 1791357108171,
+      "progress": 1311,
+      "source": 1311,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303184052,
-      "progress": 1312,
-      "source": 1312,
+      "t": 1791357108679,
+      "progress": 1313,
+      "source": 1313,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303184555,
-      "progress": 1312,
-      "source": 1312,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 3
-    },
-    {
-      "t": 1791303185061,
-      "progress": 1316,
-      "source": 1316,
+      "t": 1791357109190,
+      "progress": 1315,
+      "source": 1315,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303185564,
-      "progress": 1316,
-      "source": 1316,
+      "t": 1791357109702,
+      "progress": 1317,
+      "source": 1317,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791357110212,
+      "progress": 1319,
+      "source": 1319,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303186067,
-      "progress": 1320,
-      "source": 1320,
+      "t": 1791357110716,
+      "progress": 1322,
+      "source": 1322,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303186571,
-      "progress": 1320,
-      "source": 1320,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303187074,
+      "t": 1791357111221,
       "progress": 1324,
       "source": 1324,
       "lagSource": 0,
@@ -1623,31 +1666,31 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303187577,
-      "progress": 1324,
-      "source": 1324,
+      "t": 1791357111725,
+      "progress": 1326,
+      "source": 1326,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303188080,
-      "progress": 1328,
-      "source": 1328,
+      "t": 1791357112230,
+      "progress": 1327,
+      "source": 1327,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303188585,
-      "progress": 1328,
-      "source": 1328,
+      "t": 1791357112740,
+      "progress": 1330,
+      "source": 1330,
       "lagSource": 0,
       "ready": true,
-      "lagRpc": 2
+      "lagRpc": 0
     },
     {
-      "t": 1791303189089,
+      "t": 1791357113250,
       "progress": 1332,
       "source": 1332,
       "lagSource": 0,
@@ -1655,15 +1698,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303189593,
-      "progress": 1332,
-      "source": 1332,
+      "t": 1791357113754,
+      "progress": 1334,
+      "source": 1334,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303190096,
+      "t": 1791357114260,
       "progress": 1336,
       "source": 1336,
       "lagSource": 0,
@@ -1671,15 +1714,15 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303190599,
-      "progress": 1336,
-      "source": 1336,
+      "t": 1791357114765,
+      "progress": 1338,
+      "source": 1338,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303191101,
+      "t": 1791357115269,
       "progress": 1340,
       "source": 1340,
       "lagSource": 0,
@@ -1687,143 +1730,143 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303191603,
-      "progress": 1340,
-      "source": 1340,
+      "t": 1791357115773,
+      "progress": 1342,
+      "source": 1342,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303192106,
-      "progress": 1340,
-      "source": 1340,
+      "t": 1791357116279,
+      "progress": 1343,
+      "source": 1343,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303192609,
-      "progress": 1344,
-      "source": 1344,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303193121,
-      "progress": 1344,
-      "source": 1344,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303193624,
-      "progress": 1348,
-      "source": 1348,
+      "t": 1791357116783,
+      "progress": 1345,
+      "source": 1345,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303194127,
-      "progress": 1348,
-      "source": 1348,
+      "t": 1791357117287,
+      "progress": 1347,
+      "source": 1347,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303194630,
-      "progress": 1352,
-      "source": 1352,
+      "t": 1791357117791,
+      "progress": 1349,
+      "source": 1349,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791357118300,
+      "progress": 1351,
+      "source": 1351,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303195136,
-      "progress": 1356,
-      "source": 1356,
+      "t": 1791357118804,
+      "progress": 1353,
+      "source": 1353,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303195638,
-      "progress": 1356,
-      "source": 1356,
+      "t": 1791357119307,
+      "progress": 1355,
+      "source": 1355,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303196145,
-      "progress": 1360,
-      "source": 1360,
+      "t": 1791357119812,
+      "progress": 1357,
+      "source": 1357,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303196649,
-      "progress": 1360,
-      "source": 1360,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303197154,
-      "progress": 1364,
-      "source": 1364,
+      "t": 1791357120316,
+      "progress": 1359,
+      "source": 1359,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303197656,
-      "progress": 1364,
-      "source": 1364,
+      "t": 1791357120823,
+      "progress": 1361,
+      "source": 1361,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303198160,
-      "progress": 1368,
-      "source": 1368,
+      "t": 1791357121329,
+      "progress": 1363,
+      "source": 1363,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303198664,
-      "progress": 1368,
-      "source": 1368,
+      "t": 1791357121834,
+      "progress": 1365,
+      "source": 1365,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 1
+    },
+    {
+      "t": 1791357122341,
+      "progress": 1367,
+      "source": 1367,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303199166,
-      "progress": 1372,
-      "source": 1372,
+      "t": 1791357122846,
+      "progress": 1369,
+      "source": 1369,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303199669,
-      "progress": 1372,
-      "source": 1372,
+      "t": 1791357123350,
+      "progress": 1371,
+      "source": 1371,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303200174,
+      "t": 1791357123853,
+      "progress": 1373,
+      "source": 1373,
+      "lagSource": 0,
+      "ready": true,
+      "lagRpc": 0
+    },
+    {
+      "t": 1791357124356,
       "progress": 1375,
       "source": 1375,
       "lagSource": 0,
@@ -1831,113 +1874,25 @@
       "lagRpc": 0
     },
     {
-      "t": 1791303200677,
-      "progress": 1375,
-      "source": 1375,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 3
-    },
-    {
-      "t": 1791303201185,
-      "progress": 1379,
-      "source": 1379,
+      "t": 1791357124859,
+      "progress": 1378,
+      "source": 1378,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303201688,
-      "progress": 1379,
-      "source": 1379,
+      "t": 1791357125362,
+      "progress": 1380,
+      "source": 1380,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
     },
     {
-      "t": 1791303202192,
-      "progress": 1383,
-      "source": 1383,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303202695,
-      "progress": 1383,
-      "source": 1383,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303203201,
-      "progress": 1387,
-      "source": 1387,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303203703,
-      "progress": 1387,
-      "source": 1387,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303204208,
-      "progress": 1392,
-      "source": 1392,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303202857,
-      "progress": 1392,
-      "source": 1392,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303203361,
-      "progress": 1396,
-      "source": 1396,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303203865,
-      "progress": 1396,
-      "source": 1396,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303204368,
-      "progress": 1400,
-      "source": 1400,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 0
-    },
-    {
-      "t": 1791303204870,
-      "progress": 1400,
-      "source": 1400,
-      "lagSource": 0,
-      "ready": true,
-      "lagRpc": 2
-    },
-    {
-      "t": 1791303205375,
-      "progress": 1404,
-      "source": 1404,
+      "t": 1791357125866,
+      "progress": 1382,
+      "source": 1382,
       "lagSource": 0,
       "ready": true,
       "lagRpc": 0
@@ -1947,9 +1902,10 @@
   "warmupMaxLag": 1,
   "errors": 0,
   "notReadySamples": 0,
-  "blocksAdvancedWhileMonitoring": 483,
+  "blocksAdvancedWhileMonitoring": 461,
+  "independentVerdict": true,
   "lagVsIndexerSourceBlock": {
-    "n": 238,
+    "n": 234,
     "min": 0,
     "mean": 0,
     "p50": 0,
@@ -1958,13 +1914,13 @@
     "max": 0
   },
   "lagVsRpcHead": {
-    "n": 238,
+    "n": 221,
     "min": 0,
-    "mean": 0.37815126050420167,
+    "mean": 0.08144796380090498,
     "p50": 0,
-    "p95": 2,
-    "p99": 3,
-    "max": 6
+    "p95": 1,
+    "p99": 1,
+    "max": 1
   },
-  "pass": false
+  "pass": true
 }

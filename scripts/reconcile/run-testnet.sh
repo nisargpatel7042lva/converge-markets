@@ -100,10 +100,12 @@ echo "== 6. lag against the live testnet head (${LAG_SECONDS}s, head read every 
 pnpm --filter @converge/reconcile exec tsx lag.ts --indexer "$HASURA" --headers "$SECRET" --rpc "$PROXY" --rpc-interval 5000 --duration "$LAG_SECONDS" --interval 1000 --label testnet-rpc | tee "$EVIDENCE/lag-testnet-rpc.txt"
 LAG=${PIPESTATUS[0]}
 
-LAG=0
 else
   LAG="skipped (END_BLOCK-bounded run: the indexer stops at END_BLOCK, so the lag to the live head is not meaningful)"
 fi
 
 echo "reconcile=$RECON latency=$LAT lag=$LAG"
 sleep 6
+# the exit code is the verdict: a failed reconcile, latency or lag check is not hidden
+case "$LAG" in skipped*) LAG_OK=0 ;; *) LAG_OK=$LAG ;; esac
+[ "$RECON" = 0 ] && [ "$LAT" = 0 ] && [ "$LAG_OK" = 0 ]

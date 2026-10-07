@@ -763,9 +763,15 @@ async function main() {
   );
   const rand = rng(seed);
 
+  // The vault, the venue and every other protocol address hold tokens too; their rows match by
+  // construction (they mirror the contracts' own balances) and would pad the sample. Users only.
+  const systemIds = new Set([vault, venue].map((x) => x.toLowerCase()));
+  const userPositions = (await listIds("UserPosition")).filter(
+    (id) => !systemIds.has(id.split("_")[0]!.toLowerCase()),
+  );
   const pools = {
     Market: await listIds("Market"),
-    UserPosition: await listIds("UserPosition"),
+    UserPosition: userPositions,
     Trade: await listIds("Trade"),
     NavSnapshotSettlement: await listIdsWhere("NavSnapshot", "settlement: {_eq: true}"),
     NavSnapshot: await listIdsWhere("NavSnapshot", "settlement: {_eq: false}"),
