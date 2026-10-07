@@ -9,12 +9,48 @@
   "throttling": "lighthouse default (simulated)",
   "results": [
     {
-      "page": "/markets",
-      "performance": 95,
+      "page": "/",
+      "performance": 98,
       "accessibility": 100,
       "bestPractices": 100,
-      "lcpMs": 2894,
+      "lcpMs": 2317,
       "tbtMs": 67,
+      "cls": 0.006
+    },
+    {
+      "page": "/markets",
+      "performance": 99,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2265,
+      "tbtMs": 61,
+      "cls": 0
+    },
+    {
+      "page": "/stats",
+      "performance": 90,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 3308,
+      "tbtMs": 150,
+      "cls": 0.001
+    },
+    {
+      "page": "/legal/terms",
+      "performance": 99,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2263,
+      "tbtMs": 56,
+      "cls": 0
+    },
+    {
+      "page": "/start",
+      "performance": 96,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2702,
+      "tbtMs": 76,
       "cls": 0
     }
   ]

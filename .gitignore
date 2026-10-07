@@ -38,3 +38,4 @@ ops/alertmanager/webhook_url
 apps/web/e2e-results/
 apps/web/.next-e2e/
 apps/web/.next/
+apps/web/.next-*/

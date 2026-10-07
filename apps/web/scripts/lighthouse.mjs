@@ -1,4 +1,4 @@
-/* global console, process, fetch */
+/* global console, process, fetch, setTimeout */
 // Lighthouse (mobile, simulated throttling: the default) for the main pages of a production build.
 // Usage: pnpm --filter @converge/web lighthouse   (builds, serves on :3200, audits, writes the reports)
 // Needs a Chrome: CHROME_PATH (default: Playwright's Chromium) and its system libraries.

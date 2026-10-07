@@ -9,6 +9,7 @@ export default tseslint.config(
       "**/dist/**",
       "**/.next/**",
       "**/.next-e2e/**",
+      "**/.next-lh/**",
       "apps/web/public/**",
       "apps/web/e2e-results/**",
       "apps/web/next-env.d.ts",
