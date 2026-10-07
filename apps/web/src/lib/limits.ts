@@ -7,4 +7,4 @@
  */
 export const GAS_RESERVE_WEI = 50n * 10n ** 15n;
 /** Below this the relayer tops an account up (it must be under the reserve to be useful). */
-export const GAS_TOPUP_BELOW_WEI = GAS_RESERVE_WEI;
+export const GAS_TOPUP_BELOW_WEI = GAS_RESERVE_WEI + 2n * 10n ** 15n; // reserve + reward + margin: an account the sheet refuses is always one the relayer tops up

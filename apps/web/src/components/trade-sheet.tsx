@@ -146,7 +146,12 @@ export function TradeSheet({
             tx: placeOrderTx({ venue: deployment.venue, market: round.address, plan, reward }),
           },
         ];
-        return { hashes: await sendAll(account, steps) };
+        return {
+          hashes: await sendAll(account, steps, (label, hash) => {
+            // the bet is on its way the moment its transaction is broadcast: no retry from here on
+            if (label === "Bet") placedHash = hash;
+          }),
+        };
       });
       const hash = hashes[hashes.length - 1]!;
       // From here on the bet exists on chain: nothing below may offer a second bet.
@@ -164,6 +169,27 @@ export function TradeSheet({
         // keep going: the order is placed, only its number is unknown for now
       }
       if (id === null) {
+        // find the order by its taker so that it is still tracked (and refundable) from My bets
+        try {
+          const logs = await publicClient.getContractEvents({
+            address: deployment.venue,
+            abi: forwardVenueAbi,
+            eventName: "OrderPlaced",
+            args: { taker: profile.address },
+            fromBlock,
+          });
+          const mine = logs[logs.length - 1]?.args.id;
+          if (mine !== undefined) {
+            recordOrder(profile.address, {
+              id: mine.toString(),
+              market: round.address,
+              side,
+              at: Date.now(),
+            });
+          }
+        } catch {
+          // the order stays on chain: the note below tells the user where to look
+        }
         setPhase({
           k: "done",
           result: { status: "open" },
