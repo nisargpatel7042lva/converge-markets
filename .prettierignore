@@ -25,3 +25,4 @@ apps/web/public/
 apps/web/.next-e2e/
 apps/web/e2e-results/
 docs/evidence/phase-7/*.json
+docs/evidence/phase-7/lighthouse/

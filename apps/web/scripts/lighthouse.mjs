@@ -14,9 +14,15 @@ mkdirSync(out, { recursive: true });
 const pw = resolve(homedir(), ".cache/ms-playwright");
 const chrome =
   process.env.CHROME_PATH ??
-  resolve(pw, readdirSync(pw).find((d) => d.startsWith("chromium-")) ?? "", "chrome-linux64/chrome");
+  resolve(
+    pw,
+    readdirSync(pw).find((d) => d.startsWith("chromium-")) ?? "",
+    "chrome-linux64/chrome",
+  );
 const PORT = 3200;
-const pages = process.env.PAGES ? process.env.PAGES.split(",") : ["/", "/markets", "/stats", "/legal/terms", "/start"];
+const pages = process.env.PAGES
+  ? process.env.PAGES.split(",")
+  : ["/", "/markets", "/stats", "/legal/terms", "/start"];
 const env = { ...process.env, NEXT_DIST_DIR: ".next-lh", NEXT_PUBLIC_APP_ENV: "production" };
 
 const sh = (cmd, args, opts = {}) =>
@@ -26,7 +32,12 @@ const sh = (cmd, args, opts = {}) =>
   });
 
 if (!process.env.SKIP_BUILD) await sh("pnpm", ["exec", "next", "build"], { env });
-const server = spawn("pnpm", ["exec", "next", "start", "-p", String(PORT)], { cwd: root, env, stdio: "ignore", detached: true });
+const server = spawn("pnpm", ["exec", "next", "start", "-p", String(PORT)], {
+  cwd: root,
+  env,
+  stdio: "ignore",
+  detached: true,
+});
 for (let i = 0; i < 100; i++) {
   try {
     if ((await fetch(`http://localhost:${PORT}/`)).ok) break;
@@ -40,7 +51,15 @@ for (let i = 0; i < 100; i++) {
 const CDP_PORT = 9333;
 const browser = spawn(
   chrome,
-  ["--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", `--remote-debugging-port=${CDP_PORT}`, "--user-data-dir=/tmp/lh-profile", "about:blank"],
+  [
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    `--remote-debugging-port=${CDP_PORT}`,
+    "--user-data-dir=/tmp/lh-profile",
+    "about:blank",
+  ],
   { stdio: "ignore", detached: true },
 );
 for (let i = 0; i < 100; i++) {
@@ -58,9 +77,13 @@ try {
     const name = p === "/" ? "home" : p.slice(1).replace(/\//g, "-");
     const base = resolve(out, name);
     await sh("pnpm", [
-      "exec", "lighthouse", `http://localhost:${PORT}${p}`,
+      "exec",
+      "lighthouse",
+      `http://localhost:${PORT}${p}`,
       "--only-categories=performance,accessibility,best-practices",
-      "--output=json", "--output=html", `--output-path=${base}`,
+      "--output=json",
+      "--output=html",
+      `--output-path=${base}`,
       `--port=${CDP_PORT}`,
       "--quiet",
     ]);
@@ -91,7 +114,19 @@ try {
   }
 }
 const bar = { performance: 90, accessibility: 95, bestPractices: 95 };
-const pass = results.every((r) => r.performance >= bar.performance && r.accessibility >= bar.accessibility && r.bestPractices >= bar.bestPractices);
-writeFileSync(resolve(out, "summary.json"), JSON.stringify({ bar, pass, formFactor: "mobile", throttling: "lighthouse default (simulated)", results }, null, 2));
+const pass = results.every(
+  (r) =>
+    r.performance >= bar.performance &&
+    r.accessibility >= bar.accessibility &&
+    r.bestPractices >= bar.bestPractices,
+);
+writeFileSync(
+  resolve(out, "summary.json"),
+  JSON.stringify(
+    { bar, pass, formFactor: "mobile", throttling: "lighthouse default (simulated)", results },
+    null,
+    2,
+  ),
+);
 console.log(pass ? "LIGHTHOUSE PASS" : "LIGHTHOUSE FAIL");
 process.exit(pass ? 0 : 1);
