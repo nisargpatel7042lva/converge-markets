@@ -27,6 +27,7 @@ import {IVerifierProxy, ReportV3} from "../interfaces/IVerifierProxy.sol";
 import {QuoteMath} from "./QuoteMath.sol";
 import {ReportLib} from "./ReportLib.sol";
 import {Series} from "../libraries/Series.sol";
+import {IPartnerRegistry} from "../partners/IPartnerRegistry.sol";
 
 /// @title ConvergeVault
 /// @notice LP vault for the Converge outcome markets (docs/adr/ADR-005, docs/security/threat-model.md).
@@ -103,6 +104,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     uint256 internal constant WAD = 1e18;
     uint256 public constant MAX_MARKETS = 16;
     uint256 public constant MAX_ASSETS = 8;
+    /// @notice Registry slots (of MAX_MARKETS) that partner markets can use, so that partner
+    ///         markets can never crowd the core rounds out of the vault.
+    uint256 public constant MAX_PARTNER_MARKETS = 6;
+    /// @notice Hard ceiling for `maxPartnerFraction`.
+    uint256 public constant MAX_PARTNER_FRACTION = 0.3e18;
     uint256 public constant MAX_FEE_BPS = 2_000; // 20%
     uint256 public constant VENUE_DELAY = 2 days;
     /// @dev While trading continues the vault re-values itself at most this often (seconds), and
@@ -195,6 +201,16 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     ///         never clear.
     bool public keeperHalt;
 
+    /// @notice The PartnerRegistry whose markets the vault may also quote (ADR-008); set once.
+    IPartnerRegistry public partnerRegistry;
+    /// @notice Largest basis in ALL partner markets together, as a fraction of the lower NAV
+    ///         (WAD). It applies on top of the registry's per-partner and global caps, so that a
+    ///         registry misconfiguration can never allocate more than this.
+    uint64 public maxPartnerFraction = 0.1e18;
+    /// @dev The partner of a registered partner market (zero for core markets).
+    mapping(address => address) internal _partnerOf;
+    uint256 internal _partnerMarkets;
+
     address[] internal _markets;
     mapping(address => uint256) internal _slot; // index + 1
     mapping(address => Position) internal _pos;
@@ -249,6 +265,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     event InventorySplit(address indexed market, uint256 amount);
     event InventoryMerged(address indexed market, uint256 amount);
     event MarketRegistered(address indexed market, bytes32 indexed assetId);
+    event PartnerMarketRegistered(address indexed market, address indexed partner);
+    event PartnerRegistrySet(address indexed registry);
+    event PartnerFractionSet(uint256 fraction);
     event MarketUnregistered(address indexed market);
     event ResolvedRedeemed(address indexed market, uint256 pairsMerged, uint256 payout);
     event QuotingPaused(address indexed by);
@@ -304,6 +323,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     error MarketNotResolved(address market);
     error ReportNotCanonical(uint64 at, uint32 validFrom, uint32 observations);
     error NotFactoryMarket(address market);
+    error PartnerRegistryAlreadySet();
+    error PartnerInactive(address market);
+    error PartnerCapExceeded(address partner, uint256 total, uint256 cap);
+    error PartnerGlobalCapExceeded(uint256 total, uint256 cap);
+    error TooManyPartnerMarkets();
     error MarketNotRegistered(address market);
     error TooManyMarkets();
     error WrongMarketState(uint8 state);
@@ -1001,11 +1025,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function splitForInventory(Market m, uint256 amount) external nonReentrant onlyKeeper {
         if (amount == 0) revert ZeroAmount();
         if (quotingPaused) revert QuotingIsPaused();
-        _checkMarket(m);
+        address partner = _checkMarket(m);
         Market.State s = m.state();
         if (s != Market.State.CREATED && s != Market.State.OPEN) revert WrongMarketState(uint8(s));
         if (block.timestamp + _params.noQuoteWindowSec >= m.endTime()) revert InNoQuoteWindow();
-        if (_slot[address(m)] == 0) _register(m);
+        if (_slot[address(m)] == 0) _register(m, partner);
         Position storage p = _pos[address(m)];
         uint256 navU = quoteNavLower;
         uint256 pairCap = F.mulWad(maxPairFraction, navU);
@@ -1014,13 +1038,23 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // forge-lint: disable-next-line(unsafe-typecast)
         if (newBasis > int256(pairCap)) revert PairCapExceeded(uint256(newBasis), pairCap);
         uint256 total = amount;
+        uint256 partnerTotal = amount; // this partner's basis
+        uint256 allPartners = amount; // every partner's basis
         for (uint256 i = 0; i < _markets.length; i++) {
             int256 b = _pos[_markets[i]].basis;
+            if (b <= 0) continue;
             // forge-lint: disable-next-line(unsafe-typecast)
-            if (b > 0) total += uint256(b);
+            uint256 ub = uint256(b);
+            total += ub;
+            address owner_ = _partnerOf[_markets[i]];
+            if (owner_ != address(0)) {
+                allPartners += ub;
+                if (partner != address(0) && owner_ == partner) partnerTotal += ub;
+            }
         }
         uint256 invCap = F.mulWad(maxInventoryFraction, navU);
         if (total > invCap) revert InventoryCapExceeded(total, invCap);
+        if (partner != address(0)) _checkPartnerCaps(m, partner, partnerTotal, allPartners, navU);
         p.basis = newBasis;
         asset.forceApprove(address(m), amount);
         // forge-lint: disable-next-line(reentrancy-no-eth)
@@ -1091,16 +1125,53 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
 
     // ================================================================== registry
 
-    function _checkMarket(Market m) internal view {
+    /// @dev A market is acceptable if the core factory made it, or (once a registry is set) if the
+    ///      PartnerRegistry made it. Returns the partner (zero for a core market). The market's real
+    ///      `assetId` is used for both, so a partner market is priced, marked and settled exactly like
+    ///      a core one.
+    function _checkMarket(Market m) internal view returns (address partner) {
         bytes32 a = m.assetId();
         if (!assetCfg[a].enabled) revert AssetNotEnabled(a);
         uint64 s = m.startTime();
         uint64 e = m.endTime();
-        if (factory.getMarket(a, e - s, s) != address(m)) revert NotFactoryMarket(address(m));
+        if (factory.getMarket(a, e - s, s) == address(m)) return address(0);
+        if (address(partnerRegistry) == address(0)) revert NotFactoryMarket(address(m));
+        IPartnerRegistry.Limits memory l = partnerRegistry.limits(address(m));
+        if (!l.exists) revert NotFactoryMarket(address(m));
+        partner = l.partner;
     }
 
-    function _register(Market m) internal {
+    /// @dev Caps on new allocation to a partner market. The registry says what the owner allows
+    ///      (per partner, all partners); the vault adds its own fraction of NAV on top.
+    function _checkPartnerCaps(
+        Market m,
+        address partner,
+        uint256 partnerTotal,
+        uint256 allPartners,
+        uint256 navU
+    ) internal view {
+        IPartnerRegistry.Limits memory l = partnerRegistry.limits(address(m));
+        if (!l.active) revert PartnerInactive(address(m));
+        if (partnerTotal > l.partnerCap) {
+            revert PartnerCapExceeded(partner, partnerTotal, l.partnerCap);
+        }
+        uint256 g = F.min(l.globalCap, F.mulWad(maxPartnerFraction, navU));
+        if (allPartners > g) revert PartnerGlobalCapExceeded(allPartners, g);
+    }
+
+    /// @dev Whether a registered partner market may be quoted right now.
+    function _partnerActive(address m) internal view returns (bool) {
+        return partnerRegistry.limits(m).active;
+    }
+
+    function _register(Market m, address partner) internal {
         if (_markets.length >= MAX_MARKETS) revert TooManyMarkets();
+        if (partner != address(0)) {
+            if (_partnerMarkets >= MAX_PARTNER_MARKETS) revert TooManyPartnerMarkets();
+            _partnerMarkets += 1;
+            _partnerOf[address(m)] = partner;
+            emit PartnerMarketRegistered(address(m), partner);
+        }
         _markets.push(address(m));
         _slot[address(m)] = _markets.length;
         emit MarketRegistered(address(m), m.assetId());
@@ -1117,6 +1188,10 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         }
         _markets.pop();
         delete _slot[address(m)];
+        if (_partnerOf[address(m)] != address(0)) {
+            _partnerMarkets -= 1;
+            delete _partnerOf[address(m)];
+        }
         // The position (basis and cash) is kept on purpose: a market that is flattened and split
         // again carries the loss it already realised, so room can not be restored by cycling.
         // forge-lint: disable-next-line(reentrancy-events)
@@ -1150,6 +1225,16 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
 
     function marketAt(uint256 i) external view returns (address) {
         return _markets[i];
+    }
+
+    /// @notice The partner behind a registered partner market (zero for a core market).
+    function partnerOf(address m) external view returns (address) {
+        return _partnerOf[m];
+    }
+
+    /// @notice Registered partner markets (of MAX_PARTNER_MARKETS).
+    function partnerMarketCount() external view returns (uint256) {
+        return _partnerMarkets;
     }
 
     function isRegistered(address m) external view returns (bool) {
@@ -1191,6 +1276,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (_slot[address(m)] == 0 || quotingPaused || keeperHalt || venue == address(0)) return v;
         if (block.timestamp > uint256(navUpdatedAt) + navMaxAge) return v;
         if (_settlementPending()) return v;
+        if (_partnerOf[address(m)] != address(0) && !_partnerActive(address(m))) return v;
         AssetCfg storage c = assetCfg[m.assetId()];
         if (c.sigma == 0 || block.timestamp > uint256(c.sigmaUpdatedAt) + sigmaMaxAge) return v;
         v.tradable = true;
@@ -1282,6 +1368,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (keeperHalt) revert QuotingHalt();
         if (block.timestamp > uint256(navUpdatedAt) + navMaxAge) revert NotTradable();
         if (_settlementPending()) revert SettlementPending();
+        if (_partnerOf[address(f.market)] != address(0) && !_partnerActive(address(f.market))) {
+            revert PartnerInactive(address(f.market));
+        }
 
         // Price bounds on amounts (premium and units share a scale), with rounding that lets the
         // venue's own rounding at the bound pass: floor at the minimum, ceiling at the maximum.
@@ -1413,6 +1502,23 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     function setTvlCap(uint256 cap) external onlyOwner {
         tvlCap = cap;
         emit TvlCapSet(cap);
+    }
+
+    /// @notice Connects the PartnerRegistry. Once: the registry decides which extra markets the
+    ///         vault may quote, so it cannot be swapped under LPs (a new registry is a new vault).
+    function setPartnerRegistry(IPartnerRegistry registry) external onlyOwner {
+        if (address(partnerRegistry) != address(0)) revert PartnerRegistryAlreadySet();
+        if (address(registry) == address(0)) revert ZeroAddress();
+        partnerRegistry = registry;
+        emit PartnerRegistrySet(address(registry));
+    }
+
+    /// @notice Largest basis in all partner markets together, as a fraction of the lower NAV.
+    function setPartnerFraction(uint256 fraction) external onlyOwner {
+        if (fraction > MAX_PARTNER_FRACTION) revert InvalidConfig();
+        // forge-lint: disable-next-line(unsafe-typecast)
+        maxPartnerFraction = uint64(fraction);
+        emit PartnerFractionSet(fraction);
     }
 
     function setPerformanceFee(uint256 bps) external onlyOwner {
