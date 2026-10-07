@@ -60,11 +60,11 @@ chains:
         address: "0x6d3C829CbE58c53625b714d19E49cE1D41e66639"
         start_block: 68426048
       - name: ConvergeVault
-        address: "0xcd2072443D37397DbEa4e8eADbCcfB8cB1f10748"
-        start_block: 68615979
+        address: "0xbEaf85D2682BAD7ca09fD869037065350cF4a3b5"
+        start_block: 68644575
       - name: ForwardVenue
-        address: "0xDf5958c9d759a97B7C3A9e49F8fB0924406698Aa"
-        start_block: 68615979
+        address: "0x28dbCf1631f51c9021D999B46e5D9439B4eD913C"
+        start_block: 68644575
       # Market and OutcomeToken have no address: contractRegister adds them on MarketCreated.
       - name: Market
       - name: OutcomeToken

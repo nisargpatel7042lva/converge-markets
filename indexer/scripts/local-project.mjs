@@ -1,6 +1,6 @@
 /* global process, console */
 // Builds the LOCAL indexer project used for the anvil run (never committed): a copy of src/ with the
-// local chain's constructor defaults, a config whose data source is the local RPC (no HyperSync, no
+// chain's constructor defaults, a config whose data source is the local RPC (no HyperSync, no
 // token), and symlinks to the schema and node_modules.
 //   node scripts/local-project.mjs <addresses.json> <rpcUrl> [outDir=../.local-indexer/project]
 import { cpSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
@@ -14,7 +14,20 @@ const [addrFile, rpc, outArg] = process.argv.slice(2);
 if (!addrFile || !rpc)
   throw new Error("usage: local-project.mjs <addresses.json> <rpcUrl> [outDir]");
 const out = resolve(outArg ?? resolve(indexerDir, "../.local-indexer/project"));
-const a = JSON.parse(readFileSync(resolve(addrFile), "utf8"));
+let a = JSON.parse(readFileSync(resolve(addrFile), "utf8"));
+if (a.marketFactory) {
+  // a deployments/<net>.json file (the same source gen-config uses)
+  a = {
+    chainId: a.chainId,
+    factory: a.marketFactory,
+    factoryBlock: a.deployBlock,
+    vault: a.vault.vault,
+    venue: a.vault.forwardVenue,
+    vaultBlock: a.vault.deployBlock,
+    keeper: a.vault.vaultKeeper,
+    tvlCap: a.vault.tvlCap,
+  };
+}
 
 rmSync(resolve(out, "src"), { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
@@ -32,11 +45,17 @@ writeFileSync(
     chainId: a.chainId,
     header: "# LOCAL anvil config (generated, git-ignored). Data source: RPC, no HyperSync.",
     factory: a.factory,
-    factoryBlock: a.factoryBlock,
+    // FACTORY_FROM_BLOCK: start the factory later than its deploy block (bounded evidence runs)
+    factoryBlock: process.env.FACTORY_FROM_BLOCK
+      ? Number(process.env.FACTORY_FROM_BLOCK)
+      : a.factoryBlock,
     vault: a.vault,
     venue: a.venue,
     vaultBlock: a.vaultBlock,
     rpc,
+    rollbackOnReorg: process.env.ROLLBACK === "false" ? false : undefined,
+    maxBlockRange: process.env.MAX_BLOCK_RANGE ? Number(process.env.MAX_BLOCK_RANGE) : undefined,
+    pollingMs: process.env.POLL_MS ? Number(process.env.POLL_MS) : undefined,
   }),
 );
 for (const [name, target] of [

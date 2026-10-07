@@ -8,6 +8,9 @@ export function render(o: {
   venue: string;
   vaultBlock: number;
   rpc?: string;
+  pollingMs?: number;
+  maxBlockRange?: number;
+  rollbackOnReorg?: boolean;
 }): string;
 export function renderDefaults(
   entries: { chainId: number; keeper: string | undefined; tvlCap: string | number | undefined }[],

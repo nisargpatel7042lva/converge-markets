@@ -628,6 +628,9 @@ describe("transfers and flags", () => {
     idx = await run(c);
     v = await idx.Vault.getOrThrow(VAULT);
     expect([v.quotingPaused, v.quotingHalted]).toEqual([false, false]);
+    // the halt flag is cleared by the keeper's unhalt, the last reason and the count are kept
+    expect([v.haltReason, v.haltCount]).toEqual(["0x" + "ab".repeat(32), 1]);
+    expect(v.haltedAt).toBeGreaterThan(0);
   });
 
   it("a vault row created by any event starts from the constructor state in deployments/testnet.json", async () => {

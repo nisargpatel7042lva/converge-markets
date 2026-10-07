@@ -60,6 +60,9 @@ const zeroVault = (id: string, chainId: number): Vault => ({
   venue: undefined,
   quotingPaused: false,
   quotingHalted: false,
+  haltReason: undefined,
+  haltedAt: undefined,
+  haltCount: 0,
   breakerTrips: 0,
   lastSettledEpoch: undefined,
   settledEpochs: 0,
@@ -576,7 +579,12 @@ indexer.onEvent(
 indexer.onEvent(
   { contract: "ConvergeVault", event: "QuotingHalted" },
   async ({ event, context }) => {
-    await updateVault(context, event, () => ({ quotingHalted: true }));
+    await updateVault(context, event, (v) => ({
+      quotingHalted: true,
+      haltReason: event.params.reason,
+      haltedAt: event.block.timestamp,
+      haltCount: v.haltCount + 1,
+    }));
   },
 );
 indexer.onEvent(

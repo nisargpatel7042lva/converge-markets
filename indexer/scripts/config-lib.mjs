@@ -51,7 +51,7 @@ export const CONTRACTS = {
 
 /**
  * @param {{chainId:number, header:string, factory:string, factoryBlock:number, vault:string,
- *   venue:string, vaultBlock:number, rpc?:string}} o
+ *   venue:string, vaultBlock:number, rpc?:string, pollingMs?:number, maxBlockRange?:number, rollbackOnReorg?:boolean}} o
  */
 export function render(o) {
   const lines = [];
@@ -62,6 +62,7 @@ export function render(o) {
   );
   // Addresses are lowercased everywhere so ids never depend on checksum casing.
   lines.push("address_format: lowercase");
+  if (o.rollbackOnReorg === false) lines.push("rollback_on_reorg: false");
   // Every handler records the transaction hash.
   lines.push("field_selection:");
   lines.push("  transaction_fields:");
@@ -80,7 +81,12 @@ export function render(o) {
     lines.push(`      - url: ${o.rpc}`);
     lines.push("        for: sync");
     // Default 1000 ms; the local anvil chain makes ~4 blocks/s, so poll faster than the block time.
-    lines.push("        polling_interval: 250");
+    lines.push(`        polling_interval: ${o.pollingMs ?? 250}`);
+    if (o.maxBlockRange) {
+      // The public Monad testnet RPC rejects eth_getLogs ranges above 100 blocks: do not start big and halve.
+      lines.push(`        initial_block_interval: ${o.maxBlockRange}`);
+      lines.push(`        interval_ceiling: ${o.maxBlockRange}`);
+    }
   }
   lines.push("    contracts:");
   lines.push("      - name: MarketFactory");

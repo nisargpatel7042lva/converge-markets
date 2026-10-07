@@ -209,7 +209,12 @@ type Vault {
   keeper: String
   venue: String
   quotingPaused: Boolean!
+  "True while the keeper's halt (ADR-006 haltQuoting) is in force; independent of the guardian pause and the breaker."
   quotingHalted: Boolean!
+  "The bytes32 reason of the last halt (hex), its block timestamp and the number of halts so far."
+  haltReason: String
+  haltedAt: Int
+  haltCount: Int!
   breakerTrips: Int!
   lastSettledEpoch: Int
   settledEpochs: Int!
