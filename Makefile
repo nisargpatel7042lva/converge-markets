@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 check-7 lighthouse-7 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 check-7 check-8 lighthouse-7 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -34,7 +34,7 @@ check-0: check-all
 check-1: check-all
 	cd contracts && forge test --match-path "test/invariant/*" -vv
 	cd contracts && bash script/check-coverage.sh
-	cd contracts && forge snapshot --no-match-contract "MarketInvariants|VaultInvariants|VaultForkTest" --no-match-test testFuzz --check
+	cd contracts && forge snapshot --no-match-contract "MarketInvariants|VaultInvariants|PartnerCapInvariants|VaultForkTest" --no-match-test testFuzz --check
 	@test -f docs/security/phase-1-notes.md
 	@echo "check-1 OK"
 
@@ -122,3 +122,27 @@ check-7: check-all
 
 lighthouse-7:
 	cd apps/web && node scripts/lighthouse.mjs
+
+# Phase 8: liquidity as a service for other Monad apps (ADR-008). Everything in check-all (which
+# runs the partner unit, cap-enforcement and invariant suites, forge lint, slither, the SDK, keeper,
+# indexer and demo unit tests), plus: the coverage gate (vault, venue, registry, resolver >= 95 %),
+# the SDK ABI freshness and publishability (pack + plain-Node load), the keeper's anvil end-to-end
+# through the public SDK and the partner-demo journey (real contracts, real keeper), the indexer
+# config freshness, and the demo's build and "public SDK only" check. The testnet run is NOT part
+# of this target: it needs the funded deployment (docs/phases/PHASE-8-report.md).
+check-8: check-all
+	cd contracts && forge build
+	cd contracts && forge test --match-contract PartnerCapInvariants -vv
+	cd contracts && bash script/check-coverage-vault.sh
+	cd contracts && forge build
+	pnpm --filter @converge/sdk check:abi
+	pnpm --filter @converge/sdk check:pack
+	pnpm --filter @converge/indexer check:config
+	# one at a time: each starts its own anvil and keeper, and the keeper has a 4 s execution window
+	pnpm --filter @converge/keeper exec vitest run test/integration/partners.test.ts
+	pnpm --filter @converge/keeper exec vitest run test/integration/partner-demo-flow.test.ts
+	pnpm --filter partner-demo check:sdk-only
+	NEXT_PUBLIC_REGISTRY=0x0000000000000000000000000000000000000001 NEXT_PUBLIC_VAULT=0x0000000000000000000000000000000000000002 NEXT_PUBLIC_VENUE=0x0000000000000000000000000000000000000003 NEXT_PUBLIC_COLLATERAL=0x0000000000000000000000000000000000000004 pnpm --filter partner-demo build
+	@test -f docs/partners.md && test -f docs/adr/ADR-008-partner-liquidity.md && test -f docs/phases/PHASE-8-plan.md
+	@test -s docs/evidence/phase-8/anvil-demo.json
+	@echo "check-8 OK"

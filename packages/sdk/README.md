@@ -53,6 +53,9 @@ await converge.redeem(market);
 | `redeem(market)` | Burns the signer's UP and DOWN of a resolved market and pays out. |
 | `getPosition(market, account?)` | UP and DOWN balances and what `redeem` would pay. |
 | `subscribeFills({ market? }, onFill)` | Calls you for every fill. Returns the unsubscribe function. |
+| `getPartner(address?)` | Your cap, fee share, bond, fees owed, and whether you can create a market right now. |
+| `postBond(amount)` | Adds to your bond (approves the registry first). |
+| `withdrawFees(to?)` | Withdraws your share of the redeem fees. |
 
 Helpers: `parseStrike("3200.5")`, `assetIdFor("ETH/USD")`, `formatStrike(bigint)`, plus the lower-level transaction builders in `trade.ts` (`planBuy`, `placeOrderTx`, `redeemTx`, …) and the typed indexer client (`createIndexerClient`) if you want to build your own flow. ABIs for every contract are exported (`partnerRegistryAbi`, `convergeVaultAbi`, …).
 
@@ -60,7 +63,7 @@ Helpers: `parseStrike("3200.5")`, `assetIdFor("ETH/USD")`, `formatStrike(bigint)
 
 - **Forward-priced.** A trade is an order; about two seconds later a keeper executes it at the oracle report for that second. The price you show from `getQuotes` is an indication, and the **limit price** (the slippage you pass) is the guarantee. If the market moves past the limit the order simply does not fill and the escrow comes back.
 - **Prices** are numbers between 0 and 1 (1.00 is what a winning share pays). **Amounts** are collateral units as decimal strings; **shares** are the collateral's base units (6 decimals for USDC).
-- **Strike** is in the oracle's 18-decimal scale; pass a decimal string and the SDK scales it.
+- **Strike** is in the oracle's 18-decimal scale (only 18-decimal Data Streams can be onboarded); pass a decimal string and the SDK scales it.
 - **Settlement.** Up wins if the oracle price at the end is at or above the strike (a tie goes UP). If the oracle cannot produce the price, the market is invalid and every share pays 0.5.
 - **Exits.** Nothing in the partner programme can stop a holder from redeeming a resolved market or merging a pair.
 

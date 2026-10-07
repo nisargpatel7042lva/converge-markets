@@ -1,0 +1,145 @@
+:root {
+  --bg: #0e1116;
+  --card: #171b22;
+  --line: #2a313c;
+  --text: #e8ecf1;
+  --muted: #9aa5b4;
+  --yes: #2fbf71;
+  --no: #e5534b;
+  --accent: #7c5cff;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --line: #dde1e7;
+    --text: #12161c;
+    --muted: #596273;
+    --yes: #12804a;
+    --no: #b3261e;
+    --accent: #5b3fd6;
+    color-scheme: light;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    16px/1.5 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+h1 {
+  font-size: 1.25rem;
+  margin: 0 0 4px;
+}
+header p,
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.q {
+  font-size: 1.15rem;
+  font-weight: 650;
+  margin: 0 0 4px;
+}
+.bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--no);
+  overflow: hidden;
+  margin: 12px 0 4px;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--yes);
+}
+.row {
+  display: flex;
+  gap: 12px;
+}
+.row > * {
+  flex: 1;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-height: 44px;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button.side {
+  text-align: left;
+  display: block;
+}
+button.side strong {
+  font-size: 1.1rem;
+}
+button.side.yes {
+  border-color: var(--yes);
+}
+button.side.no {
+  border-color: var(--no);
+}
+button.side[aria-pressed="true"] {
+  outline: 2px solid var(--accent);
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  width: 100%;
+  margin-top: 12px;
+  font-weight: 650;
+}
+input {
+  font: inherit;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+}
+.err {
+  color: var(--no);
+  font-size: 0.9rem;
+}
+ul.fills {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

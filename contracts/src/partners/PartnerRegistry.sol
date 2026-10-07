@@ -281,8 +281,8 @@ contract PartnerRegistry is
             if (!a.enabled || !a.resolver.supportsAsset(assetId)) revert FeedNotEnabled(assetId);
             if (vault != address(0)) {
                 // Only the first field (enabled) matters here.
-                // forge-lint: disable-next-line(unused-return)
-                (bool vaultEnabled,,,,,) = IVaultAssets(vault).assetCfg(assetId);
+                // slither-disable-next-line unused-return
+                (bool vaultEnabled,,,,,) = IVaultAssets(vault).assetCfg(assetId); // forge-lint: disable-line(unused-return)
                 if (!vaultEnabled) revert FeedHasNoDepth(assetId);
             }
         }
@@ -481,6 +481,8 @@ contract PartnerRegistry is
         // function is nonReentrant.
         // forge-lint: disable-next-line(reentrancy-no-eth)
         ThresholdResolver(pin).initialize(a.resolver, strike, nowTs);
+        // Every field is assigned below (a struct literal hits stack-too-deep).
+        // slither-disable-next-line uninitialized-local
         Market.Params memory mp;
         mp.factory = address(this);
         mp.assetId = assetId;

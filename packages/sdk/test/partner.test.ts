@@ -197,8 +197,9 @@ const ladder = {
   fair: 5n * 10n ** 17n,
   halfSpread: 0n,
   skew: 0n,
-  bids: [{ price: 450_000_000_000_000_000n, size: 20_000_000n }],
-  asks: [{ price: 550_000_000_000_000_000n, size: 20_000_000n }],
+  // the contract's ladder sizes are WAD-scaled: 20e18 is 20 shares
+  bids: [{ price: 450_000_000_000_000_000n, size: 20n * 10n ** 18n }],
+  asks: [{ price: 550_000_000_000_000_000n, size: 20n * 10n ** 18n }],
 };
 
 const marketReads = (c: { address: Address; functionName: string }) => {
@@ -264,6 +265,9 @@ describe("client: reading", () => {
     expect(q.up.bid?.price).toBeCloseTo(0.45, 9);
     expect(q.down.ask?.price).toBeCloseTo(0.55, 9); // 1 - the UP bid
     expect(q.down.bid?.price).toBeCloseTo(0.45, 9); // 1 - the UP ask
+    // sizes come back in the collateral's base units (6 decimals): 20 shares
+    expect(q.up.ask?.size).toBe(20_000_000n);
+    expect(q.down.bid?.size).toBe(20_000_000n);
     expect(q.spot).toBe(3150);
     expect(q.at).toBe(1_800_000_000);
   });
@@ -512,6 +516,120 @@ describe("client: writing", () => {
       claimable: 7n,
     });
     await expect(c.getPosition(MARKET)).rejects.toMatchObject({ code: "NO_WALLET" });
+  });
+});
+
+describe("client: resolving", () => {
+  const reports = { reportAt: async () => "0xabcd" as Hex };
+  const reads = (state: () => number) => (c: { functionName: string }) => {
+    if (c.functionName === "state") return state();
+    if (c.functionName === "endTime") return 1_799_999_000n; // already ended at the stub's clock
+    if (c.functionName === "assetId") return keccak256(stringToHex("ETH/USD"));
+    if (c.functionName === "assetCfg") return [true, `0x${"11".repeat(32)}`, 0n, 0n, 0n, 0n];
+    return undefined;
+  };
+
+  it("treats a market resolved by someone else mid-call as success", async () => {
+    let state = 1;
+    const { pub, wallet, sent } = stub({ reads: reads(() => state) });
+    // the simulation passes, then the market is resolved by another account before ours mines
+    (pub as unknown as { waitForTransactionReceipt: unknown }).waitForTransactionReceipt =
+      async () => {
+        state = 2;
+        return { status: "reverted", logs: [], blockNumber: 1n };
+      };
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    expect(await c.resolve(MARKET, { reports })).toBe("RESOLVED_UP");
+    expect(sent).toHaveLength(1);
+  });
+
+  it("returns at once when the market already has an outcome", async () => {
+    const { pub, wallet, sent } = stub({ reads: reads(() => 3) });
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    expect(await c.resolve(MARKET, { reports })).toBe("RESOLVED_DOWN");
+    expect(sent).toHaveLength(0);
+  });
+
+  it("still raises a revert when the market is not resolved", async () => {
+    const { pub, wallet } = stub({ reads: reads(() => 1), callReverts: "PriceNotFinal" });
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    await expect(c.resolve(MARKET, { reports })).rejects.toThrow(/PriceNotFinal/);
+  });
+
+  it("fails clearly when there is no oracle report yet", async () => {
+    const { pub, wallet } = stub({ reads: reads(() => 1) });
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    await expect(
+      c.resolve(MARKET, { reports: { reportAt: async () => null } }),
+    ).rejects.toMatchObject({ code: "NO_REPORT" });
+  });
+});
+
+describe("client: partner account", () => {
+  const partnerReads = (c: { functionName: string }) => {
+    if (c.functionName === "partnerOf")
+      return {
+        approved: true,
+        suspended: false,
+        exposureCap: 40_000_000n,
+        feeShareBps: 3000,
+        bond: 100_000_000n,
+        pendingWithdrawal: 0n,
+        withdrawableAt: 0n,
+        lastMarketEnd: 0n,
+        marketsCreated: 2,
+      };
+    if (c.functionName === "minBond") return 10_000_000n;
+    if (c.functionName === "feesOwed") return 1_500_000n;
+    return undefined;
+  };
+
+  it("reads a partner's terms and whether it can create", async () => {
+    const { pub } = stub({ reads: partnerReads });
+    const c = createConvergeClient({ publicClient: pub, addresses: A });
+    expect(await c.getPartner(ME)).toEqual({
+      address: ME,
+      approved: true,
+      suspended: false,
+      exposureCap: 40_000_000n,
+      feeShareBps: 3000,
+      bond: 100_000_000n,
+      minBond: 10_000_000n,
+      feesOwed: 1_500_000n,
+      marketsCreated: 2,
+      canCreate: true,
+    });
+    await expect(c.getPartner()).rejects.toMatchObject({ code: "NO_WALLET" });
+    const below = stub({
+      reads: (x) => (x.functionName === "minBond" ? 200_000_000n : partnerReads(x)),
+    });
+    const c2 = createConvergeClient({ publicClient: below.pub, addresses: A });
+    expect((await c2.getPartner(ME)).canCreate).toBe(false);
+  });
+
+  it("posts a bond: approves the registry, then calls postBond", async () => {
+    const { pub, wallet, sent } = stub({ allowance: 0n });
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    await c.postBond("100");
+    expect(sent).toHaveLength(2);
+    expect(sent[0]!.to).toBe(A.collateral);
+    expect(decodeFunctionData({ abi: mockErc20Abi, data: sent[0]!.data }).args).toEqual([
+      A.registry,
+      100_000_000n,
+    ]);
+    expect(sent[1]!.to).toBe(A.registry);
+    const d = decodeFunctionData({ abi: partnerRegistryAbi, data: sent[1]!.data });
+    expect(d.functionName).toBe("postBond");
+    expect(d.args).toEqual([100_000_000n]);
+  });
+
+  it("withdraws fees to the signer by default", async () => {
+    const { pub, wallet, sent } = stub();
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    await c.withdrawFees();
+    const d = decodeFunctionData({ abi: partnerRegistryAbi, data: sent[0]!.data });
+    expect(d.functionName).toBe("withdrawFees");
+    expect(d.args).toEqual([ME]);
   });
 });
 

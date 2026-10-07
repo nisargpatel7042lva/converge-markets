@@ -240,3 +240,22 @@ The service in `services/keeper` holds one key (the keeper role above) and a tes
 | Kill switch abused | HTTP endpoint needs a bearer token (constant-time compare), is off without a token, binds to localhost by default | `test/unit/ops.test.ts` |
 | Test signer used on mainnet | `STREAMS_SOURCE=test-signer` is testnet only; mainnet verifier would reject it (real VerifierProxy rejects forged reports, fork test) | `VaultFork.t.sol` |
 | Process crash with open exposure | restart rebuilds state from the chain; halts first if checks fail | runbook |
+
+
+## 8. Partner markets (Phase 8, ADR-008)
+
+New actors: **partners** (approved third parties that create threshold markets), the **PartnerRegistry** (a second market factory the vault trusts, set once by the owner).
+
+| # | Threat | Mitigation | Test |
+|---|---|---|---|
+| P1 | A partner pulls more vault liquidity than its cap, by one big split, many small ones, many markets, or a hostile keeper asking for any amount | The vault recomputes the partner's exposure from its own position table on every `splitForInventory` and reverts above `min(partner cap)`, the global cap, and `maxPartnerFraction` of NAV | `VaultPartners.t.sol` (single market, sum over markets, 40 small splits, per partner, global, fraction), `PartnerCapInvariants.t.sol` (256 runs x 100 calls) |
+| P2 | Partner markets crowd the core rounds out of the 16 registry slots | `MAX_PARTNER_MARKETS = 6`, and the keeper lets core markets take liquidity first | `test_partnerSlots_*`, `test_partnerMarketsCannotCrowdOutTheCoreRounds`, planner test |
+| P3 | A malicious or buggy registry reports a huge cap | The vault's own `maxPartnerFraction` (hard ceiling 30 % of NAV in the code) applies on top; the registry can be set only once, by the owner | `test_globalCap_vaultFractionAppliesEvenIfTheRegistryIsGenerous` |
+| P4 | A market that is not from the registry (or core factory) is allocated to | `_checkMarket` accepts only core-factory markets or `registry.limits(m).exists` | `test_unknownMarketIsRejected`, `test_partnerMarketNeedsTheRegistryToBeSet` |
+| P5 | A partner picks a misleading strike or feed | Feeds are owner-onboarded and allowlisted per partner; the bond is slashable; the owner can void a market (the vault stops quoting) | registry tests (`slash`, `voidMarket`), `test_voidedMarket_*`, `test_bondBelowMinimumDeactivates` |
+| P6 | A partner withdraws its bond before its markets can be judged | Withdrawal waits 7 days and until 24 hours after the last market ends; a pending withdrawal is still slashable; blocked while suspended | `test_bond_*`, `test_slash_takesTheBondFirstThenThePendingWithdrawal` |
+| P7 | The strike override changes how the end price is decided | `ThresholdResolver` answers only the start boundary; the end boundary is the base resolver's (same canonical report, finalization window and INVALID path) | `test_pin_*`, `test_resolve_*` |
+| P8 | Governance abuse: the owner voids or suspends to trap users | Void and suspend only stop the vault from adding or quoting; `merge` and `redeem` are never gated | `test_create_pauseBlocksCreationAndSplitButNotMergeOrRedeem`, `test_suspendedPartner_*` (merge works) |
+| P9 | Spam: many markets from one partner overloading the keeper and the registry | 8 live markets per partner, 64 partners, creation costs gas and a bond | `test_create_liveSlotsAreBoundedAndEndedMarketsFreeThem` |
+
+Residual risks are in docs/partners.md section 6 (absurd strikes, oracle outage, locked liquidity, single owner, mock oracle on testnet, 18-decimal streams only).

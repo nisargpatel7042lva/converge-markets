@@ -199,6 +199,26 @@ export interface Fill {
   source: "indexer" | "chain";
 }
 
+/** A partner's standing in the PartnerRegistry. */
+export interface PartnerView {
+  address: Address;
+  /** The owner approved it. */
+  approved: boolean;
+  suspended: boolean;
+  /** Most collateral the vault may have split into this partner's markets (base units). */
+  exposureCap: bigint;
+  /** Share of the redeem fee paid to the partner, in basis points. */
+  feeShareBps: number;
+  /** The active bond (base units); creating markets needs at least `minBond`. */
+  bond: bigint;
+  minBond: bigint;
+  /** Fees credited and not yet withdrawn (base units). */
+  feesOwed: bigint;
+  marketsCreated: number;
+  /** The partner can create a market right now. */
+  canCreate: boolean;
+}
+
 export interface Position {
   market: Address;
   /** UP and DOWN balances (collateral base units). */
@@ -278,7 +298,10 @@ function toSeconds(t: Date | number): number {
   return s;
 }
 
-/** The best price a seller of `side` gets, from the UP ladder (DOWN is the mirror of UP). */
+/**
+ * The best price a seller of `side` gets, from the UP ladder (DOWN is the mirror of UP). Sizes are
+ * returned as the contract has them, WAD-scaled; `getQuotes` converts them to base units.
+ */
 export function bidFromLadder(
   side: Side,
   q: {
@@ -306,14 +329,15 @@ export function floorFor(priceWad: bigint, slippageBps: number): bigint {
   return f < min ? min : f > priceWad ? priceWad : f;
 }
 
-const level = (
-  l: { price: bigint; size: bigint } | null | { priceWad: bigint; sizeShares: bigint },
-) =>
+/**
+ * The venue's ladder sizes are WAD-scaled token amounts (1e18 = one share); the API reports shares
+ * in the collateral's base units (6 decimals), like every other amount here.
+ */
+const SIZE_SCALE = 10n ** 12n;
+const level = (l: { priceWad: bigint; sizeShares: bigint } | null) =>
   l === null
     ? null
-    : "priceWad" in l
-      ? { price: Number(l.priceWad) / 1e18, priceWad: l.priceWad, size: l.sizeShares }
-      : { price: Number(l.price) / 1e18, priceWad: l.price, size: l.size };
+    : { price: Number(l.priceWad) / 1e18, priceWad: l.priceWad, size: l.sizeShares / SIZE_SCALE };
 
 // ------------------------------------------------------------------ client
 
@@ -407,6 +431,19 @@ export interface ConvergeClient {
 
   /** UP and DOWN balances of `account` (default: the signer) and what `redeem` would pay. */
   getPosition(market: Address, account?: Address): Promise<Position>;
+
+  /** A partner's terms and standing (default: the signer). */
+  getPartner(partner?: Address): Promise<PartnerView>;
+
+  /**
+   * Adds `amount` collateral ("100" = 100 USDC) to the signer's bond, approving the registry first
+   * if needed. The signer must be an approved partner. The bond is what the owner can slash for
+   * invalid markets.
+   */
+  postBond(amount: string | number): Promise<Hex>;
+
+  /** Withdraws the partner's share of the redeem fees to `to` (default: the signer). */
+  withdrawFees(to?: Address): Promise<Hex>;
 
   /**
    * Calls `onFill` for every fill in `market` (or in every market if omitted) from now on, as seen
@@ -779,7 +816,15 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
         data: encodeFunctionData({ abi: marketAbi, functionName: "resolve", args: [evidence] }),
       });
       // first call submits the report; once the oracle's window passes a second call finalizes
-      await sendChecked(resolveData(report));
+      try {
+        await sendChecked(resolveData(report));
+      } catch (e) {
+        // someone else (the vault's keeper, another user) may have resolved it between our read
+        // and our transaction: that is a success, not an error
+        cur = await read();
+        if (cur.state !== "OPEN") return cur.state;
+        throw e;
+      }
       for (;;) {
         cur = await read();
         if (cur.state !== "OPEN") return cur.state;
@@ -812,6 +857,71 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
         { address: market, abi: marketAbi, functionName: "claimable", args: [holder] },
       ]);
       return { market, up, down, claimable };
+    },
+
+    async getPartner(who) {
+      const partner = who ?? account;
+      if (!partner) throw new ConvergeError("no account to read", "NO_WALLET");
+      const [p, minBond, feesOwed] = await batch<
+        readonly [
+          {
+            approved: boolean;
+            suspended: boolean;
+            exposureCap: bigint;
+            feeShareBps: number;
+            bond: bigint;
+            marketsCreated: number;
+          },
+          bigint,
+          bigint,
+        ]
+      >([
+        {
+          address: A.registry,
+          abi: partnerRegistryAbi,
+          functionName: "partnerOf",
+          args: [partner],
+        },
+        { address: A.registry, abi: partnerRegistryAbi, functionName: "minBond" },
+        { address: A.registry, abi: partnerRegistryAbi, functionName: "feesOwed", args: [partner] },
+      ]);
+      return {
+        address: partner,
+        approved: p.approved,
+        suspended: p.suspended,
+        exposureCap: p.exposureCap,
+        feeShareBps: Number(p.feeShareBps),
+        bond: p.bond,
+        minBond,
+        feesOwed,
+        marketsCreated: Number(p.marketsCreated),
+        canCreate: p.approved && !p.suspended && p.bond >= minBond,
+      };
+    },
+
+    async postBond(amount) {
+      const n = parseUnits6(amount);
+      need();
+      if (!(await allowanceOk(A.collateral, A.registry, n))) {
+        await send(approveTx(A.collateral, A.registry, n));
+      }
+      const data = encodeFunctionData({
+        abi: partnerRegistryAbi,
+        functionName: "postBond",
+        args: [n],
+      });
+      return (await sendChecked({ to: A.registry, data })).hash;
+    },
+
+    async withdrawFees(to) {
+      const dest = to ?? account;
+      if (!dest) throw new ConvergeError("no account to pay", "NO_WALLET");
+      const data = encodeFunctionData({
+        abi: partnerRegistryAbi,
+        functionName: "withdrawFees",
+        args: [dest],
+      });
+      return (await sendChecked({ to: A.registry, data })).hash;
     },
 
     subscribeFills(opts, onFill) {

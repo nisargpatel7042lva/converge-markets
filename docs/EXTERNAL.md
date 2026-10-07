@@ -209,3 +209,17 @@ All Envio facts below were read from the v3 docs pages on 2026-10-06 (raw `.md` 
 | Monad billing | gas **limit** is billed, not gas used (receipts report the limit as `gasUsed` for the keeper's transactions); the keeper uses estimate x 1.15 | receipts in `docs/evidence/phase-5/costs.jsonl` | 2026-10-06 | VERIFIED (observed) |
 | `prom-client` 15.1.3, `pino` 9.x, `ws` 8.x, `viem` 2.54.x | keeper runtime dependencies | npm | 2026-10-06 | VERIFIED |
 | Prometheus `prom/prometheus:v2.55.1`, Grafana `grafana/grafana:11.3.0` | compose images; the stack was started once, the Grafana API listed the provisioned dashboard and Prometheus showed the keeper target `up` | Docker Hub, local run | 2026-10-06 | VERIFIED (run) |
+
+
+## Phase 8 additions (liquidity as a service)
+
+| Item | Value | Source | Verified | Status |
+|---|---|---|---|---|
+| Data Streams v3 price scale | `price`, `bid`, `ask` are `int192` "carried to either 8 or 18 decimal places, depending on the stream" (the benchmark price of crypto streams is 18). The vault and markets assume 18; the partner template can only onboard 18-decimal streams | https://docs.chain.link/data-streams/reference/report-schema-v3 (field list), https://docs.chain.link/data-streams/streams-trade/interfaces (decimals) | 2026-10-07 | VERIFIED (docs); per-feed scale must be checked at onboarding |
+| viem Monad testnet chain | `monadTestnet` in `viem/chains` (viem 2.57.2): id 10143, RPC https://testnet-rpc.monad.xyz, Multicall3 `0xcA11bde05977b3631167028862bE2a173976CA11` | `node -e "import('viem/chains')"` | 2026-10-07 | VERIFIED (run) |
+| Monad testnet gas price | `eth_gasPrice` 102 gwei (`cast gas-price`); Monad bills the gas limit | live RPC, `docs/evidence/phase-5/costs.md` | 2026-10-07 | VERIFIED |
+| Phase 8 deployment cost | `forge script DeployPartners` simulated against testnet: **21,158,104 gas** for vault v4 + venue + registry + setup (about 2.16 MON at 102 gwei billed on the limit; forge prints 4.30 MON because it prices at its 203 gwei max fee) | `DRY_RUN=1 bash contracts/script/deploy-partners.sh` | 2026-10-07 | VERIFIED (simulation; nothing sent) |
+| Testnet faucet | https://faucet.monad.xyz is web-only (HTTP 429 to curl), so funding the 2.2+ MON for the deployment cannot be scripted | docs/EXTERNAL.md Monad table | 2026-10-04 | VERIFIED; deployer holds 0.26 MON on 2026-10-07 => testnet deployment **BLOCKED** |
+| `tsup` 8.5.1 | builds the published SDK (ESM + d.ts); `pnpm pack` applies `publishConfig` (main/types/exports) | npm, `packages/sdk/scripts/check-pack.mjs` | 2026-10-07 | VERIFIED (run) |
+| Next.js 16.4.0, React 19.3.0 | same versions as apps/web; `next build` of examples/partner-demo succeeds | apps/web/package.json, local build | 2026-10-07 | VERIFIED (run) |
+| Node `process.loadEnvFile` | used by the demo CLIs to read `.env` without printing it (Node 24.10 here, engines >=22.13) | Node docs | 2026-10-07 | VERIFIED (run) |
