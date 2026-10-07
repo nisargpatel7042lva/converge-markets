@@ -1,0 +1,14 @@
+{
+  "note": "Wall-clock milliseconds from page.goto('/') on a 375x812 mobile profile. Chain: local anvil with 0.4 s blocks, real contracts, real keeper. Includes creating the passkey account (Chromium virtual authenticator with PRF), the in-app faucet, the approval and the order, and the keeper's execution.",
+  "steps": {
+    "landing": 242,
+    "accountCreated": 515,
+    "funded": 1697,
+    "marketReady": 1933,
+    "confirmed": 2245,
+    "tradeFilled": 6088
+  },
+  "totalMs": 6088,
+  "thresholdMs": 60000,
+  "pass": true
+}

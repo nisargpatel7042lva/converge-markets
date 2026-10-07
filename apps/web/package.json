@@ -4,7 +4,41 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.e2e.json --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "icons": "node scripts/make-icons.mjs",
+    "gen:deployment": "node scripts/gen-deployment.mjs",
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "check:deps": "node scripts/check-deps.mjs"
+  },
+  "dependencies": {
+    "@category-labs/mera": "0.2.0",
+    "@converge/sdk": "workspace:*",
+    "@converge/strategy": "workspace:*",
+    "@scure/bip32": "1.7.0",
+    "@scure/bip39": "1.6.0",
+    "@tanstack/react-query": "^5.104.1",
+    "next": "16.4.0",
+    "qrcode.react": "^4.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "viem": "^2.57.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@resvg/resvg-js": "2.6.2",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "lighthouse": "^13.5.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.9.3",
+    "vitest": "2.1.9"
   }
 }

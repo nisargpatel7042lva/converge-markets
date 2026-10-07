@@ -1,0 +1,10 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/faucet/route.js")
+R.c("server/chunks/[root-of-the-server]__0vwz7vu964e8k._.js")
+R.c("server/chunks/_135jk0xkujtt6._.js")
+R.c("server/chunks/1o_3_@noble_hashes_esm_1th7ltsp4p65b._.js")
+R.c("server/chunks/node_modules__pnpm_1-goy_-sob-81._.js")
+R.c("server/chunks/[root-of-the-server]__0007smw_fh63d._.js")
+R.c("server/chunks/0xuy_@noble_curves_esm_secp256k1_0ft39-_e0r79q.js")
+R.c("server/chunks/apps_web__next-internal_server_app_api_faucet_route_actions_0jr0copd03534.js")
+R.m(10138)
+module.exports=R.m(10138).exports

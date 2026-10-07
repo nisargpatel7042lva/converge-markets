@@ -1,0 +1,36 @@
+1:"$Sreact.fragment"
+2:"/_next/static/chunks/40y8w90aeb-ho.js"
+3:"/_next/static/chunks/2rvqo9wsitqd3.js"
+4:"/_next/static/chunks/1lgqt16gyjd6i.js"
+5:"/_next/static/chunks/10j-s99awt603.js"
+6:"/_next/static/chunks/17xcllku-jclt.js"
+7:"/_next/static/chunks/0bwc9w4_l_zmt.js"
+8:"/_next/static/chunks/1-vos4-edmxb9.js"
+9:I[87329,["$2","$3","$4","$5","$6","$7","$8"],"Providers"]
+a:I[66634,["$2","$3","$4","$5","$6","$7","$8"],"default"]
+b:I[7197,["$2","$3","$4","$5","$6","$7","$8"],"default"]
+12:"/_next/static/chunks/3l0rap3iu3n79.js"
+13:I[51529,["$2","$3","$4","$5","$6","$7","$8","$12"],"Logo"]
+14:I[23603,["$2","$3","$4","$5","$6","$7","$8"],"OutletBoundary"]
+15:"$Sreact.suspense"
+18:"ViewportBoundary"
+19:I[23603,["$2","$3","$4","$5","$6","$7","$8"],"$18"]
+1a:"MetadataBoundary"
+1b:I[23603,["$2","$3","$4","$5","$6","$7","$8"],"$1a"]
+1c:I[14755,["$2","$3","$4","$5","$6","$7","$8"],"IconMark"]
+:HL["/_next/static/chunks/0fevsj_2bmkxk.css","style"]
+d:X
+10:X
+10:C
+11:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$1","c",{"children":[["$","div",null,{"className":"mx-auto flex min-h-dvh w-full max-w-md flex-col px-6 py-10","children":[["$","$L13",null,{"className":"text-lg"}],["$","main",null,{"id":"main","className":"flex flex-1 flex-col justify-center gap-4","children":[["$","h1",null,{"className":"text-3xl font-bold tracking-tight","children":"Converge isn't available in your region"}],["$","p",null,{"className":"text-base leading-relaxed text-muted","children":"Prediction and trading products are restricted or prohibited in some countries, and we have to follow those rules. We detected that your connection comes from a region where we can't offer Converge, so the app is closed to you."}],["$","p",null,{"className":"text-sm leading-relaxed text-muted","children":"If you think this is a mistake (for example you are on a corporate network or travelling), try again from your usual connection. Using a VPN to get around this block is against our terms."}],["$","p",null,{"className":"text-xs text-faint","children":"Your funds are never held by us: if you already have an account, your money stays in your own wallet and the contracts keep working."}]]}]]}],[["$","script","script-0",{"src":"/_next/static/chunks/3l0rap3iu3n79.js","async":true}]],["$","$L14",null,{"children":["$","$15",null,{"name":"Next.MetadataOutlet","children":"$@16"}]}]]}],"p":"$@17","v":null,"s":"$d"}}]]
+e:[["children",{"s":"blocked","h":96,"d":{"r":["$","$1","c",{"children":[null,["$","$La",null,{"parallelRouterKey":"children","template":["$","$Lb",null,{}]}]]}],"p":"$@f","v":"$10","s":"$d"},"c":"$Q11"}]]
+0:{"t":{"t":{"s":"","h":80,"d":{"r":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/0fevsj_2bmkxk.css","precedence":"next"}],["$","script","script-0",{"src":"/_next/static/chunks/40y8w90aeb-ho.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/2rvqo9wsitqd3.js","async":true}],["$","script","script-2",{"src":"/_next/static/chunks/1lgqt16gyjd6i.js","async":true}],["$","script","script-3",{"src":"/_next/static/chunks/10j-s99awt603.js","async":true}],["$","script","script-4",{"src":"/_next/static/chunks/17xcllku-jclt.js","async":true}],["$","script","script-5",{"src":"/_next/static/chunks/0bwc9w4_l_zmt.js","async":true}],["$","script","script-6",{"src":"/_next/static/chunks/1-vos4-edmxb9.js","async":true}]],["$","html",null,{"lang":"en","children":["$","body",null,{"children":[["$","a",null,{"href":"#main","className":"sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded-lg focus:bg-brand focus:px-3 focus:py-2 focus:text-[#0b0820]","children":"Skip to content"}],["$","$L9",null,{"children":["$","$La",null,{"parallelRouterKey":"children","template":["$","$Lb",null,{}],"notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]]}]}]]}]}]]}],"p":"$@c","v":null,"s":"$d"},"c":"$Qe"},"h":{"r":["$","$1","h",{"children":[null,["$","$L19",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1, viewport-fit=cover"}],["$","meta","2",{"name":"theme-color","content":"#0a0e14"}]]}],["$","$L1b",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$15",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Not available in your region · Converge"}],["$","meta","1",{"name":"description","content":"Call the next 15 minutes of BTC, ETH and MON. Start with Face ID, no seed phrase, no extension. Liquidity providers earn from the spread."}],["$","meta","2",{"name":"application-name","content":"Converge"}],["$","link","3",{"rel":"manifest","href":"/manifest.webmanifest"}],["$","meta","4",{"name":"mobile-web-app-capable","content":"yes"}],["$","meta","5",{"name":"apple-mobile-web-app-title","content":"Converge"}],["$","meta","6",{"name":"apple-mobile-web-app-status-bar-style","content":"black-translucent"}],["$","meta","7",{"property":"og:title","content":"Converge"}],["$","meta","8",{"property":"og:description","content":"Bet UP or DOWN on 15-minute rounds. Start with Face ID."}],["$","meta","9",{"property":"og:type","content":"website"}],["$","meta","10",{"name":"twitter:card","content":"summary"}],["$","meta","11",{"name":"twitter:title","content":"Converge"}],["$","meta","12",{"name":"twitter:description","content":"Bet UP or DOWN on 15-minute rounds. Start with Face ID."}],["$","link","13",{"rel":"icon","href":"/icons/icon.svg","type":"image/svg+xml"}],["$","link","14",{"rel":"icon","href":"/icons/icon-192.png","sizes":"192x192","type":"image/png"}],["$","link","15",{"rel":"apple-touch-icon","href":"/icons/apple-touch-icon.png"}],["$","$L1c","16",{}]]}]}],null]}],null]}],"p":"$@1d","v":null,"s":"$d"}},"a":"$@1e","u":"$@1f","b":"a-ZA4ldjs1jrvpUs2gehH"}
+16:null
+d:300
+1f:true
+d:C
+1e:0
+f:"$undefined"
+c:"$undefined"
+1d:"$undefined"
+17:"$undefined"

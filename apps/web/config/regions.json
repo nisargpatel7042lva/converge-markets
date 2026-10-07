@@ -1,0 +1,12 @@
+{
+  "_comment": "DECISION NEEDED (Nisarg): the list of restricted jurisdictions. ISO 3166-1 alpha-2 codes, matched against the country the edge network reports for the request (Vercel: x-vercel-ip-country; Cloudflare: cf-ipcountry). India is blocked by default per the brief. The OFAC comprehensively sanctioned countries are included as a conservative default. The United States is NOT in the default list: prediction markets are restricted there (CFTC) and blocking it is a legal decision, flagged for counsel; set it in `restricted` to enforce it.",
+  "restricted": ["IN", "CU", "IR", "KP", "SY"],
+  "restrictedSubdivisions": {
+    "_comment": "ISO 3166-2 subdivisions, e.g. Crimea UA-43, Donetsk UA-14, Luhansk UA-09 (OFAC). Matched against x-vercel-ip-country-region (the part after the dash).",
+    "UA": ["43", "14", "09"]
+  },
+  "decisionsNeeded": [
+    "Confirm or change the list above with counsel (US, UK, Singapore, France, Australia and others restrict prediction markets or derivatives).",
+    "Decide whether judges and reviewers get a bypass link while the product is in a legal grey zone."
+  ]
+}

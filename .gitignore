@@ -35,3 +35,6 @@ scripts/keeper-live/.taker-key
 docs/evidence/phase-5/kill.token
 ops/alertmanager/webhook_url
 .claude/
+apps/web/e2e-results/
+apps/web/.next-e2e/
+apps/web/.next/

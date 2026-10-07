@@ -21,3 +21,7 @@ docs/evidence/phase-6/**/*.json
 indexer/src/lib/deployment-defaults.ts
 
 .claude/
+apps/web/public/
+apps/web/.next-e2e/
+apps/web/e2e-results/
+docs/evidence/phase-7/*.json

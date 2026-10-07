@@ -1,0 +1,458 @@
+{
+  "config": {
+    "argv": [
+      "/home/mysterioxplorer/.nvm/versions/node/v24.10.0/bin/node",
+      "/home/mysterioxplorer/converge/apps/web/node_modules/@playwright/test/cli.js",
+      "test"
+    ],
+    "configFile": "/home/mysterioxplorer/converge/apps/web/playwright.config.ts",
+    "rootDir": "/home/mysterioxplorer/converge/apps/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/home/mysterioxplorer/converge/apps/web/e2e/global-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/mysterioxplorer/converge/apps/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "e2e-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "first-trade.spec.ts",
+      "file": "first-trade.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "landing to a confirmed first trade in under 60 seconds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "timing",
+                  "description": "{\"landing\":242,\"accountCreated\":515,\"funded\":1697,\"marketReady\":1933,\"confirmed\":2245,\"tradeFilled\":6088}"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6467,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T11:04:54.711Z",
+                  "annotations": [
+                    {
+                      "type": "timing",
+                      "description": "{\"landing\":242,\"accountCreated\":515,\"funded\":1697,\"marketReady\":1933,\"confirmed\":2245,\"tradeFilled\":6088}"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts/first-trade-landing-to-a-c-c8ff1-t-trade-in-under-60-seconds/video.webm"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "700791214431e6aba2ff-ec65b1922fc6d8754af9",
+          "file": "first-trade.spec.ts",
+          "line": 8,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "flows.spec.ts",
+      "file": "flows.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "static pages and the edge",
+          "file": "flows.spec.ts",
+          "line": 34,
+          "column": 6,
+          "specs": [
+            {
+              "title": "landing, legal, stats and the PWA files load with no console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 693,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-07T11:05:01.601Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts/flows-static-pages-and-the-27bfd-load-with-no-console-errors/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "86d6a544053f1eb9f224-40c27022e98ff8c70c1f",
+              "file": "flows.spec.ts",
+              "line": 35,
+              "column": 3
+            },
+            {
+              "title": "a restricted region gets the explanation page (HTTP 451) for pages and the API",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 525,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-07T11:05:02.304Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "86d6a544053f1eb9f224-bc04c7481cd0328c6b69",
+              "file": "flows.spec.ts",
+              "line": 60,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "account",
+          "file": "flows.spec.ts",
+          "line": 88,
+          "column": 6,
+          "specs": [
+            {
+              "title": "restoring with no passkey explains what to do; creating works; the recovery phrase is shown after a prompt",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 698,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-07T11:05:02.838Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts/flows-account-restoring-wi-3d313-ase-is-shown-after-a-prompt/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "86d6a544053f1eb9f224-97ebbd2ed598e745f540",
+              "file": "flows.spec.ts",
+              "line": 89,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "trading states",
+          "file": "flows.spec.ts",
+          "line": 115,
+          "column": 6,
+          "specs": [
+            {
+              "title": "no money: the trade sheet sends you to add money instead of failing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 775,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-07T11:05:03.544Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts/flows-trading-states-no-mo-932ae-dd-money-instead-of-failing/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "86d6a544053f1eb9f224-ebb784647d8fe703a126",
+              "file": "flows.spec.ts",
+              "line": 116,
+              "column": 3
+            },
+            {
+              "title": "a paused market shows a calm paused state and comes back",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8495,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-07T11:05:04.326Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts/flows-trading-states-a-pau-55877-paused-state-and-comes-back/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "86d6a544053f1eb9f224-26612574e7d7ec35a7ff",
+              "file": "flows.spec.ts",
+              "line": 131,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "vault",
+          "file": "flows.spec.ts",
+          "line": 180,
+          "column": 6,
+          "specs": [
+            {
+              "title": "an LP can read the risk text, must tick the box, and requests a deposit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2770,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-07T11:05:12.831Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts/flows-vault-an-LP-can-read-c51ff--box-and-requests-a-deposit/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "86d6a544053f1eb9f224-4663d92c642a2a71ce97",
+              "file": "flows.spec.ts",
+              "line": 181,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "settlement",
+          "file": "flows.spec.ts",
+          "line": 203,
+          "column": 6,
+          "specs": [
+            {
+              "title": "a winning bet is collected in one tap after the round resolves",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14735,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-07T11:05:15.609Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/mysterioxplorer/converge/apps/web/e2e-results/artifacts/flows-settlement-a-winning-d5fce-ap-after-the-round-resolves/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "86d6a544053f1eb9f224-1a9cbed7866fb5f56c06",
+              "file": "flows.spec.ts",
+              "line": 204,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-07T11:04:34.994Z",
+    "duration": 55497.085,
+    "expected": 8,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

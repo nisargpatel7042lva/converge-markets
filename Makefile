@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 check-7 lighthouse-7 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -108,3 +108,17 @@ check-5: check-all
 	@test -f docs/adr/ADR-006-keeper.md && test -f docs/ops/keeper-runbook.md
 	@test -f services/keeper/Dockerfile && test -f docker-compose.yml
 	@echo "check-5 OK"
+
+# Phase 7: the app. The e2e run needs anvil (foundry), Chromium (`pnpm exec playwright install chromium`)
+# and its system libraries; it builds the app against a local chain with the real contracts and keeper.
+check-7: check-all
+	cd contracts && forge build
+	pnpm --filter @converge/web typecheck
+	pnpm --filter @converge/web test
+	pnpm --filter @converge/web check:deps
+	cd apps/web && pnpm exec playwright test
+	@test -s docs/evidence/phase-7/first-trade-timing.json && test -f docs/adr/ADR-007-gas-and-onboarding.md && test -f apps/web/config/regions.json
+	@echo "check-7 OK"
+
+lighthouse-7:
+	cd apps/web && node scripts/lighthouse.mjs

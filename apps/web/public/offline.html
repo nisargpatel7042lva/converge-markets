@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0e14" />
+    <title>Offline · Converge</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        background: #0a0e14;
+        color: #eef2f8;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        text-align: center;
+        padding: 24px;
+      }
+      main {
+        max-width: 320px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 8px;
+      }
+      p {
+        color: #a3b0c4;
+        line-height: 1.5;
+        margin: 0 0 20px;
+      }
+      button {
+        min-height: 48px;
+        padding: 0 24px;
+        border: 0;
+        border-radius: 16px;
+        background: #8b7bff;
+        color: #0b0820;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>You're offline</h1>
+      <p>
+        Converge needs a connection to show live prices and place bets. Your account and your money
+        are safe; they live on your device and on the blockchain.
+      </p>
+      <button onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

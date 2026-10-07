@@ -1,0 +1,21 @@
+{
+  "bar": {
+    "performance": 90,
+    "accessibility": 95,
+    "bestPractices": 95
+  },
+  "pass": true,
+  "formFactor": "mobile",
+  "throttling": "lighthouse default (simulated)",
+  "results": [
+    {
+      "page": "/markets",
+      "performance": 95,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "lcpMs": 2894,
+      "tbtMs": 67,
+      "cls": 0
+    }
+  ]
+}
