@@ -1,6 +1,6 @@
 # Phase 5 report: the keeper
 
-**Status: COMPLETE WITH CAVEATS (acceptance criteria 2 and 3 are not met as written).** The keeper is built, tested (105 keeper tests, 3 rounds of hostile review, no open CRITICAL or HIGH finding) and was run against Monad testnet, but the 2 hour live run did not happen (testnet MON ran out after about 30 minutes of running) and the two latency targets (pull-all within 2 blocks, p95 quote age within 2 blocks) are met on anvil and **not** on Monad testnet, where a transaction takes 0.5 to 1.5 s to be included.
+**Status: COMPLETE WITH CAVEATS (acceptance criteria 2 and 3 are not met as written).** The keeper is built, tested (106 keeper tests, 3 rounds of hostile review, no open CRITICAL or HIGH finding) and was run against Monad testnet, but the 2 hour live run did not happen (testnet MON ran out after about 30 minutes of running) and the two latency targets (pull-all within 2 blocks, p95 quote age within 2 blocks) are met on anvil and **not** on Monad testnet, where a transaction takes 0.5 to 1.5 s to be included.
 
 ## What was built
 
@@ -21,7 +21,7 @@
 ```bash
 export PATH=$HOME/.foundry/bin:$PATH
 make check-5                     # check-all, forge build, keeper unit + integration + chaos, files present
-pnpm --filter @converge/keeper test            # 90 unit tests
+pnpm --filter @converge/keeper test            # 91 unit tests
 pnpm --filter @converge/keeper test:integration  # 6 (anvil, real contracts)
 pnpm --filter @converge/keeper test:chaos        # 9 (RPC kill, stale feed, 2 % jump, divergence, flood, restart/kill, halt retry, wallet reserve, 150 ms RTT)
 docker run --rm --entrypoint promtool -v $PWD/ops/prometheus:/p:ro prom/prometheus:v2.55.1 check rules /p/alerts.yml
@@ -32,7 +32,7 @@ cat docs/evidence/phase-5/README.md docs/evidence/phase-5/costs.md
 
 | # | Criterion | Result | Evidence |
 |---|---|---|---|
-| 1 | `make check-5` passes (unit, integration, chaos) | CHECK_5_RESULT | `docs/evidence/phase-5/check-5.txt` |
+| 1 | `make check-5` passes (unit, integration, chaos) | **PASS** (`make check-5` OK: check-all, 91 unit, 6 integration, 9 chaos) | `docs/evidence/phase-5/check-5.txt` |
 | 2 | Testnet run of at least 2 h in live mode: every eligible market quoted, 0 crossed or out-of-bounds quotes, p95 quote age <= 2 blocks, metrics exports in `docs/evidence/phase-5/` | **FAIL / not completed.** About 31 minutes of live running over two runs (28 min + 3 min), then MON ran out. In those: every eligible market was tradable in 94.3 % of the samples (the rest: start-up and one pull-all), 0 violations, 3 orders executed. Quote age was 9, 10 and 6 blocks (n = 3): **not <= 2**, the floor on Monad testnet is about 3 blocks (inclusion about 1.1 s) | `run-a-oldcode/run-summary.md`, `run-b-final-code/keeper.log`, `README.md` |
 | 3 | Injected price shock on testnet leads to pull-all within <= 2 blocks, logs with block numbers | **PARTIAL.** Anvil: PASS (chaos tests, within 2 blocks, also with 150 ms RTT added). Testnet: shock 2026-10-06 15:49:38.837 UTC, detected +0.11 s, `haltQuoting` mined at block 68724942, **4 blocks (0.88 s) after detection, 1.0 s from the shock**: not <= 2 | `README.md` table, `run-b-final-code/keeper.log`, `costs.jsonl` |
 | 4 | Cost per re-quote and per day recorded in `costs.md` | **PASS** (checkpoint, resolve and redeem per round not measured, stated) | `docs/evidence/phase-5/costs.md` |
@@ -41,7 +41,7 @@ cat docs/evidence/phase-5/README.md docs/evidence/phase-5/costs.md
 
 ## Test summary
 
-- Keeper: **90 unit** (planner diff, risk triggers, source health, nonce manager, tx manager incl. stuck-nonce wedge, cancellation, halt supersede, kill switch, server, alerts, cost ledger, WebSocket reconnect, block fallback, rate limiter), **6 integration** (anvil with the Phase 4 contracts: quotes track fair value, fills accounted on chain, dry-run and paper send nothing), **9 chaos** (anvil, 0.4 s blocks: RPC endpoint dies and all endpoints die, stale feed, source divergence and Chainlink mismatch, 2 % jump in one tick, flood of fills, HTTP kill across a restart, restart without price does not unhalt, reverting halt backs off, wallet reserve, pull within 2 blocks with 150 ms RTT).
+- Keeper: **91 unit** (planner diff, risk triggers, source health, nonce manager, tx manager incl. stuck-nonce wedge, cancellation, halt supersede, kill switch, server, alerts, cost ledger, WebSocket reconnect, block fallback, rate limiter), **6 integration** (anvil with the Phase 4 contracts: quotes track fair value, fills accounted on chain, dry-run and paper send nothing), **9 chaos** (anvil, 0.4 s blocks: RPC endpoint dies and all endpoints die, stale feed, source divergence and Chainlink mismatch, 2 % jump in one tick, flood of fills, HTTP kill across a restart, restart without price does not unhalt, reverting halt backs off, wallet reserve, pull within 2 blocks with 150 ms RTT).
 - The rest of the repo: contracts, strategy (102), sdk (29), backtest (45), scheduler (7): unchanged and green under `make check-all`.
 - Static analysis: eslint, prettier, tsc strict on every package; `promtool check rules/config`, `amtool check-config`, `docker compose config`.
 - No coverage gate for the keeper (the safety-critical modules are covered by the chaos tests; a line-coverage figure was not measured).
