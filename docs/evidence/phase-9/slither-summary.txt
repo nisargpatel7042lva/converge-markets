@@ -1,0 +1,15 @@
+slither (config: contracts/slither.config.json, fail_on=medium), run after the Phase 9 review fixes
+Informational  assembly                     2
+Informational  cyclomatic-complexity        4
+Informational  low-level-calls              1
+Informational  naming-convention            2
+Informational  unimplemented-functions      1
+Informational  unindexed-event-address      3
+Low            calls-loop                   48
+Low            events-maths                 1
+Low            missing-zero-check           1
+Low            reentrancy-benign            6
+Low            reentrancy-events            4
+Low            timestamp                    33
+Optimization   cache-array-length           7
+High: 0  Medium: 0

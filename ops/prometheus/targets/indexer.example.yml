@@ -1,0 +1,2 @@
+- targets: ["https://REPLACE-WITH-INDEXER-HOST/v1/graphql"]
+  labels: { service: indexer }

@@ -113,6 +113,7 @@ contract ForwardVenue is ReentrancyGuard {
 
     error NotVaultOwner();
     error ZeroAmount();
+    error FeeOnTransfer();
     error LimitOutOfRange(uint256 limit);
     error RewardTooLow(uint256 sent, uint256 minimum);
     error RewardTooHigh(uint256 sent);
@@ -169,7 +170,11 @@ contract ForwardVenue is ReentrancyGuard {
         uint256 escrow;
         if (kind == Kind.BUY_UP || kind == Kind.BUY_DOWN) {
             escrow = F.mulDivUp(shares, limit, 1e18) + ESCROW_SLACK;
+            uint256 before = asset.balanceOf(address(this));
             asset.safeTransferFrom(msg.sender, address(this), escrow);
+            // An exact comparison is the point: the escrow must arrive in full.
+            // forge-lint: disable-next-line(incorrect-strict-equality)
+            if (asset.balanceOf(address(this)) - before != escrow) revert FeeOnTransfer();
         } else {
             escrow = shares;
             _token(m, kind).safeTransferFrom(msg.sender, address(this), shares);

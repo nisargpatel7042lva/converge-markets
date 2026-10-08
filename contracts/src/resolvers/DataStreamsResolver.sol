@@ -233,4 +233,9 @@ contract DataStreamsResolver is IPriceResolver, Ownable2Step, ReentrancyGuard {
         feedId = feedIdOf[assetId];
         if (feedId == bytes32(0)) revert UnknownAsset(assetId);
     }
+
+    /// @dev One-step renouncing would freeze configuration (and fee-mode recovery) for good.
+    function renounceOwnership() public view override onlyOwner {
+        revert InvalidConfig();
+    }
 }

@@ -39,3 +39,15 @@ apps/web/e2e-results/
 apps/web/.next-e2e/
 apps/web/.next/
 apps/web/.next-*/
+
+# Phase 9: mainnet deployment rehearsals never leave state behind in git
+deployments/rehearsal*.json
+deployments/safe-*.rehearsal*.json
+
+# Phase 9: operator-specific monitoring files (hostnames, chat ids)
+ops/prometheus/targets/*.yml
+!ops/prometheus/targets/*.example.yml
+ops/alertmanager/alertmanager.mainnet.yml
+ops/alertmanager/webhook_url
+ops/alertmanager/telegram_token
+ops/grafana/admin_password

@@ -2138,7 +2138,7 @@ export const chainlinkRoundResolverAbi = [
     "name": "renounceOwnership",
     "inputs": [],
     "outputs": [],
-    "stateMutability": "nonpayable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -2740,7 +2740,7 @@ export const dataStreamsResolverAbi = [
     "name": "renounceOwnership",
     "inputs": [],
     "outputs": [],
-    "stateMutability": "nonpayable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -5210,6 +5210,25 @@ export const convergeVaultAbi = [
     "outputs": [
       {
         "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "assetOfFeed",
+    "inputs": [
+      {
+        "name": "feedId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "assetId",
         "type": "bytes32",
         "internalType": "bytes32"
       }
@@ -8175,6 +8194,17 @@ export const convergeVaultAbi = [
   },
   {
     "type": "error",
+    "name": "FeedAlreadyUsed",
+    "inputs": [
+      {
+        "name": "feedId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "InNoQuoteWindow",
     "inputs": []
   },
@@ -9277,6 +9307,11 @@ export const forwardVenueAbi = [
       }
     ],
     "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "FeeOnTransfer",
+    "inputs": []
   },
   {
     "type": "error",

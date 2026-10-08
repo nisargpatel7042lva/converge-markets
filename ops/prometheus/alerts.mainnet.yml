@@ -1,0 +1,66 @@
+groups:
+  - name: converge-uptime
+    rules:
+      - alert: ProbeTargetsMissing
+        # a probe job with no targets watches nothing: that must be loud
+        expr: absent(probe_success{job="uptime-app"}) or absent(probe_success{job="uptime-status"}) or absent(probe_success{job="uptime-indexer"}) or absent(probe_success{job="uptime-scheduler"})
+        for: 5m
+        labels: { severity: page }
+        annotations: { summary: "an uptime probe has no targets: copy ops/prometheus/targets/*.example.yml and fill in the URLs" }
+      - alert: AppDown
+        expr: probe_success{job="uptime-app"} == 0
+        for: 1m
+        labels: { severity: page }
+        annotations: { summary: "the app does not answer: users cannot trade, collect or withdraw through it (the contracts still work)" }
+      - alert: StatusNotOk
+        # the public status line (apps/web/src/lib/status.ts) is the single best end-to-end signal:
+        # rounds created/opened/settled on time, quoting live, vault window on time
+        expr: probe_success{job="uptime-status"} == 0
+        for: 2m
+        labels: { severity: page }
+        annotations: { summary: "the public status line is not 'ok': a round is late, quotes are pulled/paused, the chain is stale or the app cannot read it" }
+      - alert: IndexerDown
+        expr: probe_success{job="uptime-indexer"} == 0
+        for: 2m
+        labels: { severity: warn }
+        annotations: { summary: "the indexer does not answer: charts and history are gone, trading and exits still work from the chain" }
+      - alert: SchedulerDown
+        expr: probe_success{job="uptime-scheduler"} == 0
+        for: 1m
+        labels: { severity: page }
+        annotations: { summary: "the scheduler's /health fails: rounds may not be created, opened or resolved. Check the CRE leader / fallback (runbook: stuck market)" }
+      - alert: ProbeSlow
+        expr: probe_duration_seconds{job=~"uptime-.*"} > 5
+        for: 5m
+        labels: { severity: warn }
+      - alert: CertificateExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry{job=~"uptime-.*"} - time()) < 7 * 86400
+        for: 1h
+        labels: { severity: warn }
+  - name: converge-vault
+    rules:
+      - alert: VaultPaused
+        expr: keeper_vault_paused == 1
+        for: 1m
+        labels: { severity: page }
+        annotations: { summary: "quoting is paused on the vault (guardian, owner or circuit breaker). Exits are open. See the runbook before resuming" }
+      - alert: TotalLossRatioHigh
+        # share of the 8 % total-at-risk ceiling that the worst-case inventory loss uses
+        expr: keeper_total_loss_ratio > 0.7
+        for: 1m
+        labels: { severity: warn }
+      - alert: NavBelowSeed
+        # the lower NAV is under 90 % of the value it had 24 h ago: a drawdown beyond normal spread noise
+        expr: keeper_vault_nav_lower_usd < 0.9 * (keeper_vault_nav_lower_usd offset 24h) and (keeper_vault_nav_lower_usd offset 24h) > 0
+        for: 5m
+        labels: { severity: page }
+        annotations: { summary: "the vault is 10 % down on 24 h (the breaker pauses at 5 % a day): review before anything else" }
+      - alert: NavStale
+        expr: max(keeper_vault_nav_age_seconds) > 1500
+        labels: { severity: warn }
+        annotations: { summary: "the vault valuation is approaching the 30 minute limit: checkpoint is not running" }
+      - alert: KeeperWalletCritical
+        expr: keeper_wallet_balance_mon < 0.15
+        for: 1m
+        labels: { severity: page }
+        annotations: { summary: "keeper gas is almost gone: below the reserve only halts are sent" }

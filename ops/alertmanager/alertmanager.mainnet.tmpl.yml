@@ -1,0 +1,34 @@
+# Alertmanager for the mainnet beta, rendered by render.sh (which fills in the Telegram chat id).
+# Two independent providers, so one outage does not silence the page:
+#   discord   every alert                   (webhook URL in the file secret `alert_webhook`)
+#   telegram  severity=page only            (bot token in the file secret `telegram_token`)
+# `page` alerts go to both and repeat every 15 minutes until resolved or silenced.
+route:
+  receiver: discord
+  group_by: [alertname]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+  routes:
+    - matchers: [alertname="Watchdog"]
+      receiver: "null"
+      repeat_interval: 5m
+    - matchers: [severity="page"]
+      receiver: page
+      repeat_interval: 15m
+receivers:
+  - name: discord
+    discord_configs:
+      - webhook_url_file: /run/secrets/alert_webhook
+        send_resolved: true
+  - name: page
+    discord_configs:
+      - webhook_url_file: /run/secrets/alert_webhook
+        send_resolved: true
+        title: "PAGE: {{ .GroupLabels.alertname }}"
+    telegram_configs:
+      - bot_token_file: /run/secrets/telegram_token
+        chat_id: __TELEGRAM_CHAT_ID__
+        send_resolved: true
+        parse_mode: ""
+  - name: "null"

@@ -1,0 +1,14 @@
+No files changed, compilation skipped
+Ran 3 tests for test/fork/VaultFork.t.sol:VaultForkTest
+[PASS] test_fork_lifecycleWithRealUsdc() (gas: 6364103)
+[PASS] test_fork_realUsdcFacts() (gas: 99517)
+[PASS] test_fork_realVerifierRejectsForgedReports() (gas: 1849212)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 7.14s (11.08s CPU time)
+Ran 5 tests for test/fork/MainnetSystem.t.sol:MainnetSystemForkTest
+[PASS] test_fork_aBlacklistedTreasuryCannotBlockPartnersOrUsers() (gas: 5632780)
+[PASS] test_fork_partnerLifecycleOnRealUsdc() (gas: 8066897)
+[PASS] test_fork_realChainlinkFeedsAreWhatTheDocsSay() (gas: 308782)
+[PASS] test_fork_roundProofsOnRealFeeds() (gas: 4670588)
+[PASS] test_fork_theRealSafeTakesOverTheWholeSystem() (gas: 3542297)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 15.56s (36.64s CPU time)
+Ran 2 test suites in 16.07s (22.70s CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

@@ -1,0 +1,33 @@
+# Uptime probes (blackbox exporter). Each module answers one question; the alert rules in
+# prometheus/alerts.mainnet.yml turn a failing probe into a page.
+modules:
+  # the endpoint answers 2xx within the timeout (app, scheduler /health, keeper /status)
+  http_2xx:
+    prober: http
+    timeout: 8s
+    http:
+      method: GET
+      valid_status_codes: [] # any 2xx
+      fail_if_not_ssl: false
+      preferred_ip_protocol: ip4
+  # the public status line says everything works: /api/status returns {"level":"ok",...}
+  status_ok:
+    prober: http
+    timeout: 10s
+    http:
+      method: GET
+      valid_status_codes: [200]
+      fail_if_body_not_matches_regexp: ['"level":"ok"']
+      preferred_ip_protocol: ip4
+  # the indexer's GraphQL endpoint answers a trivial query
+  graphql:
+    prober: http
+    timeout: 8s
+    http:
+      method: POST
+      headers:
+        content-type: application/json
+      body: '{"query":"{ __typename }"}'
+      valid_status_codes: [200]
+      fail_if_body_not_matches_regexp: ['"__typename"']
+      preferred_ip_protocol: ip4

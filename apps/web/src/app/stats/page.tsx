@@ -5,11 +5,12 @@ import { Logo } from "@/components/shell";
 import { Card, ErrorState, Skeleton, Stat } from "@/components/ui";
 import { deployment, env } from "@/config/deployment";
 import { pct, usd } from "@/lib/format";
-import { useIndexerStats, useVault } from "@/lib/queries";
+import { useIndexerStats, useStatus, useVault } from "@/lib/queries";
 
 /** Public proof page: everything here is read from the chain or the open indexer, no login. */
 export default function Stats() {
   const ix = useIndexerStats();
+  const status = useStatus();
   const v = useVault(undefined);
   const p = ix.data?.protocol ?? null;
   const vault = ix.data?.vault ?? null;
@@ -35,6 +36,8 @@ export default function Stats() {
           {env.indexerUrl ? " and the open indexer" : ""}.{" "}
           {deployment.testnet ? "This is a test network: the money has no value." : ""}
         </p>
+
+        <StatusLine query={status} />
 
         <Card className="mt-4">
           {v.isLoading ? (
@@ -114,5 +117,36 @@ export default function Stats() {
         )}
       </main>
     </div>
+  );
+}
+
+const DOT = {
+  ok: "bg-emerald-500",
+  degraded: "bg-amber-500",
+  paused: "bg-amber-500",
+  down: "bg-red-500",
+} as const;
+
+/** One sentence on whether rounds are opening, quoting and settling; never hides a problem. */
+function StatusLine({ query }: { query: ReturnType<typeof useStatus> }) {
+  const s = query.data;
+  const text = s
+    ? s.headline
+    : query.isError
+      ? "Status is unavailable right now. Your money is safe; you can always collect and withdraw."
+      : "Checking status…";
+  return (
+    <p
+      role="status"
+      data-testid="status-line"
+      data-level={s?.level ?? "unknown"}
+      className="mt-3 flex items-start gap-2 rounded-xl border border-line px-3 py-2 text-sm"
+    >
+      <span
+        aria-hidden
+        className={`mt-1.5 size-2 shrink-0 rounded-full ${s ? DOT[s.level] : "bg-zinc-400"}`}
+      />
+      <span>{text}</span>
+    </p>
   );
 }

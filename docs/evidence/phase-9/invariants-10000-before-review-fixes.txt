@@ -1,0 +1,135 @@
+=== MarketInvariants 10000 runs, depth 100 ===
+No files changed, compilation skipped
+
+Ran 1 test for test/invariant/MarketInvariants.t.sol:MarketInvariants
+[PASS]
+MarketInvariants invariants:
+[PASS] invariant_exitsAlwaysWorkAndPayExactly
+[PASS] invariant_fullyCollateralizedBeforeResolution
+[PASS] invariant_marketBalanceMatchesGhosts
+[PASS] invariant_noActorExtractsMoreThanEntitled
+[PASS] invariant_solventAfterResolution
+ MarketInvariants invariants (runs: 10000, calls: 1000000, reverts: 0)
+
+╭---------------+---------------+--------+---------+----------╮
+| Contract      | Selector      | Calls  | Reverts | Discards |
++=============================================================+
+| MarketHandler | advance       | 100354 | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | claimFees     | 99871  | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | invalidate    | 99963  | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | merge         | 100216 | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | pushRound     | 100321 | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | redeem        | 99699  | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | split         | 99698  | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | togglePause   | 99751  | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | transferToken | 100536 | 0       | 0        |
+|---------------+---------------+--------+---------+----------|
+| MarketHandler | warp          | 99591  | 0       | 0        |
+╰---------------+---------------+--------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 724.23s (724.22s CPU time)
+
+Ran 1 test suite in 724.24s (724.23s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+=== VaultInvariants 10000 runs, depth 100 ===
+No files changed, compilation skipped
+
+Ran 1 test for test/invariant/VaultInvariants.t.sol:VaultInvariants
+[PASS]
+VaultInvariants invariants:
+[PASS] invariant_keeperAndGuardianHoldNothing
+[PASS] invariant_lossWithinConfiguredCaps
+[PASS] invariant_navBandIsOrdered
+[PASS] invariant_noStandingApprovals
+[PASS] invariant_noViolation
+[PASS] invariant_registryBounded
+[PASS] invariant_sumOfClaimableAssetsBackedByBalance
+ VaultInvariants invariants (runs: 10000, calls: 1000000, reverts: 0)
+
+╭-----------------+--------------+-------+---------+----------╮
+| Contract        | Selector     | Calls | Reverts | Discards |
++=============================================================+
+| VaultInvariants | h_attack     | 47600 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_checkpoint | 47669 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_claim      | 47922 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_createOpen | 47435 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_halt       | 47806 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_haltAttack | 47886 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_lpDeposit  | 47251 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_lpRedeem   | 95280 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_merge      | 47436 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_move       | 47735 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_pause      | 47806 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_resolve    | 47668 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_setSigma   | 47361 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_settle     | 95191 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_split      | 94961 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_trade      | 95233 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| VaultInvariants | h_warp       | 47760 | 0       | 0        |
+╰-----------------+--------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 477.71s (477.70s CPU time)
+
+Ran 1 test suite in 477.72s (477.71s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+=== PartnerCapInvariants 10000 runs, depth 100 ===
+No files changed, compilation skipped
+
+Ran 1 test for test/invariant/PartnerCapInvariants.t.sol:PartnerCapInvariants
+[PASS]
+PartnerCapInvariants invariants:
+[PASS] invariant_navIsNotMovedByAllocation
+[PASS] invariant_noPartnerEverExceedsItsCaps
+[PASS] invariant_slotsAreBounded
+ PartnerCapInvariants invariants (runs: 10000, calls: 1000000, reverts: 0)
+
+╭----------------------+-------------+--------+---------+----------╮
+| Contract             | Selector    | Calls  | Reverts | Discards |
++==================================================================+
+| PartnerCapInvariants | h_alloc     | 374658 | 0       | 0        |
+|----------------------+-------------+--------+---------+----------|
+| PartnerCapInvariants | h_capChange | 125035 | 0       | 0        |
+|----------------------+-------------+--------+---------+----------|
+| PartnerCapInvariants | h_create    | 125657 | 0       | 0        |
+|----------------------+-------------+--------+---------+----------|
+| PartnerCapInvariants | h_merge     | 124486 | 0       | 0        |
+|----------------------+-------------+--------+---------+----------|
+| PartnerCapInvariants | h_status    | 125372 | 0       | 0        |
+|----------------------+-------------+--------+---------+----------|
+| PartnerCapInvariants | h_warp      | 124792 | 0       | 0        |
+╰----------------------+-------------+--------+---------+----------╯
+
+Logs:
+  creates 2
+  allocations accepted 1
+  allocations rejected 6
+  merges 0
+  cap changes 10
+  status changes 12
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 134.91s (134.91s CPU time)
+
+Ran 1 test suite in 134.91s (134.91s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+finished

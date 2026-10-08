@@ -1,0 +1,31 @@
+{
+  "name": "@converge/mainnet",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Mainnet deployment: an idempotent deployer, a read-only verifier, the Safe handover batch and the explorer verification commands. Rehearsed on a local fork of Monad mainnet; never broadcasts without --execute and the mainnet confirmation variable.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run test/unit test/canary",
+    "test:fork": "vitest run test/fork",
+    "plan": "tsx src/cli.ts plan",
+    "deploy": "tsx src/cli.ts deploy",
+    "verify": "tsx src/cli.ts verify",
+    "safe-batch": "tsx src/cli.ts safe-batch",
+    "explorer": "tsx src/cli.ts explorer",
+    "alert-test": "tsx src/alert-test.ts",
+    "test:alerts": "vitest run test/alerts",
+    "gen": "tsx src/cli.ts gen",
+    "check-streams": "tsx src/check-streams.ts",
+    "canary:trade": "tsx src/canary/trader.ts",
+    "canary:report": "tsx src/canary/report.ts"
+  },
+  "dependencies": {
+    "@converge/sdk": "workspace:*",
+    "viem": "^2.54.2",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}

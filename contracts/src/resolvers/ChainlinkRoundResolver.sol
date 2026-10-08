@@ -197,5 +197,9 @@ contract ChainlinkRoundResolver is IPriceResolver, Ownable2Step {
             revert RoundNotFound(roundId);
         }
     }
+
+    /// @dev One-step renouncing would freeze configuration (and fee-mode recovery) for good.
+    function renounceOwnership() public view override onlyOwner {
+        revert InvalidConfig();
+    }
 }
-// forge-lint: disable-end(locked-ether)

@@ -1,0 +1,2 @@
+- targets: ["http://REPLACE-WITH-SCHEDULER-HOST:8081/health"]
+  labels: { service: scheduler }

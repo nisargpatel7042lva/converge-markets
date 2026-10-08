@@ -1,0 +1,2 @@
+- targets: ["https://REPLACE-WITH-APP-HOST/api/status"]
+  labels: { service: status }

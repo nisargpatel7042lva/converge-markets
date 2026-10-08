@@ -1,0 +1,75 @@
+# Mainnet beta monitoring: the keeper's own metrics plus black-box uptime probes of everything a
+# user or the vault depends on. Used by docker-compose.mainnet.yml.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+rule_files:
+  - alerts.yml
+  - alerts.mainnet.yml
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+scrape_configs:
+  - job_name: converge-keeper
+    static_configs:
+      - targets: ["keeper:9100"]
+  - job_name: blackbox-exporter
+    static_configs:
+      - targets: ["blackbox:9115"]
+  - job_name: uptime-app
+    metrics_path: /probe
+    scrape_interval: 15s
+    params:
+      module: [http_2xx]
+    file_sd_configs:
+      - files: [/etc/prometheus/targets/app.yml]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+  - job_name: uptime-status
+    metrics_path: /probe
+    scrape_interval: 15s
+    params:
+      module: [status_ok]
+    file_sd_configs:
+      - files: [/etc/prometheus/targets/status.yml]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+  - job_name: uptime-indexer
+    metrics_path: /probe
+    scrape_interval: 15s
+    params:
+      module: [graphql]
+    file_sd_configs:
+      - files: [/etc/prometheus/targets/indexer.yml]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+  - job_name: uptime-scheduler
+    metrics_path: /probe
+    scrape_interval: 15s
+    params:
+      module: [http_2xx]
+    file_sd_configs:
+      - files: [/etc/prometheus/targets/scheduler.yml]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115

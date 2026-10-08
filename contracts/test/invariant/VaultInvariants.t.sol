@@ -46,6 +46,7 @@ contract VaultInvariants is VaultBase {
     uint256 public cResolved;
     uint256 public cInvalid;
     uint256 public cRedeemedResolved;
+    uint256 public cRedeemDeferred;
     uint256 public cAttacks;
     uint256 public cPauses;
     uint256 public cBreakerOrPaused;
@@ -233,8 +234,14 @@ contract VaultInvariants is VaultBase {
             uint256 d = IERC20(address(m.down())).balanceOf(address(vault));
             try vault.redeemResolved(m) {
                 cRedeemedResolved++;
-            } catch {
-                if (u != 0 || d != 0) _violate("redeemResolved reverted with tokens held");
+            } catch (bytes memory err) {
+                // Deliberate, time-limited exception (review finding 3): while an epoch's
+                // settlement is pending, realising a resolved market is deferred so that nobody can
+                // choose between the mark and the outcome. Any other revert is a violation.
+                bool deferred =
+                    err.length >= 4 && bytes4(err) == ConvergeVault.SettlementPending.selector;
+                if (deferred) cRedeemDeferred++;
+                else if (u != 0 || d != 0) _violate("redeemResolved reverted with tokens held");
             }
         }
     }
@@ -673,6 +680,7 @@ contract VaultInvariants is VaultBase {
         l = _kv(l, "resolved", cResolved);
         l = _kv(l, "invalidated", cInvalid);
         l = _kv(l, "redeemResolved", cRedeemedResolved);
+        l = _kv(l, "redeemResolved deferred (settlement pending)", cRedeemDeferred);
         l = _kv(l, "attacks", cAttacks);
         l = _kv(l, "pauses", cPauses);
         l = _kv(l, "partial", cPartialRedeem);

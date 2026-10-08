@@ -154,3 +154,17 @@ export function useMinReward() {
     staleTime: 60_000,
   });
 }
+
+/** The public status line (see lib/status.ts): the app server aggregates it so every client sees the same one. */
+export function useStatus() {
+  return useQuery({
+    queryKey: ["status"],
+    queryFn: async () => {
+      const res = await fetch("/api/status", { cache: "no-store" });
+      // a 503 still carries the body ("down"); anything else that is not JSON is an error
+      return (await res.json()) as import("./status").Status;
+    },
+    refetchInterval: 15000,
+    retry: 1,
+  });
+}

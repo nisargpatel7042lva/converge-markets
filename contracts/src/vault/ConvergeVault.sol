@@ -183,6 +183,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     // ------------------------------------------------------------------ state
 
     bytes32[] public assetIds;
+    /// @notice The asset a Data Streams feed id was enabled for (one feed, one asset: a report is
+    ///         matched to exactly one asset, so a duplicate would make the second one unsettleable).
+    mapping(bytes32 feedId => bytes32 assetId) public assetOfFeed;
     mapping(bytes32 => AssetCfg) public assetCfg;
     mapping(bytes32 => LastMark) public lastMark;
 
@@ -362,6 +365,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     error SettlementPending();
     error InsufficientLiquidity(uint256 need, uint256 free);
     error NotEmpty();
+    error FeedAlreadyUsed(bytes32 feedId);
     error MarketUnresolved();
     error ZeroAmount();
 
@@ -789,10 +793,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // forge-lint: disable-next-line(calls-loop)
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
         lo = hi = F.min(u, d);
-        // Exact comparison is intended: a zero check on a computed amount, or an enum/identifier match.
-        // slither-disable-next-line incorrect-equality
-        if (u == d) return (lo, hi);
-        (uint256 el, uint256 eh) = _excessValue(m, u > d, u > d ? u - d : d - u, marks, mode, at);
+        // An excess of at most DUST_TOKENS (a donation, or a rounding remainder) is worth under a
+        // thousandth of a dollar and needs no mark: it must not make settlement depend on one.
+        uint256 diff = u > d ? u - d : d - u;
+        if (diff <= DUST_TOKENS) return (lo, hi);
+        (uint256 el, uint256 eh) = _excessValue(m, u > d, diff, marks, mode, at);
         return (lo + el, hi + eh);
     }
 
@@ -946,7 +951,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         // forge-lint: disable-start(calls-loop, incorrect-strict-equality)
         uint256 u = IERC20(address(m.up())).balanceOf(address(this));
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
-        if (u == d) return (false, false);
+        uint256 diff = u > d ? u - d : d - u;
+        if (diff <= DUST_TOKENS) return (false, false);
         Market.State s = m.state();
         if (s == Market.State.INVALID) return (false, false);
         if (m.endTime() <= at) {
@@ -1112,6 +1118,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     // slither-disable-next-line reentrancy-balance,reentrancy-no-eth
     function redeemResolved(Market m) external nonReentrant {
         if (_slot[address(m)] == 0) revert MarketNotRegistered(address(m));
+        // A market that ended after the epoch end is valued from the mark in the epoch's settlement;
+        // realising it first would let a requester pick the better of mark and outcome.
+        if (_settlementPending()) revert SettlementPending();
         Market.State s = m.state();
         if (s == Market.State.CREATED || s == Market.State.OPEN) revert MarketUnresolved();
         IERC20 up = IERC20(address(m.up()));
@@ -1551,10 +1560,18 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         emit FeeSet(bps);
     }
 
+    /// @notice Rotates the keeper key. The old key's volatility values are discarded and quoting is
+    ///         halted until the new key sets fresh values and unhalts, so a compromised key cannot
+    ///         leave a hostile sigma behind (and does not constrain the new key's first step).
     function setKeeper(address k) external onlyOwner {
         if (k == address(0)) revert ZeroAddress();
         keeper = k;
+        for (uint256 i = 0; i < assetIds.length; i++) {
+            assetCfg[assetIds[i]].sigma = 0;
+        }
+        keeperHalt = true;
         emit KeeperSet(k);
+        emit QuotingHalted(k, "KEEPER_ROTATED");
     }
 
     function setGuardian(address g) external onlyOwner {
@@ -1580,9 +1597,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (!fa.enabled || address(fa.resolver) != address(streams) || feed == bytes32(0)) {
             revert UnsupportedAsset(assetId);
         }
+        if (assetOfFeed[feed] != bytes32(0)) revert FeedAlreadyUsed(feed);
         _checkBand(sigmaMin, sigmaMax);
         c.enabled = true;
         c.feedId = feed;
+        assetOfFeed[feed] = assetId;
         c.sigmaMin = _u128(sigmaMin);
         c.sigmaMax = _u128(sigmaMax);
         assetIds.push(assetId);
@@ -1616,7 +1635,8 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
             p.tick == 0 || p.tick > 0.05e18 || p.levels == 0 || p.levels > QuoteMath.MAX_LEVELS
                 || p.minHalfSpread < 0.02e18 || p.minHalfSpread > p.maxHalfSpread
                 || p.maxHalfSpread > 0.5e18 || p.priceMin < 0.01e18 || p.priceMax > 0.99e18
-                || p.priceMin >= p.priceMax || p.minRangeTicks == 0
+                || p.priceMin >= p.priceMax || p.priceMin + p.priceMax != WAD
+                || p.minRangeTicks == 0
                 || p.minRangeTicks > p.baseRangeTicks || p.liquidityNavFraction > 0.5e18
                 || p.perMarketMaxFraction == 0 || p.perMarketMaxFraction > 0.05e18
                 || p.totalAtRiskMaxFraction > 0.4e18
@@ -1668,7 +1688,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     ) external onlyOwner {
         if (
             maxStepBps == 0 || maxStepBps > BPS || minInterval == 0 || maxAge < minInterval
-                || navMaxAge_ < 60
+                || navMaxAge_ < 60 || maxAge > 1 hours || navMaxAge_ > 2 hours
         ) revert InvalidConfig();
         // forge-lint: disable-next-line(unsafe-typecast)
         maxSigmaStepBps = uint16(maxStepBps);
