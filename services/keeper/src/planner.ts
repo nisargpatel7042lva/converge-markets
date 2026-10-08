@@ -82,6 +82,8 @@ export const PARTNER_STRIKE_BAND = 5;
 export const RESOLVE_RETRY_SEC = 8;
 
 const NAV_DEC = 1e6; // the vault's asset has 6 decimals
+/** ConvergeVault.DUST_TOKENS: a registered market holding at most this many units can be pruned. */
+const DUST_TOKENS = 1_000n;
 
 const isOpen = (m: MarketInfo) => m.state === MARKET_STATE.OPEN;
 const isDone = (m: MarketInfo) =>
@@ -232,7 +234,7 @@ export function plan(p: PlanInput): Action[] {
         priority: PRIORITY.redeemResolved,
         market: m.address,
       });
-    else if (tokens === 0n && (isDone(m) || p.nowSec > m.end))
+    else if (tokens <= DUST_TOKENS && (isDone(m) || p.nowSec > m.end))
       out.push({
         type: "pruneEmpty",
         key: `prune:${m.address}`,

@@ -6,9 +6,11 @@ import {Market} from "../../src/Market.sol";
 import {OutcomeToken} from "../../src/OutcomeToken.sol";
 import {IPriceResolver} from "../../src/interfaces/IPriceResolver.sol";
 import {PartnerRegistry} from "../../src/partners/PartnerRegistry.sol";
+import {FeeSink} from "../../src/partners/FeeSink.sol";
 import {IPartnerRegistry} from "../../src/partners/IPartnerRegistry.sol";
 import {ThresholdResolver} from "../../src/resolvers/ThresholdResolver.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
@@ -691,33 +693,67 @@ contract PartnerRegistryTest is Base {
         reg.withdrawFees(address(0));
     }
 
-    /// @dev H2: Market.claimFees is permissionless and pays the registry; it used to strand the
-    ///      fee (collectFees then reverted and nothing was credited).
-    function test_fees_aDirectClaimOnTheMarketDoesNotBreakAccounting() public {
+    /// @dev Phase 8 H2 and its round-2 remainder: `Market.claimFees` is permissionless and pays the
+    ///      fee recipient. Each market now pays its own FeeSink, so a claim by anyone is still that
+    ///      market's fee and is attributed to the right partner.
+    function test_fees_aDirectClaimOnTheMarketIsStillAttributedToItsPartner() public {
         Market m = _create(partner, 3000e18, _end(1 hours));
-        _winAndRedeem(m, 1000 * U);
+        _winAndRedeem(m, 1000 * U); // 5 U of fees accrue in the market
         Market m2 = _create(partner, 3100e18, _end(2 hours));
-        _winAndRedeem(m2, 200 * U); // 1 U of fees
+        _winAndRedeem(m2, 200 * U); // 1 U
+        address sink = reg.feeSinkOf(address(m));
+        assertTrue(sink != address(0) && sink != reg.feeSinkOf(address(m2)));
         vm.prank(makeAddr("griefer"));
-        m.claimFees(); // 5 U lands in the registry with no accounting
-        assertEq(usdc.balanceOf(address(reg)), 100 * U + 5 * U);
-        assertEq(reg.liabilities(), 100 * U);
-        // the other market is unaffected
+        m.claimFees(); // the fee lands in the market's sink, not in the registry
+        assertEq(usdc.balanceOf(sink), 5 * U);
+        assertEq(usdc.balanceOf(address(reg)), 100 * U); // only the bond
+        // the partner's share is still the partner's
+        reg.collectFees(m);
+        assertEq(reg.feesOwed(partner), 1_500_000);
+        assertEq(reg.feesOwed(pTreasury), 3_500_000);
+        assertEq(usdc.balanceOf(sink), 0);
         reg.collectFees(m2);
-        assertEq(reg.feesOwed(partner), 300_000);
-        assertEq(reg.feesOwed(pTreasury), 700_000);
-        // the claimed one has nothing left to collect; the stray goes to the treasury
+        assertEq(reg.feesOwed(partner), 1_500_000 + 300_000);
+        // nothing left to collect on either
         vm.expectRevert(PartnerRegistry.NothingToWithdraw.selector);
         reg.collectFees(m);
-        reg.sweepStray();
-        assertEq(reg.feesOwed(pTreasury), 700_000 + 5 * U);
-        assertEq(reg.liabilities(), 100 * U + 1 * U + 5 * U);
+        // no stray was created, and the books balance exactly
         vm.expectRevert(PartnerRegistry.NothingToWithdraw.selector);
         reg.sweepStray();
-        // bond is intact: the owner can still slash all of it
-        vm.prank(pOwner);
-        reg.slash(partner, 100 * U, 0);
-        assertEq(usdc.balanceOf(address(reg)), 6 * U);
+        assertEq(usdc.balanceOf(address(reg)), reg.liabilities());
+    }
+
+    function test_feeSink_onlyTheRegistryPullsAndItCannotBeReinitialised() public {
+        Market m = _create(partner, 3000e18, _end(1 hours));
+        FeeSink sink = FeeSink(reg.feeSinkOf(address(m)));
+        assertEq(sink.registry(), address(reg));
+        vm.prank(partner);
+        vm.expectRevert(FeeSink.OnlyRegistry.selector);
+        sink.pull();
+        vm.expectRevert(FeeSink.AlreadyInitialized.selector);
+        sink.initialize(address(this), usdc);
+        FeeSink fresh = FeeSink(Clones.clone(reg.feeSinkImplementation()));
+        vm.expectRevert(FeeSink.ZeroAddress.selector);
+        fresh.initialize(address(0), usdc);
+        vm.expectRevert(FeeSink.ZeroAddress.selector);
+        fresh.initialize(address(this), IERC20(address(0)));
+        FeeSink impl = FeeSink(reg.feeSinkImplementation());
+        vm.expectRevert(FeeSink.AlreadyInitialized.selector);
+        impl.initialize(address(this), usdc);
+    }
+
+    function test_feeRecipient_isThePerMarketSinkForTheMarketAndTheRegistryForOthers() public {
+        Market m = _create(partner, 3000e18, _end(1 hours));
+        vm.prank(address(m));
+        assertEq(reg.feeRecipient(), reg.feeSinkOf(address(m)));
+        assertEq(reg.feeRecipient(), address(reg)); // a caller that is not a partner market
+    }
+
+    function test_strayDonationToTheRegistryGoesToTheTreasury() public {
+        usdc.mint(address(reg), 7 * U);
+        reg.sweepStray();
+        assertEq(reg.feesOwed(pTreasury), 7 * U);
+        assertEq(usdc.balanceOf(address(reg)), reg.liabilities());
     }
 
     function test_fees_unknownMarketAndEmptyFeesRevert() public {

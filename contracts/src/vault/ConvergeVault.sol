@@ -110,6 +110,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     /// @notice Registry slots one partner can hold at a time, so that a single partner cannot take
     ///         all of `MAX_PARTNER_MARKETS`.
     uint256 public constant MAX_MARKETS_PER_PARTNER = 3;
+    /// @notice A registered market holding at most this many outcome-token units (0.001 of a 6
+    ///         decimal collateral) counts as empty and can be pruned. Without it, anyone could pin
+    ///         a registry slot for the life of a market by donating one wei of a token. What is
+    ///         left behind is worth at most this much and is not part of the NAV.
+    uint256 public constant DUST_TOKENS = 1_000;
     /// @notice Hard ceiling for `maxPartnerFraction`.
     uint256 public constant MAX_PARTNER_FRACTION = 0.3e18;
     uint256 public constant MAX_FEE_BPS = 2_000; // 20%
@@ -1216,16 +1221,24 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (_slot[address(m)] == 0) revert MarketNotRegistered(address(m));
         uint256 u = IERC20(address(m.up())).balanceOf(address(this));
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
-        // Exact zero check on both balances is the intent.
-        // forge-lint: disable-next-line(incorrect-strict-equality)
-        if (u + d != 0) revert NotEmpty();
-        _unregister(m);
+        if (u + d > DUST_TOKENS) revert NotEmpty();
+        _pruneDust(m, u, d);
     }
 
     function _pruneIfEmpty(Market m) internal {
         uint256 u = IERC20(address(m.up())).balanceOf(address(this));
         uint256 d = IERC20(address(m.down())).balanceOf(address(this));
-        if (u + d == 0) _unregister(m);
+        if (u + d <= DUST_TOKENS) _pruneDust(m, u, d);
+    }
+
+    /// @dev Unregisters a market that holds at most DUST_TOKENS units. Complete pairs among them
+    ///      are merged first, so the value-neutral round trip split -> merge loses nothing; only an
+    ///      unmatched remainder (a donation) stays behind, worth at most DUST_TOKENS and outside
+    ///      the NAV.
+    function _pruneDust(Market m, uint256 u, uint256 d) internal {
+        uint256 pairs = F.min(u, d);
+        if (pairs != 0) _merge(m, pairs);
+        _unregister(m);
     }
     // slither-disable-end incorrect-equality
 

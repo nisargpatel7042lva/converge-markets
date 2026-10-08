@@ -605,4 +605,66 @@ contract VaultPartnersTest is VaultBase {
         int256 lossU = basis - cash - int256(up < down ? up : down);
         assertLe(lossU, int256(10 * U) + int256(U / 100));
     }
+
+    // ------------------------------------------------------------------ dust
+
+    /// @dev Phase 8 open MEDIUM: one wei donated to a registered market stopped the vault from
+    ///      pruning it after its pairs were merged, pinning a partner slot for up to 7 days.
+    function test_aDonatedWeiCannotPinAPartnerSlot() public {
+        Market m = _mk(partnerA, 3000e18, 7 days);
+        _alloc(m, 5 * U);
+        IERC20 up = IERC20(address(m.up()));
+        _split(m, bob, 1);
+        vm.prank(bob);
+        up.transfer(address(vault), 1); // the donation
+        assertEq(vault.partnerMarketCount(), 1);
+        vm.prank(vKeeper);
+        vault.mergeInventory(m, 5 * U); // every complete pair goes back; 1 wei of UP is left
+        assertEq(up.balanceOf(address(vault)), 1);
+        assertEq(vault.partnerMarketCount(), 0); // the slot is free anyway
+        assertFalse(vault.isRegistered(address(m)));
+        assertEq(vault.partnerOf(address(m)), address(0));
+    }
+
+    function test_pruneEmptyAcceptsDustAndRefusesRealInventory() public {
+        Market real = _mk(partnerA, 3000e18, 7 days);
+        _alloc(real, 5 * U);
+        vm.expectRevert(ConvergeVault.NotEmpty.selector);
+        vault.pruneEmpty(real); // 5 U of pairs are real inventory
+
+        Market tiny = _mk(partnerB, 3000e18, 7 days);
+        _alloc(tiny, 400); // 400 units of pairs: 800 units in all, at most the dust threshold
+        assertEq(vault.DUST_TOKENS(), 1_000);
+        assertTrue(vault.isRegistered(address(tiny)));
+        uint256 before = usdc.balanceOf(address(vault));
+        vault.pruneEmpty(tiny); // anyone: the pairs are merged back, the slot is freed
+        assertEq(usdc.balanceOf(address(vault)) - before, 400);
+        assertFalse(vault.isRegistered(address(tiny)));
+    }
+
+    function test_aMergeThatLeavesOnlyDustPrunesTheMarket() public {
+        Market m = _mk(partnerA, 3000e18, 7 days);
+        _alloc(m, 5 * U);
+        vm.prank(vKeeper);
+        vault.mergeInventory(m, 5 * U - 501); // 501 pairs left: 1,002 units, just above the dust
+        assertTrue(vault.isRegistered(address(m)));
+        vm.prank(vKeeper);
+        vault.mergeInventory(m, 2); // 499 pairs: 998 units, dust, merged back and pruned
+        assertFalse(vault.isRegistered(address(m)));
+        assertEq(IERC20(address(m.up())).balanceOf(address(vault)), 0);
+    }
+
+    function test_aboveDustADonationStillCountsAsInventory() public {
+        Market m = _mk(partnerA, 3000e18, 7 days);
+        _alloc(m, 5 * U);
+        _split(m, bob, 2_000);
+        IERC20 up = IERC20(address(m.up()));
+        vm.prank(bob);
+        up.transfer(address(vault), 2_000); // above the dust threshold: valued in the NAV
+        vm.prank(vKeeper);
+        vault.mergeInventory(m, 5 * U);
+        assertTrue(vault.isRegistered(address(m)));
+        vm.expectRevert(ConvergeVault.NotEmpty.selector);
+        vault.pruneEmpty(m);
+    }
 }

@@ -14,6 +14,7 @@ import {MarketFactory} from "../MarketFactory.sol";
 import {OutcomeToken} from "../OutcomeToken.sol";
 import {MarketNaming} from "../libraries/MarketNaming.sol";
 import {ThresholdResolver} from "../resolvers/ThresholdResolver.sol";
+import {FeeSink} from "./FeeSink.sol";
 import {IPartnerRegistry} from "./IPartnerRegistry.sol";
 
 /// @notice The two vault facts the registry checks when a feed is onboarded.
@@ -104,6 +105,7 @@ contract PartnerRegistry is
     address public immutable marketImplementation;
     address public immutable tokenImplementation;
     address public immutable thresholdImplementation;
+    address public immutable feeSinkImplementation;
 
     // ------------------------------------------------------------------ configuration
 
@@ -126,11 +128,13 @@ contract PartnerRegistry is
     mapping(address partner => mapping(bytes32 assetId => bool)) public allowedFeed;
     mapping(bytes32 assetId => bool) public feedEnabled;
     mapping(address market => MarketInfo) internal _info;
+    /// @notice The fee recipient of each partner market (a FeeSink clone).
+    mapping(address market => address) public feeSinkOf;
     mapping(address partner => address[]) internal _live;
     mapping(address partner => uint256) public feesOwed;
     mapping(address partner => bool) private _listed;
     /// @notice Collateral the registry owes: all bonds, pending withdrawals and credited fees.
-    ///         Anything above it is a stray (a direct `Market.claimFees`), see `sweepStray`.
+    ///         Anything above it is a stray (a direct transfer to the registry), see `sweepStray`.
     uint256 public liabilities;
     address[] public partnerList;
     address[] public markets;
@@ -222,6 +226,7 @@ contract PartnerRegistry is
         marketImplementation = core_.marketImplementation();
         tokenImplementation = core_.tokenImplementation();
         thresholdImplementation = address(new ThresholdResolver());
+        feeSinkImplementation = address(new FeeSink());
         guardian = guardian_;
         treasury = treasury_;
         slashRecipient = treasury_;
@@ -485,9 +490,11 @@ contract PartnerRegistry is
         MarketFactory.Asset memory a = core.asset(assetId);
         market = Clones.clone(marketImplementation);
         address pin = Clones.clone(thresholdImplementation);
+        address sink = Clones.clone(feeSinkImplementation);
 
         // Effects first: the registry knows the market before any call goes out.
         _info[market] = MarketInfo(msg.sender, false, p.feeShareBps, endTime);
+        feeSinkOf[market] = sink;
         markets.push(market);
         _live[msg.sender].push(market);
         p.marketsCreated += 1;
@@ -497,6 +504,8 @@ contract PartnerRegistry is
         // function is nonReentrant.
         // forge-lint: disable-next-line(reentrancy-no-eth)
         ThresholdResolver(pin).initialize(a.resolver, strike, nowTs);
+        // forge-lint: disable-next-line(reentrancy-no-eth)
+        FeeSink(sink).initialize(address(this), collateral);
         // Every field is assigned below (a struct literal hits stack-too-deep).
         // slither-disable-next-line uninitialized-local
         Market.Params memory mp;
@@ -584,9 +593,13 @@ contract PartnerRegistry is
 
     // ================================================================== fees
 
+    /// @notice Where a market sends its redeem fees: the market's own FeeSink (the caller is the
+    ///         market, which asks in `redeem` and `claimFees`). Anyone else asking gets the
+    ///         registry itself.
     /// @inheritdoc IMarketFactoryView
     function feeRecipient() external view override returns (address) {
-        return address(this);
+        address sink = feeSinkOf[msg.sender];
+        return sink == address(0) ? address(this) : sink;
     }
 
     /// @inheritdoc IMarketFactoryView
@@ -594,33 +607,32 @@ contract PartnerRegistry is
         return super.paused();
     }
 
-    /// @notice Pulls the redeem fees a partner market has accrued and splits them: the partner's
-    ///         share (snapshotted at creation) is credited to `feesOwed`, the rest is credited to
-    ///         the treasury (both are pulled with `withdrawFees`, so a blocked address can never
-    ///         stop anyone else's money). Anyone may call. The credit is the amount the market
-    ///         reports as accrued, so fees claimed directly on the market (`Market.claimFees` is
-    ///         permissionless) cannot be mis-attributed: they are strays, see `sweepStray`.
+    /// @notice Pulls the redeem fees of a partner market and splits them: the partner's share
+    ///         (snapshotted at creation) is credited to `feesOwed`, the rest is credited to the
+    ///         treasury (both are pulled with `withdrawFees`, so a blocked address can never stop
+    ///         anyone else's money). Anyone may call. Fees go to the market's own FeeSink, so a
+    ///         `Market.claimFees` by anyone (it is permissionless) still lands in this market's
+    ///         sink and is attributed to the right partner here.
     function collectFees(Market market) external nonReentrant {
         MarketInfo storage m = _info[address(market)];
         if (m.partner == address(0)) revert UnknownMarket(address(market));
-        uint256 accrued = market.feesAccrued();
-        if (accrued == 0) revert NothingToWithdraw();
-        // Trusted call: a market this registry created; the function is nonReentrant.
+        // Trusted calls: a market and a sink this registry created; the function is nonReentrant.
         // forge-lint: disable-next-line(reentrancy-no-eth)
-        market.claimFees();
-        uint256 partnerShare = accrued * m.feeShareBps / BPS;
-        uint256 treasuryShare = accrued - partnerShare;
+        if (market.feesAccrued() != 0) market.claimFees();
+        // forge-lint: disable-next-line(reentrancy-no-eth)
+        uint256 amount = FeeSink(feeSinkOf[address(market)]).pull();
+        if (amount == 0) revert NothingToWithdraw();
+        uint256 partnerShare = amount * m.feeShareBps / BPS;
+        uint256 treasuryShare = amount - partnerShare;
         feesOwed[m.partner] += partnerShare;
         feesOwed[treasury] += treasuryShare;
-        liabilities += accrued;
+        liabilities += amount;
         // forge-lint: disable-next-line(reentrancy-events)
         emit FeesCollected(address(market), m.partner, partnerShare, treasuryShare);
     }
 
-    /// @notice Credits collateral nobody is owed (someone called `Market.claimFees` directly, which
-    ///         pays the registry without telling it whose fee it was) to the treasury. A partner
-    ///         who wants its share should collect before anyone else claims; the griefer gains
-    ///         nothing. Anyone may call.
+    /// @notice Credits collateral nobody is owed (a direct transfer to the registry: fees never
+    ///         land here, each market pays its own FeeSink) to the treasury. Anyone may call.
     function sweepStray() external nonReentrant {
         uint256 bal = collateral.balanceOf(address(this));
         if (bal <= liabilities) revert NothingToWithdraw();

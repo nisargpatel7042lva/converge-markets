@@ -50,7 +50,7 @@ abstract contract Base is Test {
     function setUp() public virtual {
         vm.warp(T0 - 1 hours);
         signer = vm.addr(signerKey);
-        usdc = new MockERC20("USD Coin", "USDC", 6);
+        usdc = _newCollateral();
         factory = new MarketFactory(IERC20(address(usdc)), admin);
         feed = new MockAggregator(8);
         roundResolver = new ChainlinkRoundResolver(admin, LIVENESS);
@@ -67,6 +67,11 @@ abstract contract Base is Test {
         vm.stopPrank();
         // A round before T0 so first-round proofs have a same-phase predecessor.
         feed.setRound(1, 1, 60_000e8, T0 - 30 minutes);
+    }
+
+    /// @dev The collateral token; the reentrancy tests override it with a token that calls back.
+    function _newCollateral() internal virtual returns (MockERC20) {
+        return new MockERC20("USD Coin", "USDC", 6);
     }
 
     // ------------------------------------------------------------------ helpers
