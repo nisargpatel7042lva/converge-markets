@@ -112,39 +112,75 @@
   ],
   "vault": {
     "chainId": 10143,
-    "deployBlock": 68644575,
-    "epochLength": 900,
-    "execDelaySeconds": 2,
-    "forwardVenue": "0x28dbCf1631f51c9021D999B46e5D9439B4eD913C",
-    "maxLatenessSeconds": 4,
-    "tvlCap": 5000000000,
-    "vault": "0xbEaf85D2682BAD7ca09fD869037065350cF4a3b5",
+    "deployBlock": 69265595,
+    "vault": "0x5dD05FfD80f8959aBD25c82A57f5BD106C27B082",
+    "forwardVenue": "0xb23836FCE92EF669eBEF742f685eC960FF7630D9",
     "vaultKeeper": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4",
+    "epochLength": 900,
+    "tvlCap": 5000000000,
+    "execDelaySeconds": 2,
+    "maxLatenessSeconds": 4,
     "vaultOwnerGuardianTreasury": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
     "transactions": [
       {
-        "hash": "0x26a9650ec1242495a7399633118306c41d69f5ee6096ec20215a53ae034c9cc9",
+        "hash": "0xfff850c345afff75b53d7569debc9703fb1c9ac0e516b2c59a149ec7ae31a91e",
         "contractName": "ConvergeVault",
         "function": null,
-        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
+        "contractAddress": "0x5dd05ffd80f8959abd25c82a57f5bd106c27b082"
       },
       {
-        "hash": "0x26c7a5d38f917b74a47eec0de9efa414d91a75ce204e4d3b398421c94865e16c",
+        "hash": "0xb6adcbaddbc368528e3af62269ad00d63b9c439297cc91aa04a9e1219d098277",
         "contractName": "ForwardVenue",
         "function": null,
-        "contractAddress": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c"
+        "contractAddress": "0xb23836fce92ef669ebef742f685ec960ff7630d9"
       },
       {
-        "hash": "0xd319dda8d0eecc0b8cca508bca5b28dde64a58ddc88a81b229a5ffdf696934ce",
+        "hash": "0x70ff9474adaf30519542883aa89f5c57902739829d18495ec7a96732c6eb5a66",
         "contractName": "ConvergeVault",
         "function": "enableAsset(bytes32,uint256,uint256)",
-        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
+        "contractAddress": "0x5dd05ffd80f8959abd25c82a57f5bd106c27b082"
       },
       {
-        "hash": "0xf65e81e65d76713b9a58fc905604b82a02dafe69110e7e95880ce7d5c140f64a",
+        "hash": "0xebd25772703a9227cd352d438a42a780642e0138086a5840d0f8d9ae959d8008",
         "contractName": "ConvergeVault",
         "function": "setInitialVenue(address)",
-        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
+        "contractAddress": "0x5dd05ffd80f8959abd25c82a57f5bd106c27b082"
+      },
+      {
+        "hash": "0x13c427641f678faaab13bb885d1a764dca5ca0822e98a79eed352729735ca46e",
+        "contractName": "PartnerRegistry",
+        "function": null,
+        "contractAddress": "0xb50b2ce17704a15642743f528f91bf7eed02129e"
+      },
+      {
+        "hash": "0x08902b323eb6825772e6bc85ce9c22aec472ae78e9d76cb46ca28cb394443bce",
+        "contractName": "ConvergeVault",
+        "function": "setPartnerRegistry(address)",
+        "contractAddress": "0x5dd05ffd80f8959abd25c82a57f5bd106c27b082"
+      },
+      {
+        "hash": "0x4a99d6a8935fef58407c8736095fbf3f44a70bf66fa64aab52d3db1f71173834",
+        "contractName": "PartnerRegistry",
+        "function": "setConfig(uint256,uint256,uint16,address,address)",
+        "contractAddress": "0xb50b2ce17704a15642743f528f91bf7eed02129e"
+      },
+      {
+        "hash": "0x0851d92e07399d1f130cf9d7c2916097cc0a0ed18ba64e59baa9d9de3d9734f7",
+        "contractName": "PartnerRegistry",
+        "function": "setVault(address)",
+        "contractAddress": "0xb50b2ce17704a15642743f528f91bf7eed02129e"
+      },
+      {
+        "hash": "0x7c2c535178d18d707440b805a2e14dec3bc50e2419e18373827871a116b980c5",
+        "contractName": "PartnerRegistry",
+        "function": "setFeed(bytes32,bool)",
+        "contractAddress": "0xb50b2ce17704a15642743f528f91bf7eed02129e"
+      },
+      {
+        "hash": "0x0af9485708770cd4ad60920ab0c8505359d5eacc998baf4868472f5c3930fbe6",
+        "contractName": "PartnerRegistry",
+        "function": "approvePartner(address,uint256,uint16,bytes32[])",
+        "contractAddress": "0xb50b2ce17704a15642743f528f91bf7eed02129e"
       }
     ]
   },
@@ -223,5 +259,53 @@
         "contractAddress": "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748"
       }
     ]
+  },
+  "vault_v3_pre_partners": {
+    "chainId": 10143,
+    "deployBlock": 68644575,
+    "epochLength": 900,
+    "execDelaySeconds": 2,
+    "forwardVenue": "0x28dbCf1631f51c9021D999B46e5D9439B4eD913C",
+    "maxLatenessSeconds": 4,
+    "tvlCap": 5000000000,
+    "vault": "0xbEaf85D2682BAD7ca09fD869037065350cF4a3b5",
+    "vaultKeeper": "0x6E5008e79b3F6bcF314467C8B325B3784a9e9AF4",
+    "vaultOwnerGuardianTreasury": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
+    "transactions": [
+      {
+        "hash": "0x26a9650ec1242495a7399633118306c41d69f5ee6096ec20215a53ae034c9cc9",
+        "contractName": "ConvergeVault",
+        "function": null,
+        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
+      },
+      {
+        "hash": "0x26c7a5d38f917b74a47eec0de9efa414d91a75ce204e4d3b398421c94865e16c",
+        "contractName": "ForwardVenue",
+        "function": null,
+        "contractAddress": "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c"
+      },
+      {
+        "hash": "0xd319dda8d0eecc0b8cca508bca5b28dde64a58ddc88a81b229a5ffdf696934ce",
+        "contractName": "ConvergeVault",
+        "function": "enableAsset(bytes32,uint256,uint256)",
+        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
+      },
+      {
+        "hash": "0xf65e81e65d76713b9a58fc905604b82a02dafe69110e7e95880ce7d5c140f64a",
+        "contractName": "ConvergeVault",
+        "function": "setInitialVenue(address)",
+        "contractAddress": "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5"
+      }
+    ]
+  },
+  "partners": {
+    "deployBlock": 69265595,
+    "partnerRegistry": "0xB50b2Ce17704A15642743F528f91bF7EeD02129E",
+    "thresholdResolverImplementation": "0x7BFe86F984f901DFC283d312B36e646DD88e1f4F",
+    "demoPartner": "0x286aDf4D239545539d295eD17c118aeA58bd3e8b",
+    "minBond": 10000000,
+    "globalExposureCap": 500000000,
+    "demoPartnerCap": 40000000,
+    "redeemFeeBps": 50
   }
 }

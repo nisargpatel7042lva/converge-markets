@@ -27,7 +27,11 @@ import { explainTxError, sendAll } from "@/lib/tx";
 import { toast } from "./toast";
 import { Button } from "./ui";
 
-const SLIPPAGE_BPS = 200;
+// How much dearer than the displayed share price a bet may fill. The bet is priced about 2 s after the
+// tap (plus inclusion), and on the Monad testnet run ETH moved enough in that time (about 4 cents of
+// probability per dollar) for 2 % to cancel most bets; 10 % still refunds the difference: the fill
+// is at the oracle's price, only the escrow is sized by this limit.
+const SLIPPAGE_BPS = 1000;
 const PRESETS = [1, 5, 10, 25];
 const net = (v: bigint, bps: number) => v - (v * BigInt(bps)) / 10_000n;
 
@@ -326,7 +330,7 @@ export function TradeSheet({
               </div>
               <div className="col-span-2 text-xs leading-relaxed text-muted">
                 {ask
-                  ? `${sideName} costs ${pct(Number(ask.priceWad) / 1e18)} of a dollar per share and pays $1 if you're right${round.redeemFeeBps > 0 ? `, minus a ${round.redeemFeeBps / 100}% collection fee` : ""}: ${plan ? usd(plan.payoutIfRight) : "—"} back in total. Your bet is filled about 2 seconds after you confirm, at the oracle's price then (up to ${plan ? usd(plan.escrow) : "—"} is held, the rest comes back). If the price moves more than ${SLIPPAGE_BPS / 100}% first, the bet is cancelled and your money comes back.`
+                  ? `${sideName} costs ${pct(Number(ask.priceWad) / 1e18)} of a dollar per share and pays $1 if you're right${round.redeemFeeBps > 0 ? `, minus a ${round.redeemFeeBps / 100}% collection fee` : ""}: ${plan ? usd(plan.payoutIfRight) : "—"} back in total. Your bet is filled about 2 seconds after you confirm, at the oracle's price then (up to ${plan ? usd(plan.escrow) : "—"} is held, the rest comes back). If the share price rises more than ${SLIPPAGE_BPS / 100}% above this before your bet is priced, it is cancelled and your money comes back.`
                   : "No price right now: the market isn't taking bets this second."}
               </div>
             </dl>

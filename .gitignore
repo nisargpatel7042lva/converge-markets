@@ -58,3 +58,11 @@ ops/alertmanager/heartbeat_url
 .demo/*.pid
 .demo/chain.json
 apps/web/.next-demo/
+
+# testnet run: logs, pids and the kill token
+.testnet/*.log
+.testnet/*.pid
+.testnet/*.out
+.testnet/kill.token
+.testnet/costs*
+apps/web/.next-testnet/

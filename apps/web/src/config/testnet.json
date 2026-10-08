@@ -8,10 +8,10 @@
   "nativeSymbol": "MON",
   "usdc": "0x9dedC1B054a0e53777df49722D1Aa20354edB100",
   "factory": "0x6d3C829CbE58c53625b714d19E49cE1D41e66639",
-  "vault": "0xbEaf85D2682BAD7ca09fD869037065350cF4a3b5",
-  "venue": "0x28dbCf1631f51c9021D999B46e5D9439B4eD913C",
+  "vault": "0x5dD05FfD80f8959aBD25c82A57f5BD106C27B082",
+  "venue": "0xb23836FCE92EF669eBEF742f685eC960FF7630D9",
   "minRewardWei": "1000000000000000",
-  "deployBlock": 68644575,
+  "deployBlock": 69265595,
   "testnet": true,
   "series": [
     {
@@ -22,7 +22,9 @@
       "symbol": "ETH",
       "binance": "ETHUSDT",
       "coinbase": "ETH-USD",
-      "durations": [900],
+      "durations": [
+        900
+      ],
       "decimals": 2
     }
   ]
