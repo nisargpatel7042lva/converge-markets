@@ -50,163 +50,163 @@ SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerRec
 SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#189-224) has external calls inside a loop: Market(m).invalidate() (src/scheduler/SchedulerReceiver.sol#214-218)
 	Calls stack containing the loop:
 		SchedulerReceiver.onReport(bytes,bytes)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#778)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#783)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#780)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#785)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#799)
-	Calls stack containing the loop:
-		ConvergeVault.settleEpoch(uint256,bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#803)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#804)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#808)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#808)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#830-839) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#837)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#813)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#822)
-	Calls stack containing the loop:
-		ConvergeVault.settleEpoch(uint256,bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#854)
+ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#835-844) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#842)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#859)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#827)
+	Calls stack containing the loop:
+		ConvergeVault.settleEpoch(uint256,bytes[])
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#859)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#937)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#864)
+	Calls stack containing the loop:
+		ConvergeVault.settleEpoch(uint256,bytes[])
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#942)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#938)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#943)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#940)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#945)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: m.endTime() <= at (src/vault/ConvergeVault.sol#942)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: m.endTime() <= at (src/vault/ConvergeVault.sol#947)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#946)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#951)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#896-929) has external calls inside a loop: f = assetCfg[m.assetId()].feedId (src/vault/ConvergeVault.sol#912)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#778)
+ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#901-934) has external calls inside a loop: f = assetCfg[m.assetId()].feedId (src/vault/ConvergeVault.sol#917)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#783)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#780)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#785)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#799)
-	Calls stack containing the loop:
-		ConvergeVault.checkpoint(bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#803)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#804)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#808)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#808)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#830-839) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#837)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#813)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#822)
-	Calls stack containing the loop:
-		ConvergeVault.checkpoint(bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#854)
+ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#835-844) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#842)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#859)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#827)
+	Calls stack containing the loop:
+		ConvergeVault.checkpoint(bytes[])
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#859)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#778)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#864)
 	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#780)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#799)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#803)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#808)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#830-839) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#837)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#822)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#783)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#785)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#804)
 	Calls stack containing the loop:
 		ConvergeVault.venueFill(ConvergeVault.FillParams)
 		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#854)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#808)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#813)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#835-844) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#842)
 	Calls stack containing the loop:
 		ConvergeVault.venueFill(ConvergeVault.FillParams)
 		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#859)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#827)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#859)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#864)
 	Calls stack containing the loop:
 		ConvergeVault.venueFill(ConvergeVault.FillParams)
 		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
@@ -237,42 +237,46 @@ ForwardVenue._tokenOf(Market,bool) (src/vault/ForwardVenue.sol#370-373) has exte
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation/#calls-inside-a-loop
 INFO:Detectors:
 Detector: reentrancy-benign
-Reentrancy in ConvergeVault.checkpoint(bytes[]) (src/vault/ConvergeVault.sol#956-972):
+Reentrancy in ConvergeVault.checkpoint(bytes[]) (src/vault/ConvergeVault.sol#961-977):
 	External calls:
-	- marks = _collectMarks(reports,0) (src/vault/ConvergeVault.sol#961)
+	- marks = _collectMarks(reports,0) (src/vault/ConvergeVault.sol#966)
 		- r = abi.decode(verifier.verify(payload,parameterPayload),(ReportV3)) (src/vault/ReportLib.sol#43)
-		- r = ReportLib.verify(verifier,param,reports[i],feed) (src/vault/ConvergeVault.sol#711)
+		- r = ReportLib.verify(verifier,param,reports[i],feed) (src/vault/ConvergeVault.sol#716)
 	State variables written after the call(s):
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- dayStart = today (src/vault/ConvergeVault.sol#981)
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- dayStartPps = ppsLo (src/vault/ConvergeVault.sol#982)
-	- _recordMarks(marks) (src/vault/ConvergeVault.sol#963)
-		- lastMark[assetIds[i]] = LastMark(marks[i].price,marks[i].obsTs) (src/vault/ConvergeVault.sol#747)
-	- lastNavUpper = hi (src/vault/ConvergeVault.sol#965)
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- lastPpsLower = ppsLo (src/vault/ConvergeVault.sol#977)
-	- navUpdatedAt = uint64(block.timestamp) (src/vault/ConvergeVault.sol#967)
-	- quoteNavLower = lo (src/vault/ConvergeVault.sol#964)
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- quotingPaused = true (src/vault/ConvergeVault.sol#984)
-Reentrancy in PartnerRegistry.collectFees(Market) (src/partners/PartnerRegistry.sol#580-594):
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- dayStart = today (src/vault/ConvergeVault.sol#986)
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- dayStartPps = ppsLo (src/vault/ConvergeVault.sol#987)
+	- _recordMarks(marks) (src/vault/ConvergeVault.sol#968)
+		- lastMark[assetIds[i]] = LastMark(marks[i].price,marks[i].obsTs) (src/vault/ConvergeVault.sol#752)
+	- lastNavUpper = hi (src/vault/ConvergeVault.sol#970)
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- lastPpsLower = ppsLo (src/vault/ConvergeVault.sol#982)
+	- navUpdatedAt = uint64(block.timestamp) (src/vault/ConvergeVault.sol#972)
+	- quoteNavLower = lo (src/vault/ConvergeVault.sol#969)
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- quotingPaused = true (src/vault/ConvergeVault.sol#989)
+Reentrancy in PartnerRegistry.collectFees(Market) (src/partners/PartnerRegistry.sol#603-618):
 	External calls:
-	- market.claimFees() (src/partners/PartnerRegistry.sol#586)
+	- market.claimFees() (src/partners/PartnerRegistry.sol#610)
 	State variables written after the call(s):
-	- feesOwed[m.partner] += partnerShare (src/partners/PartnerRegistry.sol#590)
-Reentrancy in ConvergeVault.mergeInventory(Market,uint256) (src/vault/ConvergeVault.sol#1071-1083):
+	- feesOwed[m.partner] += partnerShare (src/partners/PartnerRegistry.sol#613)
+	- feesOwed[treasury] += treasuryShare (src/partners/PartnerRegistry.sol#614)
+	- liabilities += accrued (src/partners/PartnerRegistry.sol#615)
+Reentrancy in ConvergeVault.mergeInventory(Market,uint256) (src/vault/ConvergeVault.sol#1076-1088):
 	External calls:
-	- _merge(m,amount) (src/vault/ConvergeVault.sol#1081)
-		- m.merge(amount) (src/vault/ConvergeVault.sol#1094)
+	- _merge(m,amount) (src/vault/ConvergeVault.sol#1086)
+		- m.merge(amount) (src/vault/ConvergeVault.sol#1099)
 	State variables written after the call(s):
-	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1082)
-		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1186)
-		- _markets.pop() (src/vault/ConvergeVault.sol#1189)
-	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1082)
-		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1192)
-	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1082)
-		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1193)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1195)
+		- _markets.pop() (src/vault/ConvergeVault.sol#1198)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- _partnerCount[_partnerOf[address(m)]] -= 1 (src/vault/ConvergeVault.sol#1202)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1201)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1203)
 Reentrancy in Market.open(bytes) (src/Market.sol#162-177):
 	External calls:
 	- (s,price) = _boundaryPrice(startTime,data) (src/Market.sol#166)
@@ -284,19 +288,21 @@ Reentrancy in Market.open(bytes) (src/Market.sol#162-177):
 		- resolver.submit{value: msg.value}(assetId,boundary,data) (src/Market.sol#285)
 	State variables written after the call(s):
 	- strike = price (src/Market.sol#168)
-Reentrancy in ConvergeVault.redeemResolved(Market) (src/vault/ConvergeVault.sol#1103-1124):
+Reentrancy in ConvergeVault.redeemResolved(Market) (src/vault/ConvergeVault.sol#1108-1129):
 	External calls:
-	- _merge(m,pairs) (src/vault/ConvergeVault.sol#1110)
-		- m.merge(amount) (src/vault/ConvergeVault.sol#1094)
-	- m.redeem() (src/vault/ConvergeVault.sol#1116)
+	- _merge(m,pairs) (src/vault/ConvergeVault.sol#1115)
+		- m.merge(amount) (src/vault/ConvergeVault.sol#1099)
+	- m.redeem() (src/vault/ConvergeVault.sol#1121)
 	State variables written after the call(s):
-	- _unregister(m) (src/vault/ConvergeVault.sol#1123)
-		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1186)
-		- _markets.pop() (src/vault/ConvergeVault.sol#1189)
-	- _unregister(m) (src/vault/ConvergeVault.sol#1123)
-		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1192)
-	- _unregister(m) (src/vault/ConvergeVault.sol#1123)
-		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1193)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1195)
+		- _markets.pop() (src/vault/ConvergeVault.sol#1198)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- _partnerCount[_partnerOf[address(m)]] -= 1 (src/vault/ConvergeVault.sol#1202)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1201)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1203)
 Reentrancy in Market.resolve(bytes) (src/Market.sol#183-199):
 	External calls:
 	- (s,price) = _boundaryPrice(endTime,data) (src/Market.sol#187)
@@ -357,22 +363,25 @@ Market.resolve(bytes) (src/Market.sol#183-199) uses timestamp for comparisons
 MarketFactory.createMarket(bytes32,uint64,uint64) (src/MarketFactory.sol#132-163) uses timestamp for comparisons
 	Dangerous comparisons:
 	- startTime < block.timestamp (src/MarketFactory.sol#142)
-PartnerRegistry.requestBondWithdrawal(uint256) (src/partners/PartnerRegistry.sol#400-414) uses timestamp for comparisons
+PartnerRegistry.requestBondWithdrawal(uint256) (src/partners/PartnerRegistry.sol#413-427) uses timestamp for comparisons
 	Dangerous comparisons:
-	- a > b (src/partners/PartnerRegistry.sol#412)
-PartnerRegistry.executeBondWithdrawal(address) (src/partners/PartnerRegistry.sol#427-438) uses timestamp for comparisons
+	- a > b (src/partners/PartnerRegistry.sol#425)
+PartnerRegistry.executeBondWithdrawal(address) (src/partners/PartnerRegistry.sol#440-452) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp < p.withdrawableAt (src/partners/PartnerRegistry.sol#432)
-PartnerRegistry.createThresholdMarket(bytes32,int256,uint64) (src/partners/PartnerRegistry.sol#448-510) uses timestamp for comparisons
+	- block.timestamp < p.withdrawableAt (src/partners/PartnerRegistry.sol#445)
+PartnerRegistry.createThresholdMarket(bytes32,int256,uint64) (src/partners/PartnerRegistry.sol#462-526) uses timestamp for comparisons
 	Dangerous comparisons:
-	- endTime <= nowTs (src/partners/PartnerRegistry.sol#464)
-	- duration < MIN_DURATION || duration > MAX_DURATION (src/partners/PartnerRegistry.sol#466)
-PartnerRegistry._reserveLiveSlot(address,uint64) (src/partners/PartnerRegistry.sol#528-540) uses timestamp for comparisons
+	- endTime <= nowTs (src/partners/PartnerRegistry.sol#480)
+	- duration < MIN_DURATION || duration > MAX_DURATION (src/partners/PartnerRegistry.sol#482)
+PartnerRegistry._reserveLiveSlot(address,uint64) (src/partners/PartnerRegistry.sol#545-560) uses timestamp for comparisons
 	Dangerous comparisons:
-	- _info[live[i]].endTime <= nowTs (src/partners/PartnerRegistry.sol#532)
-PartnerRegistry.liveMarkets() (src/partners/PartnerRegistry.sol#632-645) uses timestamp for comparisons
+	- end + RESOLVE_WINDOW <= nowTs (src/partners/PartnerRegistry.sol#551)
+	- end > nowTs (src/partners/PartnerRegistry.sol#555)
+PartnerRegistry.liveMarkets() (src/partners/PartnerRegistry.sol#672-693) uses timestamp for comparisons
 	Dangerous comparisons:
-	- _info[live[j]].endTime > block.timestamp (src/partners/PartnerRegistry.sol#638)
+	- running = end > block.timestamp (src/partners/PartnerRegistry.sol#682)
+	- recent = ! running && end + RESOLVE_WINDOW > block.timestamp (src/partners/PartnerRegistry.sol#683)
+	- (phase == 0 && running) || (phase == 1 && recent) (src/partners/PartnerRegistry.sol#684)
 ChainlinkRoundResolver.submit(bytes32,uint64,bytes) (src/resolvers/ChainlinkRoundResolver.sol#108-139) uses timestamp for comparisons
 	Dangerous comparisons:
 	- block.timestamp > uint256(timestamp) + livenessGrace (src/resolvers/ChainlinkRoundResolver.sol#113)
@@ -392,71 +401,71 @@ SchedulerReceiver.onReport(bytes,bytes) (src/scheduler/SchedulerReceiver.sol#133
 	Dangerous comparisons:
 	- uint256(scheduledTime) + maxReportAge < block.timestamp (src/scheduler/SchedulerReceiver.sol#149)
 	- scheduledTime > block.timestamp + MAX_FUTURE_SKEW (src/scheduler/SchedulerReceiver.sol#152)
-ConvergeVault.settleEpoch(uint256,bytes[]) (src/vault/ConvergeVault.sol#497-541) uses timestamp for comparisons
+ConvergeVault.settleEpoch(uint256,bytes[]) (src/vault/ConvergeVault.sol#502-546) uses timestamp for comparisons
 	Dangerous comparisons:
-	- epochId >= currentEpoch() (src/vault/ConvergeVault.sol#498)
-	- block.timestamp > end + settleWindow (src/vault/ConvergeVault.sol#503)
-ConvergeVault._collectMarks(bytes[],uint256) (src/vault/ConvergeVault.sol#690-716) uses timestamp for comparisons
+	- epochId >= currentEpoch() (src/vault/ConvergeVault.sol#503)
+	- block.timestamp > end + settleWindow (src/vault/ConvergeVault.sol#508)
+ConvergeVault._collectMarks(bytes[],uint256) (src/vault/ConvergeVault.sol#695-721) uses timestamp for comparisons
 	Dangerous comparisons:
-	- assetCfg[assetIds[j]].feedId == feed (src/vault/ConvergeVault.sol#702)
-ConvergeVault._markTime(ReportV3,uint256) (src/vault/ConvergeVault.sol#722-739) uses timestamp for comparisons
+	- assetCfg[assetIds[j]].feedId == feed (src/vault/ConvergeVault.sol#707)
+ConvergeVault._markTime(ReportV3,uint256) (src/vault/ConvergeVault.sol#727-744) uses timestamp for comparisons
 	Dangerous comparisons:
-	- at == 0 (src/vault/ConvergeVault.sol#723)
-	- r.observationsTimestamp > block.timestamp || block.timestamp - r.observationsTimestamp > maxMarkAge (src/vault/ConvergeVault.sol#725-726)
-	- r.validFromTimestamp > at || r.observationsTimestamp < at (src/vault/ConvergeVault.sol#733)
-ConvergeVault._recordMarks(ConvergeVault.Mark[]) (src/vault/ConvergeVault.sol#744-750) uses timestamp for comparisons
+	- at == 0 (src/vault/ConvergeVault.sol#728)
+	- r.observationsTimestamp > block.timestamp || block.timestamp - r.observationsTimestamp > maxMarkAge (src/vault/ConvergeVault.sol#730-731)
+	- r.validFromTimestamp > at || r.observationsTimestamp < at (src/vault/ConvergeVault.sol#738)
+ConvergeVault._recordMarks(ConvergeVault.Mark[]) (src/vault/ConvergeVault.sol#749-755) uses timestamp for comparisons
 	Dangerous comparisons:
-	- i < marks.length (src/vault/ConvergeVault.sol#745)
-	- marks[i].known && marks[i].obsTs > lastMark[assetIds[i]].obsTs (src/vault/ConvergeVault.sol#746)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) uses timestamp for comparisons
+	- i < marks.length (src/vault/ConvergeVault.sol#750)
+	- marks[i].known && marks[i].obsTs > lastMark[assetIds[i]].obsTs (src/vault/ConvergeVault.sol#751)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) uses timestamp for comparisons
 	Dangerous comparisons:
-	- end <= at (src/vault/ConvergeVault.sol#809)
-	- m.startTime() > at (src/vault/ConvergeVault.sol#822)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) uses timestamp for comparisons
+	- end <= at (src/vault/ConvergeVault.sol#814)
+	- m.startTime() > at (src/vault/ConvergeVault.sol#827)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) uses timestamp for comparisons
 	Dangerous comparisons:
-	- p < pLo (src/vault/ConvergeVault.sol#866)
-	- p > pHi (src/vault/ConvergeVault.sol#867)
-	- end > obs (src/vault/ConvergeVault.sol#860)
-	- pLo > band (src/vault/ConvergeVault.sol#869)
-ConvergeVault._markOf(bytes32,ConvergeVault.Mark[],ConvergeVault.MarkMode) (src/vault/ConvergeVault.sol#873-890) uses timestamp for comparisons
+	- p < pLo (src/vault/ConvergeVault.sol#871)
+	- p > pHi (src/vault/ConvergeVault.sol#872)
+	- end > obs (src/vault/ConvergeVault.sol#865)
+	- pLo > band (src/vault/ConvergeVault.sol#874)
+ConvergeVault._markOf(bytes32,ConvergeVault.Mark[],ConvergeVault.MarkMode) (src/vault/ConvergeVault.sol#878-895) uses timestamp for comparisons
 	Dangerous comparisons:
-	- usable = lm.price != 0 && block.timestamp <= uint256(lm.obsTs) + MAX_LAST_MARK_AGE (src/vault/ConvergeVault.sol#885)
-ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#896-929) uses timestamp for comparisons
+	- usable = lm.price != 0 && block.timestamp <= uint256(lm.obsTs) + MAX_LAST_MARK_AGE (src/vault/ConvergeVault.sol#890)
+ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#901-934) uses timestamp for comparisons
 	Dangerous comparisons:
-	- tmp[j] == f (src/vault/ConvergeVault.sol#917)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) uses timestamp for comparisons
+	- tmp[j] == f (src/vault/ConvergeVault.sol#922)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) uses timestamp for comparisons
 	Dangerous comparisons:
-	- m.endTime() <= at (src/vault/ConvergeVault.sol#942)
-	- needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#946)
-ConvergeVault._updateBreaker(uint256) (src/vault/ConvergeVault.sol#976-990) uses timestamp for comparisons
+	- m.endTime() <= at (src/vault/ConvergeVault.sol#947)
+	- needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#951)
+ConvergeVault._updateBreaker(uint256) (src/vault/ConvergeVault.sol#981-995) uses timestamp for comparisons
 	Dangerous comparisons:
-	- dayStart != today (src/vault/ConvergeVault.sol#980)
-ConvergeVault.setSigma(bytes32,uint256) (src/vault/ConvergeVault.sol#999-1020) uses timestamp for comparisons
+	- dayStart != today (src/vault/ConvergeVault.sol#985)
+ConvergeVault.setSigma(bytes32,uint256) (src/vault/ConvergeVault.sol#1004-1025) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp < uint256(c.sigmaUpdatedAt) + sigmaMinInterval (src/vault/ConvergeVault.sol#1006)
-	- fresh = block.timestamp <= uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1009)
-ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1025-1065) uses timestamp for comparisons
+	- block.timestamp < uint256(c.sigmaUpdatedAt) + sigmaMinInterval (src/vault/ConvergeVault.sol#1011)
+	- fresh = block.timestamp <= uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1014)
+ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1030-1070) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp + _params.noQuoteWindowSec >= m.endTime() (src/vault/ConvergeVault.sol#1031)
-ConvergeVault.venueView(Market) (src/vault/ConvergeVault.sol#1275-1286) uses timestamp for comparisons
+	- block.timestamp + _params.noQuoteWindowSec >= m.endTime() (src/vault/ConvergeVault.sol#1036)
+ConvergeVault.venueView(Market) (src/vault/ConvergeVault.sol#1285-1296) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1277)
-	- c.sigma == 0 || block.timestamp > uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1281)
-ConvergeVault._settlementPending() (src/vault/ConvergeVault.sol#1292-1302) uses timestamp for comparisons
+	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1287)
+	- c.sigma == 0 || block.timestamp > uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1291)
+ConvergeVault._settlementPending() (src/vault/ConvergeVault.sol#1302-1312) uses timestamp for comparisons
 	Dangerous comparisons:
-	- cur == 0 (src/vault/ConvergeVault.sol#1296)
-	- block.timestamp <= epochEnd(cur - 1) + settleWindow (src/vault/ConvergeVault.sol#1301)
-ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1363-1415) uses timestamp for comparisons
+	- cur == 0 (src/vault/ConvergeVault.sol#1306)
+	- block.timestamp <= epochEnd(cur - 1) + settleWindow (src/vault/ConvergeVault.sol#1311)
+ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1373-1425) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1369)
-	- f.refObs > lastMark[a].obsTs && f.refObs <= block.timestamp (src/vault/ConvergeVault.sol#1394)
-	- block.timestamp >= uint256(navUpdatedAt) + AUTO_CHECKPOINT_INTERVAL (src/vault/ConvergeVault.sol#1412)
-ConvergeVault._autoCheckpoint(bytes32,uint192,uint64) (src/vault/ConvergeVault.sol#1421-1440) uses timestamp for comparisons
+	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1379)
+	- f.refObs > lastMark[a].obsTs && f.refObs <= block.timestamp (src/vault/ConvergeVault.sol#1404)
+	- block.timestamp >= uint256(navUpdatedAt) + AUTO_CHECKPOINT_INTERVAL (src/vault/ConvergeVault.sol#1422)
+ConvergeVault._autoCheckpoint(bytes32,uint192,uint64) (src/vault/ConvergeVault.sol#1431-1450) uses timestamp for comparisons
 	Dangerous comparisons:
-	- supply == 0 || obs > block.timestamp || block.timestamp - obs > AUTO_MARK_MAX_AGE (src/vault/ConvergeVault.sol#1425)
-ConvergeVault.acceptVenue() (src/vault/ConvergeVault.sol#1677-1685) uses timestamp for comparisons
+	- supply == 0 || obs > block.timestamp || block.timestamp - obs > AUTO_MARK_MAX_AGE (src/vault/ConvergeVault.sol#1435)
+ConvergeVault.acceptVenue() (src/vault/ConvergeVault.sol#1687-1695) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp < pendingVenueEta (src/vault/ConvergeVault.sol#1680)
+	- block.timestamp < pendingVenueEta (src/vault/ConvergeVault.sol#1690)
 ForwardVenue.executeOrder(uint256,bytes) (src/vault/ForwardVenue.sol#204-239) uses timestamp for comparisons
 	Dangerous comparisons:
 	- block.timestamp < o.execAt (src/vault/ForwardVenue.sol#211)
@@ -479,8 +488,8 @@ INFO:Detectors:
 Detector: cyclomatic-complexity
 SchedulerReceiver.onReport(bytes,bytes) (src/scheduler/SchedulerReceiver.sol#133-169) has a high cyclomatic complexity (13).
 SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#189-224) has a high cyclomatic complexity (13).
-ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1025-1065) has a high cyclomatic complexity (13).
-ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1363-1415) has a high cyclomatic complexity (15).
+ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1030-1070) has a high cyclomatic complexity (13).
+ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1373-1425) has a high cyclomatic complexity (15).
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#cyclomatic-complexity
 INFO:Detectors:
 Detector: low-level-calls
@@ -489,27 +498,28 @@ Low level call in ForwardVenue._payReward(uint256) (src/vault/ForwardVenue.sol#3
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
 INFO:Detectors:
 Detector: naming-convention
-Variable ConvergeVault.SCALE (src/vault/ConvergeVault.sol#137) is not in mixedCase
+Variable ConvergeVault.SCALE (src/vault/ConvergeVault.sol#140) is not in mixedCase
 Variable ForwardVenue.SCALE (src/vault/ForwardVenue.sol#75) is not in mixedCase
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
 INFO:Detectors:
 Detector: unimplemented-functions
-PartnerRegistry (src/partners/PartnerRegistry.sol#49-671) does not implement functions:
+PartnerRegistry (src/partners/PartnerRegistry.sol#49-719) does not implement functions:
 	- IMarketFactoryView.paused() (src/Market.sol#12)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unimplemented-functions
 INFO:Detectors:
 Detector: unindexed-event-address
 Event MarketFactory.FeeRecipientSet(address) (src/MarketFactory.sol#49) has address parameters but no indexed parameters
-Event PartnerRegistry.ConfigSet(uint256,uint256,uint16,address,address) (src/partners/PartnerRegistry.sol#168-174) has address parameters but no indexed parameters
+Event PartnerRegistry.ConfigSet(uint256,uint256,uint16,address,address) (src/partners/PartnerRegistry.sol#176-182) has address parameters but no indexed parameters
 Event SchedulerReceiver.WorkflowSet(address,bytes32) (src/scheduler/SchedulerReceiver.sol#71) has address parameters but no indexed parameters
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-event-address-parameters
 INFO:Detectors:
 Detector: cache-array-length
-Loop condition i < partnerList.length (src/partners/PartnerRegistry.sol#635) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition j < assetIds.length (src/vault/ConvergeVault.sol#699) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < assetIds.length (src/vault/ConvergeVault.sol#878) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < _markets.length (src/vault/ConvergeVault.sol#906) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1043) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1307) should use cached array length instead of referencing `length` member of the storage array.
+Loop condition i < partnerList.length (src/partners/PartnerRegistry.sol#678) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition j < assetIds.length (src/vault/ConvergeVault.sol#704) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < assetIds.length (src/vault/ConvergeVault.sol#883) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < _markets.length (src/vault/ConvergeVault.sol#911) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1048) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1317) should use cached array length instead of referencing `length` member of the storage array.
  Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#cache-array-length
 INFO:Slither:. analyzed (48 contracts with 102 detectors), 112 result(s) found
+slither-exit 0

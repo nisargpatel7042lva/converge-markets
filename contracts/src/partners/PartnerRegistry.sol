@@ -666,18 +666,25 @@ contract PartnerRegistry is
     }
 
     /// @notice Every partner market that is running or ended less than RESOLVE_WINDOW ago, across
-    ///         all partners: the keeper's candidate list in one call. Bounded by the live limit.
+    ///         all partners: the keeper's candidate list in one call. Running markets come first
+    ///         (a caller that reads only the head of the list never starves a live market behind
+    ///         ended ones). Bounded by the live limit.
     function liveMarkets() external view returns (address[] memory out) {
         uint256 n = 0;
         for (uint256 pass = 0; pass < 2; pass++) {
             if (pass == 1) out = new address[](n);
             uint256 k = 0;
-            for (uint256 i = 0; i < partnerList.length; i++) {
-                address[] storage live = _live[partnerList[i]];
-                for (uint256 j = 0; j < live.length; j++) {
-                    if (_info[live[j]].endTime + RESOLVE_WINDOW > block.timestamp) {
-                        if (pass == 1) out[k] = live[j];
-                        k++;
+            for (uint256 phase = 0; phase < 2; phase++) {
+                for (uint256 i = 0; i < partnerList.length; i++) {
+                    address[] storage live = _live[partnerList[i]];
+                    for (uint256 j = 0; j < live.length; j++) {
+                        uint64 end = _info[live[j]].endTime;
+                        bool running = end > block.timestamp;
+                        bool recent = !running && end + RESOLVE_WINDOW > block.timestamp;
+                        if ((phase == 0 && running) || (phase == 1 && recent)) {
+                            if (pass == 1) out[k] = live[j];
+                            k++;
+                        }
                     }
                 }
             }

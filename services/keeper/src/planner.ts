@@ -280,13 +280,11 @@ export function plan(p: PlanInput): Action[] {
     // enforces these anyway; planning inside them avoids sending transactions that revert.
     const partnerBasis = new Map<string, bigint>();
     const partnerRegistered = new Map<string, number>();
-    const partnerOpen = new Map<string, number>();
     let allPartnerBasis = 0n;
     for (const m of s.markets) {
       if (!m.partner) continue;
       const k = m.partner.toLowerCase();
       if (m.registered) partnerRegistered.set(k, (partnerRegistered.get(k) ?? 0) + 1);
-      if (m.partnerActive && isOpen(m)) partnerOpen.set(k, (partnerOpen.get(k) ?? 0) + 1);
       if (!m.registered || m.basis <= 0n) continue;
       partnerBasis.set(k, (partnerBasis.get(k) ?? 0n) + m.basis);
       allPartnerBasis += m.basis;
@@ -315,9 +313,10 @@ export function plan(p: PlanInput): Action[] {
       if (totalBasis + amount > invCap) amount = invCap - totalBasis;
       if (m.partner) {
         const k = m.partner.toLowerCase();
-        // a partner's cap is shared by its markets: no single market takes it all
-        const sharing = Math.max(1, Math.min(pl?.maxPerPartner ?? 1, partnerOpen.get(k) ?? 1));
-        const perMarket = m.partnerCap / BigInt(sharing);
+        // A partner's cap is shared by the markets it may hold at once: every market gets a fixed
+        // 1/maxPerPartner of it, whatever order the markets were created in. (Splitting by the
+        // number of markets that exist now would give a first market the whole cap.)
+        const perMarket = m.partnerCap / BigInt(Math.max(1, pl?.maxPerPartner ?? 1));
         if (m.basis + amount > perMarket) amount = perMarket - m.basis;
         const mine = partnerBasis.get(k) ?? 0n;
         if (mine + amount > m.partnerCap) amount = m.partnerCap - mine;

@@ -122,7 +122,7 @@ const CANDIDATE_TTL_MS = 3_000;
 /** Partner limits (active, cap) change on owner action only: read them every few seconds. */
 const LIMITS_TTL_MS = 5_000;
 /** At most this many partner markets are read per tick: the RPC allows 15 calls a second. */
-export const MAX_PARTNER_CANDIDATES = 24;
+export const MAX_PARTNER_CANDIDATES = 32;
 
 /** Bounds the partner candidate list (the registry's order is by partner; it never repeats). */
 export function limitPartnerCandidates(all: readonly Address[]): Address[] {

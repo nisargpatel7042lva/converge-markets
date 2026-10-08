@@ -266,6 +266,7 @@ export class Keeper {
   private lastPartnerMarketCount: bigint | null = null;
   private watchingPartners = false;
   private kickPending = false;
+  private lastKickAt = 0;
 
   /**
    * A partner market is created at any moment and its owner expects depth within a block or two,
@@ -288,8 +289,10 @@ export class Keeper {
         this.kickPending = true;
       }
       this.lastPartnerMarketCount = n;
-      if (this.kickPending && !this.slowBusy) {
+      // at most one extra state read a second, however many markets appear (RPC budget)
+      if (this.kickPending && !this.slowBusy && this.now() - this.lastKickAt >= 1_000) {
         this.kickPending = false;
+        this.lastKickAt = this.now();
         void this.slowTick();
       }
     } catch {
@@ -556,9 +559,10 @@ export class Keeper {
       this.flushRpcMetrics();
       this.d.metrics.loopMs.observe(this.now() - t0);
       this.slowBusy = false;
-      if (this.kickPending) {
+      if (this.kickPending && this.now() - this.lastKickAt >= 1_000) {
         // a partner market appeared while this tick was reading: go again at once
         this.kickPending = false;
+        this.lastKickAt = this.now();
         setImmediate(() => void this.slowTick());
       }
     }

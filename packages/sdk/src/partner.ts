@@ -814,7 +814,9 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
                   head,
                 ),
               ]);
-        if (head >= cursor) cursor = head + 1n;
+        // keep the last two blocks in the next scan: a load-balanced RPC node can lag behind the
+        // head it reported, and a late log must not be skipped for good
+        if (head >= cursor) cursor = head > 1n ? head - 1n : 0n;
         const d = done[0];
         if (d) {
           return {
@@ -862,7 +864,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
           throw new ConvergeError("the market has not ended yet", "TIMEOUT");
         await sleep(500);
       }
-      const report = await opts.reports.reportAt(feedId, BigInt(cur.end));
+      const report = await opts.reports.reportAt(feedId, BigInt(cur.end)).catch(() => null);
       const resolveData = (evidence: Hex): Tx => ({
         to: market,
         data: encodeFunctionData({ abi: marketAbi, functionName: "resolve", args: [evidence] }),
@@ -875,11 +877,17 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
       // report is sent every time: it is ignored once the boundary is final.
       // Without a report the call can still succeed once the oracle's grace has passed: the
       // market then becomes INVALID (every share pays 0.5), which is the correct outcome.
-      const evidence: Hex = report ?? "0x";
+      let evidence: Hex | null = report;
+      let reportSent = false;
       let lastError: unknown = null;
       for (let attempt = 0; ; attempt++) {
         try {
-          await sendChecked(resolveData(evidence));
+          // The report goes out once; afterwards "0x" only polls (it fails in the simulation, at
+          // no cost, while the oracle's window is open, and finalizes once it has passed). A
+          // report that was not available at first is fetched again.
+          evidence ??= await opts.reports.reportAt(feedId, BigInt(cur.end));
+          await sendChecked(resolveData(reportSent || !evidence ? "0x" : evidence));
+          if (evidence) reportSent = true;
           lastError = null;
         } catch (e) {
           lastError = e;
@@ -887,7 +895,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
         cur = await read();
         if (cur.state !== "OPEN") return cur.state;
         if (Date.now() > deadline) {
-          if (!report) {
+          if (!evidence) {
             throw new ConvergeError("no oracle report for the end time yet", "NO_REPORT");
           }
           throw new ConvergeError(
@@ -897,8 +905,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
             "TIMEOUT",
           );
         }
-        // an attempt that failed before the oracle's window ended is expected: wait and retry
-        await sleep(attempt === 0 && !lastError ? 1_000 : 1_500);
+        await sleep(1_500);
       }
     },
 
@@ -996,6 +1003,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
       const seen = new Set<string>();
       let primed = false;
       let from: bigint | null = null;
+      const deliveredLogs = new Set<string>();
 
       const fromIndexer = async () => {
         let rows: TradeRow[];
@@ -1045,8 +1053,14 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
           from,
           head,
         );
-        from = head + 1n;
+        // overlap the last two blocks (a lagging RPC node) and drop what was already delivered
+        from = head > 1n ? head - 1n : 0n;
         for (const l of logs) {
+          const id = `${l.transactionHash}:${l.logIndex}`;
+          if (deliveredLogs.has(id)) continue;
+          deliveredLogs.add(id);
+          if (deliveredLogs.size > 2_000)
+            deliveredLogs.delete(deliveredLogs.values().next().value as string);
           const a = l.args as {
             market: Address;
             upToken: boolean;

@@ -239,13 +239,19 @@ contract PartnerRegistryTest is Base {
         Market c = _create(partner, 3200e18, _end(30 minutes));
         address[] memory live = reg.liveMarkets();
         assertEq(live.length, 3);
+        // partner order, then creation order within a partner: a, c (partner), b (second)
         assertEq(live[0], address(a));
         assertEq(live[1], address(c));
         assertEq(live[2], address(b));
         // an ended market stays in the list for an hour (so it can be resolved), then drops out
         // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp + 45 minutes);
-        assertEq(reg.liveMarkets().length, 3);
+        // c ended 15 minutes ago: it is listed AFTER the markets that are still running
+        address[] memory mid = reg.liveMarkets();
+        assertEq(mid.length, 3);
+        assertEq(mid[0], address(a));
+        assertEq(mid[1], address(b));
+        assertEq(mid[2], address(c));
         vm.warp(vm.getBlockTimestamp() + 30 minutes); // c ended 45 minutes ago, a 15 minutes ago: all in
         assertEq(reg.liveMarkets().length, 3);
         vm.warp(vm.getBlockTimestamp() + 90 minutes); // c is 2h15 past its end, a 1h45, b 15 minutes

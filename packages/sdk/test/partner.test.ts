@@ -596,6 +596,30 @@ describe("client: resolving", () => {
     expect(sent).toHaveLength(2);
   });
 
+  it("sends the report once, then only polls with 0x, and fetches a missing report again", async () => {
+    let state = 1;
+    let calls = 0;
+    const { pub, wallet, sent } = stub({ reads: reads(() => state) });
+    (pub as unknown as { waitForTransactionReceipt: unknown }).waitForTransactionReceipt =
+      async () => {
+        calls += 1;
+        if (calls === 3) state = 2; // the third transaction finalizes
+        return { status: "success", logs: [], blockNumber: BigInt(calls) };
+      };
+    let asked = 0;
+    const lateReports = {
+      reportAt: async () => (++asked < 2 ? null : ("0xabcd" as Hex)), // not there the first time
+    };
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    expect(await c.resolve(MARKET, { reports: lateReports, timeoutMs: 30_000 })).toBe(
+      "RESOLVED_UP",
+    );
+    const args = sent.map((t) => decodeFunctionData({ abi: marketAbi, data: t.data }).args![0]);
+    // the report is fetched again before the first send (it was missing at the very first look),
+    // goes out once, and the following calls only poll with "0x"
+    expect(args).toEqual(["0xabcd", "0x", "0x"]);
+  }, 20_000);
+
   it("times out with the last error when the market never resolves", async () => {
     const { pub, wallet } = stub({ reads: reads(() => 1), callReverts: "PriceNotFinal" });
     const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
@@ -781,6 +805,44 @@ describe("client: fills", () => {
       shares: 2_000_000n,
     });
     expect(seen[0]!.price).toBeCloseTo(0.45, 9);
+  });
+
+  it("scans the last two blocks again and still delivers a fill once", async () => {
+    const { pub } = stub();
+    let head = 1_000n;
+    (pub as unknown as { getBlockNumber: unknown }).getBlockNumber = async () => head;
+    const fromBlocks: bigint[] = [];
+    const log = {
+      args: {
+        market: MARKET,
+        upToken: true,
+        vaultSells: true,
+        units: 1_000_000n,
+        premium: 500_000n,
+        taker: ME,
+      },
+      transactionHash: "0xaa",
+      logIndex: 3,
+      blockNumber: 1_001n,
+    };
+    (pub as unknown as { getContractEvents: unknown }).getContractEvents = async (a: {
+      fromBlock: bigint;
+      toBlock: bigint;
+    }) => {
+      fromBlocks.push(a.fromBlock);
+      return a.fromBlock <= 1_001n && a.toBlock >= 1_001n ? [log] : [];
+    };
+    const seen: unknown[] = [];
+    const c = createConvergeClient({ publicClient: pub, addresses: A });
+    const stop = c.subscribeFills({ pollMs: 5 }, (f) => seen.push(f));
+    await new Promise((r) => setTimeout(r, 30));
+    head = 1_002n;
+    await new Promise((r) => setTimeout(r, 40));
+    head = 1_003n;
+    await new Promise((r) => setTimeout(r, 40));
+    stop();
+    expect(seen).toHaveLength(1); // seen by two scans, delivered once
+    expect(fromBlocks.some((f) => f === 1_000n || f === 1_001n)).toBe(true);
   });
 
   it("reports polling errors without throwing", async () => {

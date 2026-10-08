@@ -358,7 +358,8 @@ describe("planner: partner markets (ADR-008)", () => {
   it("splits into a partner market and stops at the partner's cap", () => {
     // target is 5 % of 1000 = 50, the partner cap is 40
     const a = run({ state: withPartners([partnerMarket(11)]) });
-    expect(splits(a)).toEqual([[MKT(11), USDC(40)]]);
+    // a market gets a third of the cap (the partner may hold three at once)
+    expect(splits(a)).toEqual([[MKT(11), USDC(40) / 3n]]);
   });
 
   it("counts every market of the same partner against its cap", () => {
@@ -390,25 +391,31 @@ describe("planner: partner markets (ADR-008)", () => {
         partnerMarket(12, P2),
       ]),
     });
-    expect(splits(a)).toEqual([[MKT(12), USDC(40)]]);
+    expect(splits(a)).toEqual([[MKT(12), USDC(40) / 3n]]);
   });
 
   it("stops at the lower of the registry's global cap and the vault's fraction of NAV", () => {
     // fraction 10 % of 1000 = 100 > global cap 60: the registry cap binds
     const a = run({
-      state: withPartners([partnerMarket(11), partnerMarket(12, P2)], {
-        partners: {
-          globalCap: USDC(60),
-          fraction: 0.1,
-          maxMarkets: 6,
-          maxPerPartner: 3,
-          registered: 0,
+      state: withPartners(
+        [
+          partnerMarket(11, P1, { partnerCap: USDC(400) }),
+          partnerMarket(12, P2, { partnerCap: USDC(400) }),
+        ],
+        {
+          partners: {
+            globalCap: USDC(60),
+            fraction: 0.1,
+            maxMarkets: 6,
+            maxPerPartner: 3,
+            registered: 0,
+          },
         },
-      }),
+      ),
     });
     expect(splits(a)).toEqual([
-      [MKT(11), USDC(40)],
-      [MKT(12), USDC(20)],
+      [MKT(11), USDC(50)], // the target
+      [MKT(12), USDC(10)], // what is left under the registry's 60
     ]);
     // global cap 500 > fraction 10 % of 1000 = 100: the vault's fraction binds
     const b = run({

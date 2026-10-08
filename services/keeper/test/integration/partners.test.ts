@@ -32,6 +32,7 @@ describe("partner markets on anvil (public SDK, real keeper)", () => {
   let m1: Address;
   let m1End: number;
   let m2: Address;
+  let m4: Address;
 
   const view = (m: Address) =>
     stack.read<{ tradable: boolean }>(stack.addrs.vault, convergeVaultAbi, "venueView", [m]);
@@ -157,33 +158,47 @@ describe("partner markets on anvil (public SDK, real keeper)", () => {
     expect(m.phase.phase).toBe("LIVE");
   }, 60_000);
 
-  it("the vault's allocation stops at the partner's cap (40 USD of a 50 USD target)", async () => {
-    expect(await basisOf(m1)).toBe(40n * U);
-    // a second market of the same partner gets nothing while the cap is used
-    const now = await stack.now();
-    const created = await partnerSdk.createPartnerMarket({
-      asset: TEST_LABEL,
-      strike: px.v + 100,
-      end: now + 2 * 3600,
-    });
-    m2 = created.market;
+  it("each market gets a third of the partner's cap (40 USD), the total never passes it, a fourth market waits", async () => {
+    const third = (40n * U) / 3n;
+    expect(await basisOf(m1)).toBe(third);
+    const make = async (strikeOffset: number) =>
+      (
+        await partnerSdk.createPartnerMarket({
+          asset: TEST_LABEL,
+          strike: px.v + strikeOffset,
+          end: (await stack.now()) + 2 * 3600,
+        })
+      ).market;
+    m2 = await make(100);
+    const m3 = await make(200);
+    await waitFor(
+      async () => (await view(m2)).tradable && (await view(m3)).tradable,
+      20_000,
+      "the second and third market to be quoted",
+    );
+    expect(await basisOf(m2)).toBe(third);
+    expect(await basisOf(m3)).toBe(third);
+    // a fourth market: the partner holds three registry slots and its cap is spoken for
+    m4 = await make(300);
     await new Promise((r) => setTimeout(r, 4_000));
-    expect(await basisOf(m2)).toBe(0n);
-    expect((await view(m2)).tradable).toBe(false);
+    expect(await basisOf(m4)).toBe(0n);
+    expect((await view(m4)).tradable).toBe(false);
     const p = await stack.read<{ exposureCap: bigint }>(
       stack.addrs.registry,
       partnerRegistryAbi,
       "partnerOf",
       [stack.partner.account.address],
     );
-    expect(await basisOf(m1)).toBeLessThanOrEqual(p.exposureCap);
+    expect((await basisOf(m1)) + (await basisOf(m2)) + (await basisOf(m3))).toBeLessThanOrEqual(
+      p.exposureCap,
+    );
     expect(
       await counter(rig.metrics, "keeper_tx_sent_total", {
         kind: "splitForInventory",
         result: "sim_revert",
       }),
     ).toBe(0);
-  }, 30_000);
+  }, 60_000);
 
   it("shows two-sided quotes and a position changes hands through the SDK", async () => {
     const spot = px.v;
@@ -277,10 +292,10 @@ describe("partner markets on anvil (public SDK, real keeper)", () => {
     );
   }, 150_000);
 
-  it("then the freed cap goes to the partner's next market", async () => {
-    await waitFor(async () => (await view(m2)).tradable, 40_000, "the second market to be quoted");
-    expect(await basisOf(m2)).toBeGreaterThan(0n);
-    expect(await basisOf(m2)).toBeLessThanOrEqual(40n * U);
+  it("then the freed slot goes to the partner's fourth market", async () => {
+    await waitFor(async () => (await view(m4)).tradable, 40_000, "the fourth market to be quoted");
+    expect(await basisOf(m4)).toBeGreaterThan(0n);
+    expect(await basisOf(m4)).toBeLessThanOrEqual((40n * U) / 3n);
   }, 60_000);
 
   it("never sent an allocation the vault would refuse, and nothing went wrong", async () => {

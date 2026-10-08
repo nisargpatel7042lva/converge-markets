@@ -1,6 +1,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { TestSignerStreamsSource, marketAbi, mockErc20Abi } from "@converge/sdk";
+import {
+  TestSignerStreamsSource,
+  dataStreamsResolverAbi,
+  marketAbi,
+  mockErc20Abi,
+} from "@converge/sdk";
 import { createWalletClient, http, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -104,21 +109,31 @@ describe("partner-demo journey on anvil", () => {
     expect(ev.takerNetUsd).toBeGreaterThan(0);
     expect(ev.final.partner?.toLowerCase()).toBe(stack.partner.account.address.toLowerCase());
 
-    // Who finalized the market: the vault's keeper and the SDK both try, the first one wins. The
-    // evidence says which, instead of implying the SDK always did.
+    // Who did what at the end: the vault's keeper and the SDK both submit the end price and both
+    // try to finalize, and the first one wins each step. The evidence says which, instead of
+    // implying the SDK did everything.
+    const keeperAddr = stack.keeperAccount.address.toLowerCase();
+    const who = (from: string) =>
+      from.toLowerCase() === keeperAddr ? "the vault's keeper" : "the SDK resolve() call";
+    const proposed = await stack.pub.getContractEvents({
+      address: stack.addrs.streams,
+      abi: dataStreamsResolverAbi,
+      eventName: "ReportProposed",
+      fromBlock: BigInt(ev.createdAtBlock),
+    });
+    const endProposal = proposed.find((l) => Number(l.args.timestamp) === ev.resolution.endTime);
+    const proposedBy = endProposal
+      ? who((await stack.pub.getTransaction({ hash: endProposal.transactionHash as Hex })).from)
+      : "unknown";
     const resolvedLogs = await stack.pub.getContractEvents({
       address: ev.market,
       abi: marketAbi,
       eventName: "Resolved",
       fromBlock: BigInt(ev.createdAtBlock),
     });
-    const resolvedTx = await stack.pub.getTransaction({
-      hash: resolvedLogs[0]!.transactionHash as Hex,
-    });
-    const resolvedBy =
-      resolvedTx.from.toLowerCase() === stack.keeperAccount.address.toLowerCase()
-        ? "the vault's keeper (it submits end prices for markets the vault holds)"
-        : "the SDK resolve() call";
+    const finalizedBy = who(
+      (await stack.pub.getTransaction({ hash: resolvedLogs[0]!.transactionHash as Hex })).from,
+    );
 
     if (process.env.EVIDENCE_OUT) {
       mkdirSync(dirname(process.env.EVIDENCE_OUT), { recursive: true });
@@ -129,7 +144,8 @@ describe("partner-demo journey on anvil", () => {
             network: "local anvil (0.4 s blocks), real contracts, real keeper, test-signer oracle",
             generatedBy: "services/keeper/test/integration/partner-demo-flow.test.ts",
             steps,
-            resolvedBy,
+            endPriceSubmittedBy: proposedBy,
+            finalizedBy,
             ...ev,
           },
           null,
