@@ -34,3 +34,8 @@ Goal (prompt): internal security review and hardening (A), a conservative mainne
 | Z | `make check-9`, hostile review (external-auditor persona, whole system), report, STATUS, memory | 1, 6 |
 
 Not doable here, reported as BLOCKED with the exact requirement: mainnet deployment and explorer verification (funds, Safe, feed ids), the 12 h canary with real money (seed amount, funded wallets, phone trades), the alert tests on external channels (webhooks), the hosted indexer (Envio token), CRE (account).
+
+
+## Outcome (written at the end of the phase)
+
+Done: A1 to A5 (with the extended invariants finding F9-18), B1 as a TypeScript tool with an owner timelock instead of `DeployMainnet.s.sol`, B3, B4, C1 (tooling), Z. Not doable here and reported BLOCKED: the mainnet deployment and explorer verification, the 12 h canary, the alert tests on real channels, the hosted indexer and the CRE workflow. See [PHASE-9-report](PHASE-9-report.md).

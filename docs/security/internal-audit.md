@@ -40,8 +40,8 @@ Nothing is "accepted" silently: every accepted risk is in section 8 with the rea
 
 | Check | Result | Where |
 | --- | --- | --- |
-| Solidity tests (unit, fuzz, invariants at 256 runs) | see `docs/evidence/phase-9/check-9.txt` | `make check-9` |
-| Extended invariants, 10,000 runs x depth 100, 3 suites (Market 5 properties, Vault 7, PartnerCap 3) | see `invariants-10000.txt` | `docs/evidence/phase-9/` |
+| Solidity tests (unit, fuzz, invariants at 256 runs) | 412 passed, 0 failed (2 fork tests skipped without an RPC; the 8 fork tests run in `make check-9`) — `docs/evidence/phase-9/check-9.txt` | `make check-9` |
+| Extended invariants, 10,000 runs x depth 100, 3 suites (Market 5 properties, Vault 7, PartnerCap 3) | 15 properties pass, 3 suites x 1,000,000 calls (the earlier campaign on pre-F9-18 code is kept as `invariants-10000-before-F9-18.txt`) |  `docs/evidence/phase-9/` |
 | Mainnet-fork tests (8) | pass | `fork-tests.txt` |
 | `forge lint --deny warnings`, `forge fmt --check` | clean | `check-9.txt` |
 | Slither (run before `OwnerTimelock.sol`, a thin wrapper of OpenZeppelin's audited `TimelockController`, was added; re-run in `check-9`) | 0 high, 0 medium; 48 low (`calls-loop`), 33 low (`timestamp`), 6+4 low (reentrancy benign/events), others informational. All triaged below | `slither-summary.txt`, `slither.txt` |

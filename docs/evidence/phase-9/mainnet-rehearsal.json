@@ -1,245 +1,245 @@
 {
   "what": "rehearsal of scripts/mainnet on a local anvil fork of Monad mainnet (real USDC, VerifierProxy and Safe v1.4.1); fake Data Streams feed ids",
   "transactions": 38,
-  "totalGasLimit": "37085648",
-  "totalCostMON": 0.9746114888892599,
-  "forkGasPriceWei": "26280017781",
-  "totalCostMONAt102Gwei": 3.782736096,
+  "totalGasLimit": "37099362",
+  "totalCostMON": 0.9883285266601878,
+  "forkGasPriceWei": "26640041051",
+  "totalCostMONAt102Gwei": 3.784134924,
   "perStep": [
     {
       "step": "deploy MarketFactory",
       "gasLimit": "4904249",
       "gasUsed": "4264565",
-      "costMON": 0.38765571977290225
+      "costMON": 0.3931960281914217
     },
     {
       "step": "deploy DataStreamsResolver",
       "gasLimit": "1805322",
       "gasUsed": "1569846",
-      "costMON": 0.1260908605567276
+      "costMON": 0.12788988751806485
     },
     {
       "step": "deploy ChainlinkRoundResolver",
       "gasLimit": "1156104",
       "gasUsed": "1005308",
-      "costMON": 0.07100628937486964
+      "costMON": 0.0720173673178804
     },
     {
       "step": "deploy OwnerTimelock",
       "gasLimit": "1860218",
       "gasUsed": "1617581",
-      "costMON": 0.10039132859318296
+      "costMON": 0.10181756149514375
     },
     {
       "step": "configure BTC/USD feed 0x0003b1b1…",
       "gasLimit": "69158",
       "gasUsed": "60138",
-      "costMON": 0.003284269688422806
+      "costMON": 0.003330808269470098
     },
     {
       "step": "register BTC/USD in the factory",
       "gasLimit": "133796",
       "gasUsed": "116345",
-      "costMON": 0.00557699944552868
+      "costMON": 0.005655789543345032
     },
     {
       "step": "configure ETH/USD feed 0x0003e1e1…",
       "gasLimit": "69172",
       "gasUsed": "60150",
-      "costMON": 0.002532067901087848
+      "costMON": 0.002567718196144312
     },
     {
       "step": "register ETH/USD in the factory",
       "gasLimit": "133810",
       "gasUsed": "116357",
-      "costMON": 0.0043030999780257
+      "costMON": 0.00436345024205313
     },
     {
       "step": "configure MON/USD round feed",
       "gasLimit": "70085",
       "gasUsed": "60944",
-      "costMON": 0.00198127077734058
+      "costMON": 0.00200893509592615
     },
     {
       "step": "register MON/USD in the factory",
       "gasLimit": "133805",
       "gasUsed": "116353",
-      "costMON": 0.00332687643164534
+      "costMON": 0.00337309598095274
     },
     {
       "step": "deploy SchedulerReceiver",
       "gasLimit": "1455147",
       "gasUsed": "1265346",
-      "costMON": 0.031846319308697434
+      "costMON": 0.0322862300076937
     },
     {
       "step": "deploy SchedulerLens",
       "gasLimit": "1680588",
       "gasUsed": "1461381",
-      "costMON": 0.03246673690173186
+      "costMON": 0.03291236486606905
     },
     {
       "step": "CREATOR_ROLE to 0x11632f9766ee9d9317f95562a6bd529652ead78f",
       "gasLimit": "79807",
       "gasUsed": "69398",
-      "costMON": 0.00136258162780649
+      "costMON": 0.0013811497263382
     },
     {
       "step": "CREATOR_ROLE to 0x000000000000000000000000000000000005c4ed",
       "gasLimit": "79573",
       "gasUsed": "69194",
-      "costMON": 0.001198857693401056
+      "costMON": 0.001215059283292608
     },
     {
       "step": "GUARDIAN_ROLE to 0x000000000000000000000000000000000000600d",
       "gasLimit": "79559",
       "gasUsed": "69182",
-      "costMON": 0.001058889853501778
+      "costMON": 0.001073065618600621
     },
     {
       "step": "scheduler leader = fallback",
       "gasLimit": "48404",
       "gasUsed": "42091",
-      "costMON": 0.0005698227595384
+      "costMON": 0.000577370269988848
     },
     {
       "step": "deploy ConvergeVault",
-      "gasLimit": "11520059",
-      "gasUsed": "10017443",
-      "costMON": 0.1201133446774807
+      "gasLimit": "11533773",
+      "gasUsed": "10029368",
+      "costMON": 0.12183008665800796
     },
     {
       "step": "deploy ForwardVenue",
       "gasLimit": "4442027",
       "gasUsed": "3862633",
-      "costMON": 0.04177960607369224
+      "costMON": 0.04232090992476076
     },
     {
       "step": "enable BTC/USD in the vault",
       "gasLimit": "243695",
       "gasUsed": "211909",
-      "costMON": 0.002049218779034475
+      "costMON": 0.00207539447107272
     },
     {
       "step": "enable ETH/USD in the vault",
       "gasLimit": "224159",
       "gasUsed": "194921",
-      "costMON": 0.00167793029389869
+      "costMON": 0.001699006432541925
     },
     {
       "step": "set the initial venue",
       "gasLimit": "59105",
       "gasUsed": "51396",
-      "costMON": 0.000394636576478115
+      "costMON": 0.00039950096614869
     },
     {
       "step": "pause quoting until launch",
       "gasLimit": "58409",
       "gasUsed": "50791",
-      "costMON": 0.000348570316992716
+      "costMON": 0.000352776948534283
     },
     {
       "step": "deploy PartnerRegistry",
       "gasLimit": "5704118",
       "gasUsed": "4960103",
-      "costMON": 0.030501070533270665
+      "costMON": 0.03086056587929025
     },
     {
       "step": "vault.setPartnerRegistry",
       "gasLimit": "39609",
       "gasUsed": "34443",
-      "costMON": 0.000191697232626603
+      "costMON": 0.000193902141125907
     },
     {
       "step": "registry.setVault",
       "gasLimit": "59053",
       "gasUsed": "51351",
-      "costMON": 0.000257470624051787
+      "costMON": 0.000260347195776622
     },
     {
       "step": "registry.setConfig",
       "gasLimit": "101317",
       "gasUsed": "88064",
-      "costMON": 0.00039921743082677
+      "costMON": 0.000403536260656704
     },
     {
       "step": "registry.setFeed BTC/USD",
       "gasLimit": "138027",
       "gasUsed": "120024",
-      "costMON": 0.000493194938218128
+      "costMON": 0.00049834400729562
     },
     {
       "step": "registry.setFeed ETH/USD",
       "gasLimit": "138041",
       "gasUsed": "120036",
-      "costMON": 0.000448915522448645
+      "costMON": 0.000453422445006164
     },
     {
       "step": "ConvergeVault.transferOwnership(timelock)",
       "gasLimit": "59528",
       "gasUsed": "51764",
-      "costMON": 0.000176857079861952
+      "costMON": 0.00017855806543624
     },
     {
       "step": "DataStreamsResolver.transferOwnership(timelock)",
       "gasLimit": "59449",
       "gasUsed": "51695",
-      "costMON": 0.000161985809156145
+      "costMON": 0.000163472342874802
     },
     {
       "step": "ChainlinkRoundResolver.transferOwnership(timelock)",
       "gasLimit": "59474",
       "gasUsed": "51717",
-      "costMON": 0.000149240275848878
+      "costMON": 0.00015054166795573
     },
     {
       "step": "PartnerRegistry.transferOwnership(timelock)",
       "gasLimit": "59499",
       "gasUsed": "51739",
-      "costMON": 0.000138085248796011
+      "costMON": 0.000139224557781639
     },
     {
       "step": "MarketFactory: ADMIN to the timelock",
       "gasLimit": "79366",
       "gasUsed": "69014",
-      "costMON": 0.000171098290113968
+      "costMON": 0.00017242818466755
     },
     {
       "step": "MarketFactory: deployer renounces 0x00000000",
       "gasLimit": "40802",
       "gasUsed": "35480",
-      "costMON": 0.000082071987229826
+      "costMON": 0.000082670301433516
     },
     {
       "step": "SchedulerReceiver: ADMIN to the timelock",
       "gasLimit": "79416",
       "gasUsed": "69058",
-      "costMON": 0.000149706768926376
+      "costMON": 0.000150725813675472
     },
     {
       "step": "SchedulerReceiver: OPERATOR to the Safe",
       "gasLimit": "79858",
       "gasUsed": "69442",
-      "costMON": 0.000141712868939606
+      "costMON": 0.000142609613667384
     },
     {
       "step": "SchedulerReceiver: deployer renounces 0x97667070",
       "gasLimit": "41141",
       "gasUsed": "35775",
-      "costMON": 0.000069027614891224
+      "costMON": 0.00006943190280815
     },
     {
       "step": "SchedulerReceiver: deployer renounces 0x00000000",
       "gasLimit": "40699",
       "gasUsed": "35391",
-      "costMON": 0.000064839282066003
+      "costMON": 0.000065189257284592
     }
   ],
   "contracts": {
     "vault": {
       "vault": "0x29023de63d7075b4cc2ce30b55f050f9c67548d4",
       "forwardVenue": "0xca87833e830652c2ab07e1e03eba4f2c246d3b58",
-      "deployBlock": 111528150,
+      "deployBlock": 111584342,
       "vaultKeeper": "0x0000000000000000000000000000000000006e11",
       "epochLength": 900,
       "tvlCap": "5000000000",
@@ -248,7 +248,7 @@
     },
     "partners": {
       "partnerRegistry": "0x834ea01e45f9b5365314358159d92d134d89feeb",
-      "deployBlock": 111528156,
+      "deployBlock": 111584348,
       "thresholdResolverImplementation": "0x33c936890e421D312813Fb08E38a162aABa2e87D",
       "minBond": "100000000",
       "globalExposureCap": "250000000",

@@ -95,8 +95,8 @@ describe.skipIf(!hasDocker)("alert test against a real Alertmanager (docker)", (
   const hits: { channel: string; body: string }[] = [];
   let mock: Server;
   const container = `converge-am-test-${process.pid}`;
-  const MOCK_PORT = 19181;
-  const AM_PORT = 19193;
+  const MOCK_PORT = 20000 + (process.pid % 10000); // per-process ports: a stale run cannot collide
+  const AM_PORT = 30000 + (process.pid % 10000);
 
   let startAlertmanager: () => Promise<void>;
   beforeAll(async () => {
