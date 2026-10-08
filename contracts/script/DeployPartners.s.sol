@@ -59,6 +59,9 @@ contract DeployPartners is Script {
         vault.setInitialVenue(address(venue));
 
         registry = new PartnerRegistry(factory, deployer, deployer, deployer);
+        // The vault announces its registry FIRST, so that an indexer that follows the vault sees the
+        // registry's setup events (approvals, feeds) from the block it is registered.
+        vault.setPartnerRegistry(IPartnerRegistry(address(registry)));
         // Slashed bonds go to the vault: the LPs bear the risk, so they are compensated first.
         registry.setConfig(MIN_BOND, GLOBAL_CAP, REDEEM_FEE_BPS, deployer, address(vault));
         registry.setVault(address(vault));
@@ -66,7 +69,6 @@ contract DeployPartners is Script {
         bytes32[] memory feeds = new bytes32[](1);
         feeds[0] = TEST;
         registry.approvePartner(partner, PARTNER_CAP, PARTNER_FEE_SHARE_BPS, feeds);
-        vault.setPartnerRegistry(IPartnerRegistry(address(registry)));
     }
 
     function run() external {

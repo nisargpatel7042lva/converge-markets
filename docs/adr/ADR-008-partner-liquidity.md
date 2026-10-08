@@ -21,7 +21,7 @@ The v1 market stack cannot express that market and is immutable by rule:
 3. **The vault gains a one-time registry link and caps, nothing else.** `setPartnerRegistry` (owner, once). `_checkMarket` accepts a core market or a registry market. A partner market keeps its real `assetId`, so sigma, marks, NAV, settlement planning and the epoch rules are the existing ones. New enforcement, in the vault and not in the registry:
    - **per partner**: sum of the positive `basis` (collateral split minus merged back) over that partner's registered markets, plus the new split, must be at most the partner's `exposureCap` from the registry;
    - **global**: the same sum over all partner markets must be at most `min(registry.globalExposureCap, maxPartnerFraction x lower NAV)`; `maxPartnerFraction` defaults to 10 % and has a hard ceiling of 30 % in the vault code, so a registry misconfiguration cannot allocate more than that;
-   - **slots**: at most `MAX_PARTNER_MARKETS = 6` of the 16 registry slots, so partner markets cannot crowd the core rounds out;
+   - **slots**: at most `MAX_PARTNER_MARKETS = 6` of the 16 registry slots, and `MAX_MARKETS_PER_PARTNER = 3` of those for one partner, so partner markets cannot crowd the core rounds out and one partner cannot hold them all;
    - the existing per-market (30 % NAV), total-inventory (50 % NAV), loss-ceiling (1 % per market, 8 % total) and breaker limits all still apply to partner markets;
    - **status**: `registry.limits(market).active` must hold for new allocation, for quoting (`venueView`) and for fills (`venueFill`). Merging, redeeming and every user exit are never gated.
 4. **Registry link is trusted, and bounded.** The registry is set by the owner and cannot be replaced (a new registry is a new vault, as for the factory). Because the registry decides caps, the vault adds its own fraction-of-NAV ceiling above, which the registry cannot raise.
@@ -31,7 +31,7 @@ The v1 market stack cannot express that market and is immutable by rule:
 
 ## Alternatives considered
 
-- **Add durations and a strike override to `MarketFactory` / `Market`.** Rejected: v1 contracts are immutable and audited; a new market class inside them would be a redeploy of everything, and the grid is the basis of the epoch alignment guarantee.
+- **Add durations and a strike override to `MarketFactory` / `Market`.** Rejected: v1 contracts are immutable and internally reviewed (no external audit yet); a new market class inside them would be a redeploy of everything, and the grid is the basis of the epoch alignment guarantee.
 - **Synthetic asset ids per strike.** Rejected: the vault, the venue and the keeper all key marks and sigma on `assetId`; a per-strike id would need per-strike feeds and would break NAV marking.
 - **A vault constructor parameter for the registry.** Rejected only for blast radius: it would change the constructor of every vault test suite. A one-time setter has the same trust properties (set once by the owner).
 - **Caps stored in the vault by the owner instead of the registry.** Rejected: partner terms (cap, fee share, feeds, bond) belong together, and the vault enforces them without trusting the registry for accounting: it recomputes exposure from its own position table at every split.
@@ -39,7 +39,7 @@ The v1 market stack cannot express that market and is immutable by rule:
 ## Consequences
 
 - The vault bytecode changes: **a new vault (v4) and a new venue are deployed on testnet** (precedent: v2 to v3), and the keeper, indexer, SDK and app are re-pointed. Vault v3 is archived in `deployments/testnet.json`.
-- The vault holds inventory in markets that can last up to 7 days. The caps bound this (a partner can never pull more than its cap; all partners together at most 10 % of NAV by default), but LP redemptions are paid from free liquidity, so a larger partner allocation reduces how much can be redeemed in one epoch. The existing mechanics (pro-rata fill, requeue) apply unchanged.
+- The vault holds inventory in markets that can last up to 7 days. The caps bound this (a partner can never have the vault split more than its cap into its markets; all partners together at most 10 % of NAV by default; directional trading loss is bounded by the loss ceilings, not by the cap), but LP redemptions are paid from free liquidity, so a larger partner allocation reduces how much can be redeemed in one epoch. The existing mechanics (pro-rata fill, requeue) apply unchanged.
 - **Open risks, stated plainly:** (a) a partner can pick an absurd strike; the vault then prices near the bounds (0.02 / 0.98) and the loss ceilings bound what it can lose, the bond and `voidMarket` are the remedy, not a prevention. (b) A feed outage at a partner market's end leaves it PENDING for up to the oracle grace (30 minutes) which can make an epoch settlement expire (the same as for a core round); the vault then refunds deposits and requeues redemptions rather than pricing late. (c) "Any Chainlink feed" means any Data Streams feed the owner onboarded; each is three owner calls. Chainlink's v3 reports carry the price to 8 or 18 decimals depending on the stream; the vault and the markets assume 18 (as the core markets always did), so only 18-decimal streams can be onboarded and the owner must check this per feed. (d) The owner is a single trust anchor for approvals, slashes and voids; there is no dispute process in v1.
 
 ## Needs from Nisarg
@@ -47,3 +47,10 @@ The v1 market stack cannot express that market and is immutable by rule:
 1. Mainnet governance values: min bond, per-partner caps, global cap, the redeem fee and the partner fee share (defaults here are testnet values).
 2. Whether slashed bonds go to the vault (default in the demo) or the treasury.
 3. Which feeds to onboard first (each needs a real Data Streams feed id on mainnet).
+
+## Review follow-ups (Phase 8 hostile review)
+
+- A strike far above the spot made `QuoteMath.d2` call `lnWad(0)` and revert; one donated outcome token then froze every NAV computation touching the market. Fixed in `d2` (saturates to certain DOWN), the registry bounds strikes to `int192.max`, the keeper funds only strikes within 5x of the spot, and a regression test reproduces the freeze (`test_absurdStrikeCannotFreezeTheVault`).
+- `Market.claimFees` is permissionless and pays the registry: `collectFees` now credits the market's reported accrual, tracks `liabilities`, and strays are swept to the treasury. Fee shares are pulled (`withdrawFees`), including the treasury's.
+- Ended partner markets stay in the registry's candidate list for an hour so the keeper can submit their end price; the keeper also resolves a partner market the vault traded in and then emptied.
+- SDK log scans are split into windows of at most 90 blocks (Monad's public RPC allows 100).

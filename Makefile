@@ -141,6 +141,7 @@ check-8: check-all
 	# one at a time: each starts its own anvil and keeper, and the keeper has a 4 s execution window
 	pnpm --filter @converge/keeper exec vitest run test/integration/partners.test.ts
 	pnpm --filter @converge/keeper exec vitest run test/integration/partner-demo-flow.test.ts
+	pnpm --filter @converge/keeper exec vitest run test/integration/partners-kick.test.ts
 	pnpm --filter partner-demo check:sdk-only
 	NEXT_PUBLIC_REGISTRY=0x0000000000000000000000000000000000000001 NEXT_PUBLIC_VAULT=0x0000000000000000000000000000000000000002 NEXT_PUBLIC_VENUE=0x0000000000000000000000000000000000000003 NEXT_PUBLIC_COLLATERAL=0x0000000000000000000000000000000000000004 pnpm --filter partner-demo build
 	@test -f docs/partners.md && test -f docs/adr/ADR-008-partner-liquidity.md && test -f docs/phases/PHASE-8-plan.md

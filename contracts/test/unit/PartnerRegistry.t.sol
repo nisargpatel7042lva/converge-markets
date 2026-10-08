@@ -137,6 +137,10 @@ contract PartnerRegistryTest is Base {
 
     function test_create_rejectsBadStrike() public {
         vm.startPrank(partner);
+        int256 tooBig = int256(type(int192).max) + 1;
+        vm.expectRevert(abi.encodeWithSelector(PartnerRegistry.InvalidStrike.selector, tooBig));
+        reg.createThresholdMarket(ETH, tooBig, _end(1 hours));
+        reg.createThresholdMarket(ETH, type(int192).max, _end(1 hours)); // the largest an oracle report can carry
         vm.expectRevert(abi.encodeWithSelector(PartnerRegistry.InvalidStrike.selector, int256(0)));
         reg.createThresholdMarket(ETH, 0, _end(1 hours));
         vm.expectRevert(abi.encodeWithSelector(PartnerRegistry.InvalidStrike.selector, int256(-1)));
@@ -213,9 +217,14 @@ contract PartnerRegistryTest is Base {
         reg.createThresholdMarket(ETH, 3000e18, _end(1 hours));
         // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp + 1 hours);
-        _create(partner, 3000e18, _end(1 hours)); // all eight ended: pruned, one slot used
-        assertEq(reg.liveMarketsOf(partner).length, 1);
+        _create(partner, 3000e18, _end(1 hours)); // all eight ended: slots are free again
         assertEq(reg.marketCount(), 9);
+        // the ended ones stay listed for RESOLVE_WINDOW so the keeper can still resolve them...
+        assertEq(reg.liveMarketsOf(partner).length, 9);
+        // ...and are dropped from the list once the partner creates after that window
+        vm.warp(vm.getBlockTimestamp() + reg.RESOLVE_WINDOW() + 1 hours);
+        _create(partner, 3000e18, _end(1 hours));
+        assertEq(reg.liveMarketsOf(partner).length, 1);
     }
 
     function test_liveMarkets_listsEveryRunningMarketAcrossPartners() public {
@@ -233,11 +242,16 @@ contract PartnerRegistryTest is Base {
         assertEq(live[0], address(a));
         assertEq(live[1], address(c));
         assertEq(live[2], address(b));
-        // an ended market drops out of the list without anyone pruning
+        // an ended market stays in the list for an hour (so it can be resolved), then drops out
         // forge-lint: disable-next-line(environment-read-across-mutation)
         vm.warp(block.timestamp + 45 minutes);
+        assertEq(reg.liveMarkets().length, 3);
+        vm.warp(vm.getBlockTimestamp() + 30 minutes); // c ended 45 minutes ago, a 15 minutes ago: all in
+        assertEq(reg.liveMarkets().length, 3);
+        vm.warp(vm.getBlockTimestamp() + 90 minutes); // c is 2h15 past its end, a 1h45, b 15 minutes
         live = reg.liveMarkets();
-        assertEq(live.length, 2);
+        assertEq(live.length, 1);
+        assertEq(live[0], address(b));
         vm.warp(block.timestamp + 3 hours);
         assertEq(reg.liveMarkets().length, 0);
     }
@@ -650,20 +664,64 @@ contract PartnerRegistryTest is Base {
         assertEq(m.feesAccrued(), 5 * U);
         assertEq(usdc.balanceOf(alice), 995 * U);
         reg.collectFees(m);
-        // 30 % to the partner, 70 % to the treasury
+        // 30 % to the partner, 70 % to the treasury: both are credited and pulled
         assertEq(reg.feesOwed(partner), 1_500_000);
-        assertEq(usdc.balanceOf(pTreasury), 3_500_000);
-        assertEq(usdc.balanceOf(address(reg)), 100 * U + 1_500_000); // bond + the partner's fees
+        assertEq(reg.feesOwed(pTreasury), 3_500_000);
+        assertEq(reg.liabilities(), 100 * U + 5 * U);
         address to = makeAddr("feeTo");
         vm.prank(partner);
         reg.withdrawFees(to);
         assertEq(usdc.balanceOf(to), 1_500_000);
+        vm.prank(pTreasury);
+        reg.withdrawFees(pTreasury);
+        assertEq(usdc.balanceOf(pTreasury), 3_500_000);
+        assertEq(usdc.balanceOf(address(reg)), 100 * U); // only the bond is left
+        assertEq(reg.liabilities(), 100 * U);
         vm.prank(partner);
         vm.expectRevert(PartnerRegistry.NothingToWithdraw.selector);
         reg.withdrawFees(to);
         vm.prank(partner);
         vm.expectRevert(PartnerRegistry.NothingToWithdraw.selector);
         reg.withdrawFees(address(0));
+    }
+
+    /// @dev H2: Market.claimFees is permissionless and pays the registry; it used to strand the
+    ///      fee (collectFees then reverted and nothing was credited).
+    function test_fees_aDirectClaimOnTheMarketDoesNotBreakAccounting() public {
+        Market m = _create(partner, 3000e18, _end(1 hours));
+        _winAndRedeem(m, 1000 * U);
+        Market m2 = _create(partner, 3100e18, _end(2 hours));
+        _winAndRedeem(m2, 200 * U); // 1 U of fees
+        vm.prank(makeAddr("griefer"));
+        m.claimFees(); // 5 U lands in the registry with no accounting
+        assertEq(usdc.balanceOf(address(reg)), 100 * U + 5 * U);
+        assertEq(reg.liabilities(), 100 * U);
+        // the other market is unaffected
+        reg.collectFees(m2);
+        assertEq(reg.feesOwed(partner), 300_000);
+        assertEq(reg.feesOwed(pTreasury), 700_000);
+        // the claimed one has nothing left to collect; the stray goes to the treasury
+        vm.expectRevert(PartnerRegistry.NothingToWithdraw.selector);
+        reg.collectFees(m);
+        reg.sweepStray();
+        assertEq(reg.feesOwed(pTreasury), 700_000 + 5 * U);
+        assertEq(reg.liabilities(), 100 * U + 1 * U + 5 * U);
+        vm.expectRevert(PartnerRegistry.NothingToWithdraw.selector);
+        reg.sweepStray();
+        // bond is intact: the owner can still slash all of it
+        vm.prank(pOwner);
+        reg.slash(partner, 100 * U, 0);
+        assertEq(usdc.balanceOf(address(reg)), 6 * U);
+    }
+
+    function test_fees_unknownMarketAndEmptyFeesRevert() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(PartnerRegistry.UnknownMarket.selector, address(factory))
+        );
+        reg.collectFees(Market(address(factory)));
+        Market m = _create(partner, 3000e18, _end(1 hours));
+        vm.expectRevert(PartnerRegistry.NothingToWithdraw.selector);
+        reg.collectFees(m);
     }
 
     function test_fees_shareIsSnapshottedAtCreation() public {
@@ -673,16 +731,6 @@ contract PartnerRegistryTest is Base {
         _winAndRedeem(m, 1000 * U);
         reg.collectFees(m);
         assertEq(reg.feesOwed(partner), 1_500_000); // still 30 %
-    }
-
-    function test_fees_unknownMarketAndEmptyFeesRevert() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(PartnerRegistry.UnknownMarket.selector, address(factory))
-        );
-        reg.collectFees(Market(address(factory)));
-        Market m = _create(partner, 3000e18, _end(1 hours));
-        vm.expectRevert(Market.NothingToClaim.selector);
-        reg.collectFees(m);
     }
 
     function test_fees_zeroFeeMarketsAccrueNothing() public {

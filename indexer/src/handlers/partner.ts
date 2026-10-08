@@ -73,6 +73,20 @@ indexer.onEvent(
 );
 
 indexer.onEvent(
+  { contract: "PartnerRegistry", event: "PartnerFeedSet" },
+  async ({ event, context }) => {
+    const p = await loadPartner(context, event.params.partner, event.block.number);
+    const id = lc(event.params.assetId);
+    const rest = p.allowedAssets.filter((a) => a !== id);
+    context.Partner.set(
+      touch(p, event.block.number, {
+        allowedAssets: event.params.allowed ? [...rest, id] : rest,
+      }),
+    );
+  },
+);
+
+indexer.onEvent(
   { contract: "PartnerRegistry", event: "PartnerSuspended" },
   async ({ event, context }) => {
     const p = await loadPartner(context, event.params.partner, event.block.number);
@@ -145,6 +159,8 @@ indexer.onEvent(
   { contract: "PartnerRegistry", event: "MarketVoided" },
   async ({ event, context }) => {
     const market = await context.Market.get(lc(event.params.market));
+    // voiding twice is allowed on chain; count a market once
+    if (market?.voided) return;
     if (market) context.Market.set({ ...market, voided: true });
     const p = await loadPartner(context, event.params.partner, event.block.number);
     context.Partner.set(touch(p, event.block.number, { voidedMarkets: p.voidedMarkets + 1 }));

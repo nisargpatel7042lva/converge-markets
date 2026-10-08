@@ -161,12 +161,19 @@ describe("partner markets (PartnerRegistry, ADR-008)", () => {
       exposureCap: 25n * U,
       feeShareBps: 500,
     });
+    c.tx().registry("PartnerFeedSet", { partner: PARTNER, assetId: ASSET, allowed: false });
+    c.tx().registry("PartnerFeedSet", { partner: PARTNER, assetId: ASSET, allowed: true });
     c.tx().registry("PartnerSuspended", { partner: PARTNER, suspended: true, by: OTHER });
     c.tx().registry("MarketVoided", {
       market: m.market,
       partner: PARTNER,
       reason: `0x${"cd".repeat(32)}`,
     });
+    c.tx().registry("MarketVoided", {
+      market: m.market,
+      partner: PARTNER,
+      reason: `0x${"ee".repeat(32)}`,
+    }); // voiding twice is allowed on chain; it counts once
     c.tx().registry("FeesCollected", {
       market: m.market,
       partner: PARTNER,
@@ -183,6 +190,7 @@ describe("partner markets (PartnerRegistry, ADR-008)", () => {
       voidedMarkets: 1,
       feesEarned: 1_500_000n,
     });
+    expect(p.allowedAssets).toEqual([ASSET]); // removed, then added back, once
     expect((await idx.Market.getOrThrow(m.market)).voided).toBe(true);
     expect((await idx.Vault.getOrThrow(VAULT)).partnerRegistry).toBe(REGISTRY);
     // the other partner is untouched

@@ -15,6 +15,7 @@ export const CONTRACTS = {
     "PartnerMarketCreated(address indexed market, address indexed partner, bytes32 indexed assetId, int256 strike, uint64 startTime, uint64 endTime, address resolver, uint16 feeShareBps)",
     "PartnerApproved(address indexed partner, uint256 exposureCap, uint16 feeShareBps, bytes32[] assets)",
     "PartnerTermsSet(address indexed partner, uint256 exposureCap, uint16 feeShareBps)",
+    "PartnerFeedSet(address indexed partner, bytes32 indexed assetId, bool allowed)",
     "PartnerSuspended(address indexed partner, bool suspended, address indexed by)",
     "BondPosted(address indexed partner, uint256 amount, uint256 bond)",
     "BondWithdrawalRequested(address indexed partner, uint256 amount, uint64 withdrawableAt)",

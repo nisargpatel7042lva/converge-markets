@@ -4,22 +4,23 @@
   "steps": [
     "partner {\"cap\":\"40000000\",\"bond\":\"100000000\"}",
     "created {\"market\":\"0x3Ca8f9C04c7e3E1624Ac2008F92f6F366A869444\",\"block\":\"34\"}",
-    "quoted {\"blocksToQuote\":1,\"msToQuote\":485}",
-    "order {\"id\":\"1\",\"executesAt\":1791384310}",
+    "quoted {\"blocksToQuote\":1,\"msToQuote\":555}",
+    "order {\"id\":\"1\",\"executesAt\":1791392410}",
     "fill {\"status\":\"EXECUTED\",\"filled\":\"5400532\"}",
     "resolved {\"status\":\"RESOLVED_UP\"}",
     "redeemed {\"net\":2.403237}"
   ],
+  "resolvedBy": "the SDK resolve() call",
   "asset": "TEST/USD",
   "strike": "3000",
   "spot": 3000,
   "market": "0x3Ca8f9C04c7e3E1624Ac2008F92f6F366A869444",
   "partner": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
   "taker": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-  "createTx": "0x9b4033177c00d30c513777ac8cc9745b6d03268f8bd6472f11a1803bd86a930d",
+  "createTx": "0x13a109f39b8afa43b3f21f26811705a9f8cc3f8dd093ad68c23c4c94f46f3ef2",
   "createdAtBlock": "34",
   "blocksToQuote": 1,
-  "msToQuote": 485,
+  "msToQuote": 555,
   "quotes": {
     "fair": 0.49928186749665165,
     "upAsk": 0.55,
@@ -28,32 +29,32 @@
     "downBid": 0.45,
     "upDepthShares": "24063670"
   },
-  "buyTx": "0x28361f8117cd8e6d28bbb1decc085bd410e171a5b96456f4b35d47a2f3c69656",
+  "buyTx": "0x049f16d5fe3c949c27dffebad39b107825017c50580aa66d5d3405a404ed4bea",
   "order": {
     "id": "1",
-    "executesAt": 1791384310
+    "executesAt": 1791392410
   },
   "fill": {
     "status": "EXECUTED",
     "filled": "5400532",
     "premium": "2970293",
     "avgPrice": 0.5500000740667771,
-    "txHash": "0xed3daa7850cd40548432120be133044f878707f8c61654381bb7559514ee15a9"
+    "txHash": "0xb075819e9a5426e0e0b4b4529be44907b4cfca6fcd23ecd676b5b638f0698eec"
   },
-  "fillLatencyMs": 2969,
+  "fillLatencyMs": 3040,
   "fillsSeenBySubscription": 1,
   "resolution": {
     "status": "RESOLVED_UP",
     "endPrice": "3000000000000000000000",
-    "endTime": 1791385245
+    "endTime": 1791393345
   },
-  "redeemTx": "0xa74e3ad49b8bad7532cda9c78cf10b16cde3e36d01a2786a11b4167597cb2dec",
+  "redeemTx": "0x7a4616559e7b281434a7e8ad39db2a76b8fde28a7a12a397f78cc454ba3b96fd",
   "takerPayout": "5400532",
   "takerNetUsd": 2.403237,
   "final": {
     "status": "RESOLVED_UP",
     "strikeNumber": 3000,
-    "endTime": 1791385245,
+    "endTime": 1791393345,
     "partner": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
     "redeemFeeBps": 50
   }

@@ -20,6 +20,7 @@ function run(over: Partial<PlanInput> = {}): Action[] {
     venue: { maxLateness: 4 },
     cfg,
     pulling: false,
+    spots: new Map([[ASSET.toLowerCase(), 3000]]),
     ...over,
   });
 }
@@ -342,7 +343,13 @@ describe("planner: partner markets (ADR-008)", () => {
     state({
       markets,
       limits: { ...state().limits, marketCount: markets.filter((m) => m.registered).length },
-      partners: { globalCap: USDC(500), fraction: 0.1, maxMarkets: 6, registered: 0 },
+      partners: {
+        globalCap: USDC(500),
+        fraction: 0.1,
+        maxMarkets: 6,
+        maxPerPartner: 3,
+        registered: 0,
+      },
       ...over,
     });
   const splits = (a: Action[]) =>
@@ -390,7 +397,13 @@ describe("planner: partner markets (ADR-008)", () => {
     // fraction 10 % of 1000 = 100 > global cap 60: the registry cap binds
     const a = run({
       state: withPartners([partnerMarket(11), partnerMarket(12, P2)], {
-        partners: { globalCap: USDC(60), fraction: 0.1, maxMarkets: 6, registered: 0 },
+        partners: {
+          globalCap: USDC(60),
+          fraction: 0.1,
+          maxMarkets: 6,
+          maxPerPartner: 3,
+          registered: 0,
+        },
       }),
     });
     expect(splits(a)).toEqual([
@@ -419,7 +432,13 @@ describe("planner: partner markets (ADR-008)", () => {
   it("respects the partner slots", () => {
     const a = run({
       state: withPartners([partnerMarket(11), partnerMarket(12, P2)], {
-        partners: { globalCap: USDC(500), fraction: 0.3, maxMarkets: 6, registered: 6 },
+        partners: {
+          globalCap: USDC(500),
+          fraction: 0.3,
+          maxMarkets: 6,
+          maxPerPartner: 3,
+          registered: 6,
+        },
       }),
     });
     expect(splits(a)).toEqual([]);
@@ -490,5 +509,104 @@ describe("planner: partner markets (ADR-008)", () => {
     const r = of(run({ state: s }), "resolve");
     expect(r).toHaveLength(1); // one action for the market, not two
     expect(r[0]?.type === "resolve" && r[0].evidence?.end).toBe(NOW - 5);
+  });
+});
+
+describe("planner: partner markets, review fixes", () => {
+  const P1 = MKT(901);
+  const PM = (n: number, over: Partial<ReturnType<typeof market>> = {}) =>
+    market({
+      address: MKT(n),
+      registered: false,
+      basis: 0n,
+      upBal: 0n,
+      downBal: 0n,
+      partner: P1,
+      partnerActive: true,
+      partnerCap: USDC(40),
+      end: NOW + 3600,
+      ...over,
+    });
+  const st = (markets: ReturnType<typeof market>[], registeredCount = 0) =>
+    state({
+      markets,
+      limits: { ...state().limits, marketCount: registeredCount },
+      partners: {
+        globalCap: USDC(500),
+        fraction: 0.3,
+        maxMarkets: 6,
+        maxPerPartner: 3,
+        registered: registeredCount,
+      },
+    });
+  const splits = (a: Action[]) =>
+    of(a, "split").map((x) => (x.type === "split" ? [x.market, x.amount] : null));
+
+  it("does not fund a strike far from the spot (a typo, a double-scaled number, an attack)", () => {
+    const wild = (strike: bigint) => run({ state: st([PM(11, { strike })]) });
+    expect(splits(wild(1n * 10n ** 18n))).toEqual([]); // $1 against a $3,000 spot
+    expect(splits(wild(10n ** 40n))).toEqual([]); // 1e22 times the spot
+    expect(splits(wild(3000n * 10n ** 18n * 6n))).toEqual([]); // 6x
+    expect(splits(wild((3000n * 10n ** 18n) / 6n))).toEqual([]); // one sixth
+    expect(splits(wild(3200n * 10n ** 18n))).toHaveLength(1); // a normal strike
+    expect(splits(wild(3000n * 10n ** 18n * 5n))).toHaveLength(1); // the edge of the band
+  });
+
+  it("does not fund anything while the keeper has no spot price for the asset", () => {
+    expect(splits(run({ state: st([PM(11)]), spots: new Map() }))).toEqual([]);
+  });
+
+  it("splits a partner's cap between its open markets instead of giving it all to the first", () => {
+    const a = run({ state: st([PM(11), PM(12), PM(13)]) });
+    // 40 / 3 per market, rounded down to whole base units
+    const each = USDC(40) / 3n;
+    expect(splits(a)).toEqual([
+      [MKT(11), each],
+      [MKT(12), each],
+      [MKT(13), each],
+    ]);
+  });
+
+  it("never opens a fourth registry slot for one partner", () => {
+    const reg = (n: number) =>
+      PM(n, { registered: true, basis: USDC(10), upBal: USDC(10), downBal: USDC(10) });
+    const a = run({ state: st([reg(11), reg(12), reg(13), PM(14)], 3) });
+    expect(splits(a).find((x) => x?.[0] === MKT(14))).toBeUndefined();
+  });
+
+  it("merges the pairs of an inactive partner market at once", () => {
+    const m = PM(11, {
+      registered: true,
+      partnerActive: false,
+      basis: USDC(30),
+      upBal: USDC(30),
+      downBal: USDC(30),
+      end: NOW + 3600,
+    });
+    const merges = of(run({ state: st([m], 1) }), "merge");
+    expect(merges).toHaveLength(1);
+    expect(merges[0]?.type === "merge" && merges[0].amount).toBe(USDC(30));
+    // an active one keeps its inventory until the final window
+    expect(of(run({ state: st([{ ...m, partnerActive: true }], 1) }), "merge")).toHaveLength(0);
+  });
+
+  it("resolves a partner market the vault traded in and then emptied", () => {
+    const flat = PM(11, { end: NOW - 5, registered: false, basis: USDC(30), cash: USDC(2) });
+    const [r] = of(run({ state: st([flat]) }), "resolve");
+    expect(r?.type === "resolve" && r.evidence?.end).toBe(NOW - 5);
+    // a market the vault never touched is the partner's to resolve, not the keeper's
+    const untouched = PM(12, { end: NOW - 5, registered: false, basis: 0n, cash: 0n });
+    expect(of(run({ state: st([untouched]) }), "resolve")).toHaveLength(0);
+  });
+});
+
+describe("keeper reader: partner candidates", () => {
+  it("is bounded and has no duplicates", async () => {
+    const { limitPartnerCandidates, MAX_PARTNER_CANDIDATES } =
+      await import("../../src/chain/vault");
+    const many = Array.from({ length: 100 }, (_, i) => MKT(i + 1));
+    const out = limitPartnerCandidates([...many, ...many]);
+    expect(out).toHaveLength(MAX_PARTNER_CANDIDATES);
+    expect(new Set(out).size).toBe(out.length);
   });
 });

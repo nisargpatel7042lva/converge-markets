@@ -73,6 +73,8 @@ export type PartnerLimits = {
   fraction: number;
   /** Registry slots partner markets can use / use now. */
   maxMarkets: number;
+  /** Registry slots one partner can hold at a time. */
+  maxPerPartner: number;
   registered: number;
 };
 
@@ -115,6 +117,18 @@ export type Addresses = {
   registry?: Address;
 };
 
+/** How long an unregistered partner market is served from the last read (a new one is read at once). */
+const CANDIDATE_TTL_MS = 3_000;
+/** Partner limits (active, cap) change on owner action only: read them every few seconds. */
+const LIMITS_TTL_MS = 5_000;
+/** At most this many partner markets are read per tick: the RPC allows 15 calls a second. */
+export const MAX_PARTNER_CANDIDATES = 24;
+
+/** Bounds the partner candidate list (the registry's order is by partner; it never repeats). */
+export function limitPartnerCandidates(all: readonly Address[]): Address[] {
+  return [...new Set(all.map((a) => a.toLowerCase() as Address))].slice(0, MAX_PARTNER_CANDIDATES);
+}
+
 const ZERO_ADDRESS: Address = "0x0000000000000000000000000000000000000000";
 
 const WAD = 1e18;
@@ -130,6 +144,13 @@ export class VaultReader {
   private settleWindow: number | null = null;
   private readonly partnerCache = new Map<string, Address | null>();
   private maxPartnerMarkets: number | null = null;
+  private maxPerPartner: number | null = null;
+  /** Short-lived copies of partner candidate reads: bounds the RPC cost of many partner markets. */
+  private readonly candCache = new Map<string, { at: number; info: MarketInfo }>();
+  private readonly partnerLimitsCache = new Map<
+    string,
+    { at: number; active: boolean; cap: bigint }
+  >();
 
   constructor(
     private readonly c: Clients,
@@ -279,6 +300,9 @@ export class VaultReader {
     this.maxPartnerMarkets ??= Number(
       await this.rd<bigint>(this.a.vault, convergeVaultAbi, "MAX_PARTNER_MARKETS"),
     );
+    this.maxPerPartner ??= Number(
+      await this.rd<bigint>(this.a.vault, convergeVaultAbi, "MAX_MARKETS_PER_PARTNER"),
+    );
     const [globalCap, fraction, registered] = await Promise.all([
       this.rd<bigint>(registry, partnerRegistryAbi, "globalExposureCap"),
       this.rd<bigint>(this.a.vault, convergeVaultAbi, "maxPartnerFraction"),
@@ -288,6 +312,7 @@ export class VaultReader {
       globalCap,
       fraction: Number(fraction) / WAD,
       maxMarkets: this.maxPartnerMarkets,
+      maxPerPartner: this.maxPerPartner,
       registered: Number(registered),
     };
   }
@@ -296,7 +321,8 @@ export class VaultReader {
   private async partnerCandidates(): Promise<Address[]> {
     const registry = this.a.registry;
     if (!registry) return [];
-    return [...(await this.rd<readonly Address[]>(registry, partnerRegistryAbi, "liveMarkets"))];
+    const all = await this.rd<readonly Address[]>(registry, partnerRegistryAbi, "liveMarkets");
+    return limitPartnerCandidates(all);
   }
 
   /** The partner of a market (a static fact, read once per market), or null for a core round. */
@@ -402,6 +428,11 @@ export class VaultReader {
     venue: Address,
   ): Promise<MarketInfo> {
     const key = m.toLowerCase();
+    const partner = await this.partnerOf(m);
+    if (!registered && partner) {
+      const hit = this.candCache.get(key);
+      if (hit && Date.now() - hit.at < CANDIDATE_TTL_MS) return hit.info;
+    }
     let st = this.statics.get(key);
     if (!st) {
       const r = <T>(fn: string) => this.rd<T>(m, marketAbi, fn);
@@ -425,6 +456,7 @@ export class VaultReader {
     let basis = 0n;
     let cash = 0n;
     let tradable = false;
+    void venue;
     if (registered) {
       const [u, d, pos, view] = await Promise.all([
         this.rd<bigint>(st.up, mockErc20Abi, "balanceOf", [vault]),
@@ -437,22 +469,35 @@ export class VaultReader {
       basis = pos[0];
       cash = pos[1];
       tradable = view.tradable;
+    } else if (partner) {
+      // The position outlives the registry entry: a partner market the vault traded in and then
+      // emptied (and pruned) still has takers holding its tokens, so it must still be resolved.
+      const pos = await this.rd<readonly [bigint, bigint]>(vault, convergeVaultAbi, "positionOf", [
+        m,
+      ]);
+      basis = pos[0];
+      cash = pos[1];
     }
-    void venue;
-    const partner = await this.partnerOf(m);
     let partnerActive = false;
     let partnerCap = 0n;
     if (partner && this.a.registry) {
-      const l = await this.rd<{ active: boolean; partnerCap: bigint }>(
-        this.a.registry,
-        partnerRegistryAbi,
-        "limits",
-        [m],
-      );
-      partnerActive = l.active;
-      partnerCap = l.partnerCap;
+      const cached = this.partnerLimitsCache.get(key);
+      if (cached && Date.now() - cached.at < LIMITS_TTL_MS) {
+        partnerActive = cached.active;
+        partnerCap = cached.cap;
+      } else {
+        const l = await this.rd<{ active: boolean; partnerCap: bigint }>(
+          this.a.registry,
+          partnerRegistryAbi,
+          "limits",
+          [m],
+        );
+        partnerActive = l.active;
+        partnerCap = l.partnerCap;
+        this.partnerLimitsCache.set(key, { at: Date.now(), active: l.active, cap: l.partnerCap });
+      }
     }
-    return {
+    const info: MarketInfo = {
       address: m,
       ...st,
       partner,
@@ -467,6 +512,8 @@ export class VaultReader {
       basis,
       cash,
     };
+    if (!registered && partner) this.candCache.set(key, { at: Date.now(), info });
+    return info;
   }
 }
 

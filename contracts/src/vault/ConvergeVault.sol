@@ -107,6 +107,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     /// @notice Registry slots (of MAX_MARKETS) that partner markets can use, so that partner
     ///         markets can never crowd the core rounds out of the vault.
     uint256 public constant MAX_PARTNER_MARKETS = 6;
+    /// @notice Registry slots one partner can hold at a time, so that a single partner cannot take
+    ///         all of `MAX_PARTNER_MARKETS`.
+    uint256 public constant MAX_MARKETS_PER_PARTNER = 3;
     /// @notice Hard ceiling for `maxPartnerFraction`.
     uint256 public constant MAX_PARTNER_FRACTION = 0.3e18;
     uint256 public constant MAX_FEE_BPS = 2_000; // 20%
@@ -210,6 +213,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     /// @dev The partner of a registered partner market (zero for core markets).
     mapping(address => address) internal _partnerOf;
     uint256 internal _partnerMarkets;
+    mapping(address => uint256) internal _partnerCount;
 
     address[] internal _markets;
     mapping(address => uint256) internal _slot; // index + 1
@@ -328,6 +332,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
     error PartnerCapExceeded(address partner, uint256 total, uint256 cap);
     error PartnerGlobalCapExceeded(uint256 total, uint256 cap);
     error TooManyPartnerMarkets();
+    error TooManyMarketsForPartner(address partner);
     error MarketNotRegistered(address market);
     error TooManyMarkets();
     error WrongMarketState(uint8 state);
@@ -1168,7 +1173,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         if (_markets.length >= MAX_MARKETS) revert TooManyMarkets();
         if (partner != address(0)) {
             if (_partnerMarkets >= MAX_PARTNER_MARKETS) revert TooManyPartnerMarkets();
+            if (_partnerCount[partner] >= MAX_MARKETS_PER_PARTNER) {
+                revert TooManyMarketsForPartner(partner);
+            }
             _partnerMarkets += 1;
+            _partnerCount[partner] += 1;
             _partnerOf[address(m)] = partner;
             emit PartnerMarketRegistered(address(m), partner);
         }
@@ -1190,6 +1199,7 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         delete _slot[address(m)];
         if (_partnerOf[address(m)] != address(0)) {
             _partnerMarkets -= 1;
+            _partnerCount[_partnerOf[address(m)]] -= 1;
             delete _partnerOf[address(m)];
         }
         // The position (basis and cash) is kept on purpose: a market that is flattened and split

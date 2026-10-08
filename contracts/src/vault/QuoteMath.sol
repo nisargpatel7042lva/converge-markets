@@ -150,8 +150,13 @@ library QuoteMath {
         pure
         returns (int256)
     {
+        uint256 ratio = F.divWad(spot, strike);
+        // A strike so far above the spot that the ratio rounds to zero: lnWad(0) would revert and
+        // freeze every NAV computation that touches the market (partner strikes are user input).
+        // It is as good as certain DOWN.
+        if (ratio == 0) return -D2_MAX;
         // forge-lint: disable-next-line(unsafe-typecast)
-        int256 m = F.lnWad(int256(F.divWad(spot, strike)));
+        int256 m = F.lnWad(int256(ratio));
         uint256 std = F.mulWad(sigma, F.sqrtWad(tauSec * WAD / YEAR));
         if (std < MIN_STD) return m >= 0 ? D2_MAX : -D2_MAX;
         // forge-lint: disable-next-line(unsafe-typecast)

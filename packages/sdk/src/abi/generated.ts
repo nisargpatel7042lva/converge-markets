@@ -5015,6 +5015,19 @@ export const convergeVaultAbi = [
   },
   {
     "type": "function",
+    "name": "MAX_MARKETS_PER_PARTNER",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "MAX_PARTNER_FRACTION",
     "inputs": [],
     "outputs": [
@@ -8590,6 +8603,17 @@ export const convergeVaultAbi = [
   },
   {
     "type": "error",
+    "name": "TooManyMarketsForPartner",
+    "inputs": [
+      {
+        "name": "partner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "TooManyPartnerMarkets",
     "inputs": []
   },
@@ -9562,6 +9586,19 @@ export const partnerRegistryAbi = [
   },
   {
     "type": "function",
+    "name": "RESOLVE_WINDOW",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "WITHDRAW_DELAY",
     "inputs": [],
     "outputs": [
@@ -9847,6 +9884,19 @@ export const partnerRegistryAbi = [
             "internalType": "uint64"
           }
         ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "liabilities",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -10346,6 +10396,13 @@ export const partnerRegistryAbi = [
         "internalType": "address"
       }
     ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "sweepStray",
+    "inputs": [],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
@@ -11026,6 +11083,19 @@ export const partnerRegistryAbi = [
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "StraySwept",
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false

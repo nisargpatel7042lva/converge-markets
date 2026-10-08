@@ -2,6 +2,7 @@ import {
   convergeVaultAbi,
   forwardVenueAbi,
   marketAbi,
+  partnerRegistryAbi,
   type StreamsReportSource,
 } from "@converge/sdk";
 import { EwmaVol, onchainQuote } from "@converge/strategy";
@@ -259,6 +260,43 @@ export class Keeper {
     if (this.heads.length > 500) this.heads.shift();
     this.d.metrics.block.set(Number(h.number));
     void this.fast();
+    void this.watchPartnerMarkets();
+  }
+
+  private lastPartnerMarketCount: bigint | null = null;
+  private watchingPartners = false;
+  private kickPending = false;
+
+  /**
+   * A partner market is created at any moment and its owner expects depth within a block or two,
+   * which the slow tick (seconds) cannot promise. One cheap read per block (the registry's market
+   * count) notices a new market and runs the slow tick at once.
+   */
+  private async watchPartnerMarkets(): Promise<void> {
+    const registry = this.d.addrs.registry;
+    if (!registry || this.watchingPartners) return;
+    this.watchingPartners = true;
+    try {
+      const n = (await tracked(this.d.clients, () =>
+        this.d.clients.pub.readContract({
+          address: registry,
+          abi: partnerRegistryAbi,
+          functionName: "marketCount",
+        }),
+      )) as bigint;
+      if (this.lastPartnerMarketCount !== null && n !== this.lastPartnerMarketCount) {
+        this.kickPending = true;
+      }
+      this.lastPartnerMarketCount = n;
+      if (this.kickPending && !this.slowBusy) {
+        this.kickPending = false;
+        void this.slowTick();
+      }
+    } catch {
+      // the slow tick will find the market anyway
+    } finally {
+      this.watchingPartners = false;
+    }
   }
 
   private snapshots(nowMs: number): PriceSnapshot[] {
@@ -518,6 +556,11 @@ export class Keeper {
       this.flushRpcMetrics();
       this.d.metrics.loopMs.observe(this.now() - t0);
       this.slowBusy = false;
+      if (this.kickPending) {
+        // a partner market appeared while this tick was reading: go again at once
+        this.kickPending = false;
+        setImmediate(() => void this.slowTick());
+      }
     }
   }
 
@@ -533,9 +576,13 @@ export class Keeper {
     const st = this.state as VaultState;
     const nowSec = this.head ? Number(this.head.timestamp) : st.now;
     const sigmaTarget = new Map<string, number>();
+    const spots = new Map<string, number>();
     for (const a of this.d.assets) {
       const snap = a.ref.snapshot(this.now());
-      if (snap.price !== null) sigmaTarget.set(a.assetId.toLowerCase(), a.vol.annualVol);
+      if (snap.price !== null) {
+        sigmaTarget.set(a.assetId.toLowerCase(), a.vol.annualVol);
+        spots.set(a.assetId.toLowerCase(), snap.price);
+      }
     }
     return plan({
       nowSec: Math.max(nowSec, st.now),
@@ -546,6 +593,7 @@ export class Keeper {
       cfg: this.d.cfg,
       pulling: this.halting || this.vaultFlags().keeperHalt || this.d.kill.killed,
       resolveAttempts: this.resolveAttempts,
+      spots,
     });
   }
 

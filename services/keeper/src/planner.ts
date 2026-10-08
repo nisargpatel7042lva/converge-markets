@@ -67,7 +67,16 @@ export type PlanInput = {
   pulling: boolean;
   /** Last time (seconds) a resolve was sent per partner market, so it is retried, not spammed. */
   resolveAttempts?: ReadonlyMap<string, number>;
+  /**
+   * Reference spot per assetId (lower-case hex), from the keeper's own price sources. Partner
+   * markets are only funded when their strike is within `PARTNER_STRIKE_BAND` of it: a strike
+   * nobody should trade (a typo, a double-scaled number, an attack) gets no liquidity.
+   */
+  spots?: ReadonlyMap<string, number>;
 };
+
+/** A partner strike must lie within [spot / 5, spot x 5] to be funded. */
+export const PARTNER_STRIKE_BAND = 5;
 
 /** A partner market's end price is submitted, then finalized: try again after this long. */
 export const RESOLVE_RETRY_SEC = 8;
@@ -178,7 +187,10 @@ export function plan(p: PlanInput): Action[] {
 
   // ---- partner markets that ended: bring the end price (nobody else does)
   for (const m of s.markets) {
-    if (!m.partner || !m.registered || !isOpen(m) || p.nowSec < m.end) continue;
+    // resolve what the vault holds, and what it has traded in (the position survives the registry:
+    // takers may hold tokens of a market the vault already emptied and pruned)
+    const touched = m.registered || m.basis !== 0n || m.cash !== 0n;
+    if (!m.partner || !touched || !isOpen(m) || p.nowSec < m.end) continue;
     if (out.some((x) => x.type === "resolve" && x.market.toLowerCase() === m.address.toLowerCase()))
       continue;
     const last = p.resolveAttempts?.get(m.address.toLowerCase());
@@ -237,7 +249,10 @@ export function plan(p: PlanInput): Action[] {
     .filter((m) => m.registered && isOpen(m) && pairsOf(m) > 0n)
     .sort((a, b) => a.end - b.end);
   for (const m of mergeable) {
-    const inFinalWindow = m.end - p.nowSec <= noQuote + 10;
+    // an inactive partner market (suspended, voided, bond below the minimum) cannot be quoted:
+    // its pairs are worth the same merged, and the slot and the cap come back
+    const unwind = m.partner !== null && !m.partnerActive;
+    const inFinalWindow = unwind || m.end - p.nowSec <= noQuote + 10;
     if (!inFinalWindow && deficit <= 0n) continue;
     const pairs = pairsOf(m);
     const amount = inFinalWindow || pairs <= deficit ? pairs : deficit;
@@ -264,10 +279,15 @@ export function plan(p: PlanInput): Action[] {
     // of the registry's cap and the vault's fraction of NAV) and the partner slots. The vault
     // enforces these anyway; planning inside them avoids sending transactions that revert.
     const partnerBasis = new Map<string, bigint>();
+    const partnerRegistered = new Map<string, number>();
+    const partnerOpen = new Map<string, number>();
     let allPartnerBasis = 0n;
     for (const m of s.markets) {
-      if (!m.partner || !m.registered || m.basis <= 0n) continue;
+      if (!m.partner) continue;
       const k = m.partner.toLowerCase();
+      if (m.registered) partnerRegistered.set(k, (partnerRegistered.get(k) ?? 0) + 1);
+      if (m.partnerActive && isOpen(m)) partnerOpen.set(k, (partnerOpen.get(k) ?? 0) + 1);
+      if (!m.registered || m.basis <= 0n) continue;
       partnerBasis.set(k, (partnerBasis.get(k) ?? 0n) + m.basis);
       allPartnerBasis += m.basis;
     }
@@ -285,11 +305,21 @@ export function plan(p: PlanInput): Action[] {
       if (m.registered && Number(pairs) >= Number(target) * cfg.topUpBelowFraction) continue;
       if (!m.registered && slots <= 0) continue;
       if (m.partner && (!pl || !m.partnerActive || (!m.registered && partnerSlots <= 0))) continue;
+      if (m.partner && !m.registered && pl) {
+        const k = m.partner.toLowerCase();
+        if ((partnerRegistered.get(k) ?? 0) >= pl.maxPerPartner) continue; // its own slots are used
+      }
+      if (m.partner && !strikeIsSane(m, p.spots)) continue;
       let amount = target - pairs;
       if (m.basis + amount > pairCap) amount = pairCap - m.basis;
       if (totalBasis + amount > invCap) amount = invCap - totalBasis;
       if (m.partner) {
-        const mine = partnerBasis.get(m.partner.toLowerCase()) ?? 0n;
+        const k = m.partner.toLowerCase();
+        // a partner's cap is shared by its markets: no single market takes it all
+        const sharing = Math.max(1, Math.min(pl?.maxPerPartner ?? 1, partnerOpen.get(k) ?? 1));
+        const perMarket = m.partnerCap / BigInt(sharing);
+        if (m.basis + amount > perMarket) amount = perMarket - m.basis;
+        const mine = partnerBasis.get(k) ?? 0n;
         if (mine + amount > m.partnerCap) amount = m.partnerCap - mine;
         if (allPartnerBasis + amount > partnerGlobal) amount = partnerGlobal - allPartnerBasis;
       }
@@ -309,12 +339,23 @@ export function plan(p: PlanInput): Action[] {
         const k = m.partner.toLowerCase();
         partnerBasis.set(k, (partnerBasis.get(k) ?? 0n) + amount);
         allPartnerBasis += amount;
-        if (!m.registered) partnerSlots -= 1;
+        if (!m.registered) {
+          partnerSlots -= 1;
+          partnerRegistered.set(k, (partnerRegistered.get(k) ?? 0) + 1);
+        }
       }
     }
   }
 
   return out.sort((a, b) => a.priority - b.priority);
+}
+
+/** A strike far from the reference spot is not funded (see `PlanInput.spots`). */
+function strikeIsSane(m: MarketInfo, spots: PlanInput["spots"]): boolean {
+  const spot = spots?.get(m.assetId.toLowerCase());
+  if (!spot || !(spot > 0)) return false;
+  const strike = Number(m.strike) / 1e18;
+  return strike >= spot / PARTNER_STRIKE_BAND && strike <= spot * PARTNER_STRIKE_BAND;
 }
 
 /** The report a partner market's resolution needs: its asset's feed at the market's end. */

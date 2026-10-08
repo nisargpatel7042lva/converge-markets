@@ -69,6 +69,9 @@ contract PartnerRegistry is
     /// @notice Most markets one partner can have running (not yet ended) at a time.
     uint256 public constant MAX_LIVE_PER_PARTNER = 8;
     uint256 public constant MAX_PARTNERS = 64;
+    /// @notice A market stays in `liveMarkets()` this long after its end, so that the keeper can
+    ///         still find it and submit the end price.
+    uint64 public constant RESOLVE_WINDOW = 1 hours;
     uint256 internal constant PRICE_SCALE = 1e18;
     bytes1 internal constant ZERO_CHAR = 0x30; // "0"
 
@@ -125,6 +128,10 @@ contract PartnerRegistry is
     mapping(address market => MarketInfo) internal _info;
     mapping(address partner => address[]) internal _live;
     mapping(address partner => uint256) public feesOwed;
+    mapping(address partner => bool) private _listed;
+    /// @notice Collateral the registry owes: all bonds, pending withdrawals and credited fees.
+    ///         Anything above it is a stray (a direct `Market.claimFees`), see `sweepStray`.
+    uint256 public liabilities;
     address[] public partnerList;
     address[] public markets;
 
@@ -165,6 +172,7 @@ contract PartnerRegistry is
         address indexed market, address indexed partner, uint256 partnerShare, uint256 treasuryShare
     );
     event FeesWithdrawn(address indexed partner, address indexed to, uint256 amount);
+    event StraySwept(uint256 amount);
     event ConfigSet(
         uint256 minBond,
         uint256 globalExposureCap,
@@ -237,7 +245,10 @@ contract PartnerRegistry is
         Partner storage p = _partners[partner];
         if (!p.approved) {
             if (partnerList.length >= MAX_PARTNERS) revert TooManyPartners();
-            if (p.marketsCreated == 0 && p.bond == 0) partnerList.push(partner);
+            if (!_listed[partner]) {
+                _listed[partner] = true;
+                partnerList.push(partner);
+            }
             p.approved = true;
         }
         p.exposureCap = _u128(exposureCap);
@@ -308,6 +319,7 @@ contract PartnerRegistry is
         // The remainder is below pendingWithdrawal by the check above.
         // forge-lint: disable-next-line(unsafe-typecast)
         if (amount > fromBond) p.pendingWithdrawal -= uint128(amount - fromBond);
+        liabilities -= amount;
         emit Slashed(partner, amount, slashRecipient, reason);
         collateral.safeTransfer(slashRecipient, amount);
     }
@@ -391,6 +403,7 @@ contract PartnerRegistry is
             revert FeeOnTransferNotSupported();
         }
         p.bond += _u128(amount);
+        liabilities += amount;
         emit BondPosted(msg.sender, amount, p.bond);
     }
 
@@ -433,6 +446,7 @@ contract PartnerRegistry is
         if (to == address(0)) revert ZeroAddress();
         p.pendingWithdrawal = 0;
         p.withdrawableAt = 0;
+        liabilities -= amount;
         emit BondWithdrawn(msg.sender, amount);
         collateral.safeTransfer(to, amount);
     }
@@ -457,7 +471,9 @@ contract PartnerRegistry is
         if (p.bond < minBond) revert BondTooLow(p.bond, minBond);
         if (!allowedFeed[msg.sender][assetId]) revert FeedNotAllowed(msg.sender, assetId);
         if (!feedEnabled[assetId]) revert FeedNotEnabled(assetId);
-        if (strike <= 0) revert InvalidStrike(strike);
+        // A strike above int192.max could never be reached by an oracle report (int192) and is
+        // user input that downstream math must not have to survive.
+        if (strike <= 0 || strike > type(int192).max) revert InvalidStrike(strike);
         // uint64 holds timestamps for hundreds of billions of years.
         // forge-lint: disable-next-line(unsafe-typecast)
         uint64 nowTs = uint64(block.timestamp);
@@ -524,19 +540,23 @@ contract PartnerRegistry is
         // forge-lint: disable-end(reentrancy-no-eth)
     }
 
-    /// @dev Drops ended markets from the partner's live list, then requires a free slot.
+    /// @dev Drops markets that ended more than RESOLVE_WINDOW ago from the partner's list, then
+    ///      requires a free slot among the markets that have not ended.
     function _reserveLiveSlot(address partner, uint64 nowTs) private {
         address[] storage live = _live[partner];
         uint256 i = 0;
+        uint256 running = 0;
         while (i < live.length) {
-            if (_info[live[i]].endTime <= nowTs) {
+            uint64 end = _info[live[i]].endTime;
+            if (end + RESOLVE_WINDOW <= nowTs) {
                 live[i] = live[live.length - 1];
                 live.pop();
             } else {
+                if (end > nowTs) running++;
                 i++;
             }
         }
-        if (live.length >= MAX_LIVE_PER_PARTNER) revert TooManyLiveMarkets(partner);
+        if (running >= MAX_LIVE_PER_PARTNER) revert TooManyLiveMarkets(partner);
     }
 
     /// @dev "3000" or "0.031542": whole units plus up to six decimals, trailing zeros trimmed.
@@ -575,22 +595,39 @@ contract PartnerRegistry is
     }
 
     /// @notice Pulls the redeem fees a partner market has accrued and splits them: the partner's
-    ///         share (snapshotted at creation) is credited to `feesOwed`, the rest goes to the
-    ///         treasury. Anyone may call.
+    ///         share (snapshotted at creation) is credited to `feesOwed`, the rest is credited to
+    ///         the treasury (both are pulled with `withdrawFees`, so a blocked address can never
+    ///         stop anyone else's money). Anyone may call. The credit is the amount the market
+    ///         reports as accrued, so fees claimed directly on the market (`Market.claimFees` is
+    ///         permissionless) cannot be mis-attributed: they are strays, see `sweepStray`.
     function collectFees(Market market) external nonReentrant {
         MarketInfo storage m = _info[address(market)];
         if (m.partner == address(0)) revert UnknownMarket(address(market));
-        uint256 before = collateral.balanceOf(address(this));
+        uint256 accrued = market.feesAccrued();
+        if (accrued == 0) revert NothingToWithdraw();
         // Trusted call: a market this registry created; the function is nonReentrant.
         // forge-lint: disable-next-line(reentrancy-no-eth)
         market.claimFees();
-        uint256 amount = collateral.balanceOf(address(this)) - before;
-        uint256 partnerShare = amount * m.feeShareBps / BPS;
-        uint256 treasuryShare = amount - partnerShare;
+        uint256 partnerShare = accrued * m.feeShareBps / BPS;
+        uint256 treasuryShare = accrued - partnerShare;
         feesOwed[m.partner] += partnerShare;
+        feesOwed[treasury] += treasuryShare;
+        liabilities += accrued;
         // forge-lint: disable-next-line(reentrancy-events)
         emit FeesCollected(address(market), m.partner, partnerShare, treasuryShare);
-        if (treasuryShare != 0) collateral.safeTransfer(treasury, treasuryShare);
+    }
+
+    /// @notice Credits collateral nobody is owed (someone called `Market.claimFees` directly, which
+    ///         pays the registry without telling it whose fee it was) to the treasury. A partner
+    ///         who wants its share should collect before anyone else claims; the griefer gains
+    ///         nothing. Anyone may call.
+    function sweepStray() external nonReentrant {
+        uint256 bal = collateral.balanceOf(address(this));
+        if (bal <= liabilities) revert NothingToWithdraw();
+        uint256 stray = bal - liabilities;
+        feesOwed[treasury] += stray;
+        liabilities += stray;
+        emit StraySwept(stray);
     }
 
     /// @notice A partner withdraws the fees credited to it.
@@ -599,6 +636,7 @@ contract PartnerRegistry is
         if (amount == 0) revert NothingToWithdraw();
         if (to == address(0)) revert ZeroAddress();
         feesOwed[msg.sender] = 0;
+        liabilities -= amount;
         emit FeesWithdrawn(msg.sender, to, amount);
         collateral.safeTransfer(to, amount);
     }
@@ -621,26 +659,29 @@ contract PartnerRegistry is
         return partnerList.length;
     }
 
-    /// @notice A partner's markets that have not ended yet (the list is pruned at creation time, so
-    ///         this can include ended ones until the partner creates again; callers filter by end).
+    /// @notice A partner's markets that have not ended, plus those that ended less than
+    ///         RESOLVE_WINDOW ago (the list is pruned when the partner creates again).
     function liveMarketsOf(address partner) external view returns (address[] memory) {
         return _live[partner];
     }
 
-    /// @notice Every partner market that has not ended yet, across all partners (the keeper's
-    ///         candidate list: one call). Bounded by MAX_PARTNERS x MAX_LIVE_PER_PARTNER.
+    /// @notice Every partner market that is running or ended less than RESOLVE_WINDOW ago, across
+    ///         all partners: the keeper's candidate list in one call. Bounded by the live limit.
     function liveMarkets() external view returns (address[] memory out) {
-        address[] memory tmp = new address[](partnerList.length * MAX_LIVE_PER_PARTNER);
         uint256 n = 0;
-        for (uint256 i = 0; i < partnerList.length; i++) {
-            address[] storage live = _live[partnerList[i]];
-            for (uint256 j = 0; j < live.length; j++) {
-                if (_info[live[j]].endTime > block.timestamp) tmp[n++] = live[j];
+        for (uint256 pass = 0; pass < 2; pass++) {
+            if (pass == 1) out = new address[](n);
+            uint256 k = 0;
+            for (uint256 i = 0; i < partnerList.length; i++) {
+                address[] storage live = _live[partnerList[i]];
+                for (uint256 j = 0; j < live.length; j++) {
+                    if (_info[live[j]].endTime + RESOLVE_WINDOW > block.timestamp) {
+                        if (pass == 1) out[k] = live[j];
+                        k++;
+                    }
+                }
             }
-        }
-        out = new address[](n);
-        for (uint256 i = 0; i < n; i++) {
-            out[i] = tmp[i];
+            n = k;
         }
     }
 

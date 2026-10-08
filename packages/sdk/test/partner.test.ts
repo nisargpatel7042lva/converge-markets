@@ -48,7 +48,7 @@ describe("strike and asset parsing", () => {
     expect(parseStrike("3200.5")).toBe(32005n * 10n ** 17n);
     expect(parseStrike(0.031542)).toBe(31542n * 10n ** 12n);
     expect(parseStrike(5)).toBe(5n * 10n ** 18n);
-    expect(parseStrike(123n)).toBe(123n); // a bigint is already scaled
+    expect(parseStrike(10n ** 18n)).toBe(10n ** 18n); // a bigint is already scaled
     expect(formatStrike(3200n * 10n ** 18n)).toBe(3200);
   });
 
@@ -68,6 +68,9 @@ describe("strike and asset parsing", () => {
       expect(() => parseStrike(bad as string | number), String(bad)).toThrow(ConvergeError);
     }
     expect(() => parseStrike(0n)).toThrow(ConvergeError);
+    expect(() => parseStrike(3200n)).toThrow(/already scaled/); // the unscaled-bigint footgun
+    expect(() => parseStrike(2n ** 191n)).toThrow(/int192/);
+    expect(() => parseStrike("9".repeat(60))).toThrow(/int192/);
     expect(() => parseStrike(-1n)).toThrow(ConvergeError);
   });
 
@@ -550,18 +553,53 @@ describe("client: resolving", () => {
     expect(sent).toHaveLength(0);
   });
 
+  it("without a report it still tries to finalize (an invalid market after the grace)", async () => {
+    let state = 1;
+    const { pub, wallet, sent } = stub({ reads: reads(() => state) });
+    (pub as unknown as { waitForTransactionReceipt: unknown }).waitForTransactionReceipt =
+      async () => {
+        state = 4; // the oracle's grace had passed: the market became INVALID
+        return { status: "success", logs: [], blockNumber: 1n };
+      };
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    expect(await c.resolve(MARKET, { reports: { reportAt: async () => null } })).toBe("INVALID");
+    expect(decodeFunctionData({ abi: marketAbi, data: sent[0]!.data }).args).toEqual(["0x"]);
+  });
+
   it("still raises a revert when the market is not resolved", async () => {
     const { pub, wallet } = stub({ reads: reads(() => 1), callReverts: "PriceNotFinal" });
     const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
-    await expect(c.resolve(MARKET, { reports })).rejects.toThrow(/PriceNotFinal/);
+    await expect(c.resolve(MARKET, { reports, timeoutMs: 100 })).rejects.toThrow(/PriceNotFinal/);
   });
 
-  it("fails clearly when there is no oracle report yet", async () => {
-    const { pub, wallet } = stub({ reads: reads(() => 1) });
+  it("fails clearly when there is no oracle report yet and finalizing is refused", async () => {
+    const { pub, wallet } = stub({ reads: reads(() => 1), callReverts: "PriceNotFinal" });
     const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
     await expect(
-      c.resolve(MARKET, { reports: { reportAt: async () => null } }),
+      c.resolve(MARKET, { reports: { reportAt: async () => null }, timeoutMs: 100 }),
     ).rejects.toMatchObject({ code: "NO_REPORT" });
+  });
+
+  it("retries a transaction that reverted after a passing simulation (a lost race) until it works", async () => {
+    let state = 1;
+    let receipts = 0;
+    const { pub, wallet, sent } = stub({ reads: reads(() => state) });
+    (pub as unknown as { waitForTransactionReceipt: unknown }).waitForTransactionReceipt =
+      async () => {
+        receipts += 1;
+        if (receipts === 1) return { status: "reverted", logs: [], blockNumber: 1n }; // lost the race
+        state = 2;
+        return { status: "success", logs: [], blockNumber: 2n };
+      };
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    expect(await c.resolve(MARKET, { reports, timeoutMs: 20_000 })).toBe("RESOLVED_UP");
+    expect(sent).toHaveLength(2);
+  });
+
+  it("times out with the last error when the market never resolves", async () => {
+    const { pub, wallet } = stub({ reads: reads(() => 1), callReverts: "PriceNotFinal" });
+    const c = createConvergeClient({ publicClient: pub, walletClient: wallet, addresses: A });
+    await expect(c.resolve(MARKET, { reports, timeoutMs: 100 })).rejects.toThrow(/PriceNotFinal/);
   });
 });
 
@@ -759,10 +797,70 @@ describe("client: fills", () => {
   });
 });
 
+describe("client: log windows (the public Monad RPC allows 100 blocks per eth_getLogs)", () => {
+  const limited = (head: bigint) => {
+    const ranges: [bigint, bigint][] = [];
+    const { pub } = stub();
+    (pub as unknown as { getBlockNumber: unknown }).getBlockNumber = async () => head;
+    (pub as unknown as { getContractEvents: unknown }).getContractEvents = async (a: {
+      fromBlock: bigint;
+      toBlock?: bigint;
+    }) => {
+      const to = a.toBlock ?? head;
+      if (to - a.fromBlock + 1n > 100n) throw new Error("eth_getLogs is limited to a 100 range");
+      ranges.push([a.fromBlock, to]);
+      return [];
+    };
+    return { pub, ranges };
+  };
+
+  it("waitForFill never asks for more than the limit, even from a far-back block", async () => {
+    const { pub, ranges } = limited(5_000n);
+    const c = createConvergeClient({ publicClient: pub, addresses: A });
+    await expect(c.waitForFill(1n, { timeoutMs: 50, fromBlock: 1_000n })).rejects.toMatchObject({
+      code: "TIMEOUT",
+    });
+    expect(ranges.length).toBeGreaterThan(40); // 4,000 blocks in windows of 90, two event types
+    for (const [f, t] of ranges) expect(t - f + 1n).toBeLessThanOrEqual(90n);
+    // the default start is within one window of the head
+    const fresh = limited(5_000n);
+    const c2 = createConvergeClient({ publicClient: fresh.pub, addresses: A });
+    await expect(c2.waitForFill(1n, { timeoutMs: 50 })).rejects.toMatchObject({ code: "TIMEOUT" });
+    expect(fresh.ranges[0]![0]).toBeGreaterThanOrEqual(5_000n - 89n);
+  });
+
+  it("subscribeFills catches up over a long gap in windows instead of dying", async () => {
+    let head = 1_000n;
+    const ranges: [bigint, bigint][] = [];
+    const { pub } = stub();
+    (pub as unknown as { getBlockNumber: unknown }).getBlockNumber = async () => head;
+    (pub as unknown as { getContractEvents: unknown }).getContractEvents = async (a: {
+      fromBlock: bigint;
+      toBlock: bigint;
+    }) => {
+      if (a.toBlock - a.fromBlock + 1n > 100n) throw new Error("limited to a 100 range");
+      ranges.push([a.fromBlock, a.toBlock]);
+      return [];
+    };
+    const errors: unknown[] = [];
+    const c = createConvergeClient({ publicClient: pub, addresses: A });
+    const stop = c.subscribeFills({ pollMs: 5, onError: (e) => errors.push(e) }, () => undefined);
+    await new Promise((r) => setTimeout(r, 30));
+    head = 1_500n; // the tab slept: 500 blocks passed
+    await new Promise((r) => setTimeout(r, 60));
+    stop();
+    expect(errors).toEqual([]);
+    expect(ranges.some(([, t]) => t === 1_500n)).toBe(true);
+    for (const [f, t] of ranges) expect(t - f + 1n).toBeLessThanOrEqual(90n);
+  });
+});
+
 describe("client: waiting for an order", () => {
   it("returns the fill when the venue emitted OrderExecuted, and times out otherwise", async () => {
     const { pub } = stub();
     let n = 0;
+    let head = 1000n;
+    (pub as unknown as { getBlockNumber: unknown }).getBlockNumber = async () => head++; // blocks keep coming
     (pub as unknown as { getContractEvents: unknown }).getContractEvents = async ({
       eventName,
     }: {

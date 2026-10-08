@@ -20,6 +20,7 @@ contract VaultPartnersTest is VaultBase {
     address internal pSlash = makeAddr("pSlash");
     address internal partnerA = makeAddr("partnerA");
     address internal partnerB = makeAddr("partnerB");
+    address internal partnerC = makeAddr("partnerC");
 
     PartnerRegistry internal reg;
 
@@ -34,9 +35,11 @@ contract VaultPartnersTest is VaultBase {
         feeds[0] = ETH;
         reg.approvePartner(partnerA, 40 * U, 3000, feeds);
         reg.approvePartner(partnerB, 40 * U, 3000, feeds);
+        reg.approvePartner(partnerC, 40 * U, 3000, feeds);
         vm.stopPrank();
         _bond(partnerA);
         _bond(partnerB);
+        _bond(partnerC);
         vm.prank(vOwner);
         vault.setPartnerRegistry(IPartnerRegistry(address(reg)));
         _fund(alice, 1000 * U); // epoch 0 settles; NAV 1000 U, partner fraction 10 % = 100 U
@@ -288,10 +291,11 @@ contract VaultPartnersTest is VaultBase {
     }
 
     function test_partnerSlots_areBoundedAndFreedOnUnregister() public {
-        // 7 partner markets from two partners (8 live each is allowed in the registry)
+        // 7 partner markets from three partners (3 each at most can be registered)
         Market[] memory ms = new Market[](7);
         for (uint256 i = 0; i < 7; i++) {
-            ms[i] = _mk(i < 4 ? partnerA : partnerB, int256(3000e18 + i), 1 hours);
+            ms[i] =
+                _mk(i < 3 ? partnerA : (i < 6 ? partnerB : partnerC), int256(3000e18 + i), 1 hours);
         }
         for (uint256 i = 0; i < 6; i++) {
             _alloc(ms[i], 1 * U);
@@ -309,9 +313,30 @@ contract VaultPartnersTest is VaultBase {
         assertEq(vault.partnerMarketCount(), 6);
     }
 
+    function test_onePartnerCannotTakeAllThePartnerSlots() public {
+        Market[] memory ms = new Market[](4);
+        for (uint256 i = 0; i < 4; i++) {
+            ms[i] = _mk(partnerA, int256(3000e18 + i), 1 hours);
+        }
+        for (uint256 i = 0; i < 3; i++) {
+            _alloc(ms[i], 1 * U);
+        }
+        vm.prank(vKeeper);
+        vm.expectRevert(
+            abi.encodeWithSelector(ConvergeVault.TooManyMarketsForPartner.selector, partnerA)
+        );
+        vault.splitForInventory(ms[3], 1 * U);
+        // the other partners still have room
+        _alloc(_mk(partnerB, 3100e18, 1 hours), 1 * U);
+        // freeing one of A's slots lets its fourth market in
+        vm.prank(vKeeper);
+        vault.mergeInventory(ms[0], 1 * U);
+        _alloc(ms[3], 1 * U);
+    }
+
     function test_partnerMarketsCannotCrowdOutTheCoreRounds() public {
         for (uint256 i = 0; i < 6; i++) {
-            _alloc(_mk(i < 4 ? partnerA : partnerB, int256(3000e18 + i), 1 hours), 1 * U);
+            _alloc(_mk(i < 3 ? partnerA : partnerB, int256(3000e18 + i), 1 hours), 1 * U);
         }
         // the 16 slot registry still has room for 10 core rounds
         assertEq(vault.marketCount(), 6);
@@ -504,5 +529,80 @@ contract VaultPartnersTest is VaultBase {
         assertEq(feeds.length, 1);
         vault.settleEpoch(e, _planMarks(e, 3000e18));
         assertTrue(vault.quoteNavLower() > 0);
+    }
+
+    // ------------------------------------------------------------------ review findings
+
+    /// @dev H1: a strike far above the spot used to make lnWad(0) revert inside the NAV valuation,
+    ///      and one donated token was enough to freeze the checkpoint, the epoch settlement and
+    ///      every fill for the life of the market.
+    function test_absurdStrikeCannotFreezeTheVault() public {
+        Market bad = _mk(partnerA, 1e40, 7 days); // 1e22 times the ETH spot
+        _alloc(bad, 1 * U);
+        Market healthy = _mk(partnerB, 3000e18, 1 hours);
+        _alloc(healthy, 20 * U);
+        // anyone gives the vault one token of the absurd market: it now holds an unmatched excess
+        _split(bad, bob, 1);
+        IERC20 badUp = IERC20(address(bad.up()));
+        vm.prank(bob);
+        badUp.transfer(address(vault), 1);
+
+        vault.checkpoint(_markNow(3000e18)); // used to revert with LnWadUndefined
+        assertGt(vault.quoteNavLower(), 0);
+
+        // an epoch with a deposit still settles
+        uint256 e = _requestDeposit(carol(), 20 * U);
+        _toEpochEnd(e);
+        vault.settleEpoch(e, _planMarks(e, 3000e18));
+
+        // and a trade in a healthy market still fills (the auto-checkpoint inside the fill runs)
+        vm.warp(block.timestamp + 61);
+        _setSigma(0.6e18); // the keeper refreshes sigma (it goes stale after 15 minutes)
+        vault.checkpoint(_markNow(3000e18));
+        uint256 id = _placeAs(taker, healthy, ForwardVenue.Kind.BUY_UP, 2 * U, 0.7e18);
+        (uint256 filled,) = _exec(id, 3000e18);
+        assertGt(filled, 0);
+    }
+
+    function carol() internal pure returns (address) {
+        return address(0xCA201);
+    }
+
+    /// @dev M1: the cap bounds the collateral the vault SPLITS into a partner's markets. What
+    ///      the vault can additionally lose on a partner market by trading is bounded by the
+    ///      per-market loss ceiling (1 % of NAV), whatever the cap. This test drives sells into the
+    ///      vault and checks both bounds.
+    function test_tradingCannotPushLossPastTheCeilingAndSplitsStayUnderTheCap() public {
+        Market m = _mk(partnerA, 3000e18, 1 hours);
+        _alloc(m, 40 * U); // the whole cap
+        vm.warp(block.timestamp + 1);
+        // a taker splits its own collateral (not the vault's) and sells 300 UP into the vault
+        uint256 id = _placeAs(taker, m, ForwardVenue.Kind.SELL_UP, 300 * U, 0.01e18);
+        _exec(id, 3000e18);
+        (int256 basis, int256 cash) = vault.positionOf(address(m));
+        assertLe(basis, int256(40 * U)); // split collateral never above the cap
+        uint256 up = IERC20(address(m.up())).balanceOf(address(vault));
+        uint256 down = IERC20(address(m.down())).balanceOf(address(vault));
+        int256 lossU = basis - cash - int256(up < down ? up : down);
+        // 1 % of the 1000 U NAV (tolerance of the rounding of the room computation)
+        assertLe(lossU, int256(10 * U) + int256(U / 100));
+        assertGt(cash, -int256(10 * U) - int256(U / 100));
+    }
+
+    function test_directionalLossOnAPartnerMarketIsBoundedWhateverTheCap() public {
+        // a partner with a tiny cap still cannot drive loss past the same ceiling
+        vm.prank(pOwner);
+        reg.setPartnerTerms(partnerA, 1 * U, 3000);
+        Market m = _mk(partnerA, 3000e18, 1 hours);
+        _alloc(m, 1 * U);
+        vm.warp(block.timestamp + 1);
+        uint256 id = _placeAs(taker, m, ForwardVenue.Kind.SELL_UP, 300 * U, 0.01e18);
+        _exec(id, 3000e18);
+        (int256 basis, int256 cash) = vault.positionOf(address(m));
+        assertLe(basis, int256(1 * U));
+        uint256 up = IERC20(address(m.up())).balanceOf(address(vault));
+        uint256 down = IERC20(address(m.down())).balanceOf(address(vault));
+        int256 lossU = basis - cash - int256(up < down ? up : down);
+        assertLe(lossU, int256(10 * U) + int256(U / 100));
     }
 }

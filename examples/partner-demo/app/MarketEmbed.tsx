@@ -78,8 +78,11 @@ export function MarketEmbed({ cfg }: { cfg: DemoConfig }) {
     try {
       const m = await converge.getMarket(market);
       setView(m);
-      const s = spot ?? m.strikeNumber;
-      if (m.phase.phase === "LIVE") setQuotes(await converge.getQuotes(market, { spot: s }));
+      // No price, no quotes: the strike is not a stand-in for the market price, and an order's
+      // limit is set from the quote. Without a spot the page says so and does not offer a bet.
+      if (m.phase.phase === "LIVE" && spot !== null) {
+        setQuotes(await converge.getQuotes(market, { spot }));
+      }
       if (wallet) setPosition(await converge.getPosition(market, wallet.address));
     } catch (e) {
       setError(messageOf(e));
@@ -91,7 +94,7 @@ export function MarketEmbed({ cfg }: { cfg: DemoConfig }) {
     const t = setInterval(() => {
       setNow(Math.floor(Date.now() / 1000));
       void refresh();
-    }, 2_000);
+    }, 3_000);
     return () => clearInterval(t);
   }, [refresh]);
 
@@ -121,7 +124,9 @@ export function MarketEmbed({ cfg }: { cfg: DemoConfig }) {
   // ---- every fill in this market, as the SDK sees it
   useEffect(() => {
     if (!market) return;
-    return converge.subscribeFills({ market }, (f) => setFills((xs) => [f, ...xs].slice(0, 5)));
+    return converge.subscribeFills({ market, pollMs: 2_000 }, (f) =>
+      setFills((xs) => [f, ...xs].slice(0, 5)),
+    );
   }, [converge, market]);
 
   // ---- accounts: an injected wallet, or a throwaway key kept in this browser (testnet only)
@@ -157,17 +162,14 @@ export function MarketEmbed({ cfg }: { cfg: DemoConfig }) {
 
   const buy = () =>
     run("Placing your bet…", async () => {
-      if (!market) return;
-      const order = await converge.buy({
-        market,
-        side,
-        amount,
-        spot: spot ?? view?.strikeNumber ?? 0,
-      });
+      if (!market || spot === null) return;
+      const order = await converge.buy({ market, side, amount, spot });
       setBusy("Waiting for the fill (about 2 seconds)…");
-      const fill = await converge.waitForFill(order.orderId);
+      const fill = await converge.waitForFill(order.orderId, { fromBlock: order.blockNumber });
+      // An order that cannot be filled within its limit executes with nothing exchanged, and an
+      // order nobody executed expires: in both the money comes back.
       setBusy(
-        fill.status === "EXECUTED"
+        fill.status === "EXECUTED" && fill.filled > 0n
           ? `Filled: ${sharesToUsd(fill.filled).toFixed(2)} shares for $${sharesToUsd(fill.premium).toFixed(2)}`
           : "Not filled (the price moved past your limit). Your money is back.",
       );
@@ -252,6 +254,9 @@ export function MarketEmbed({ cfg }: { cfg: DemoConfig }) {
                 );
               })}
             </div>
+            {spot === null && view.phase.phase === "LIVE" ? (
+              <p className="muted">Waiting for a price from the exchange…</p>
+            ) : null}
             {!view.quoting && view.phase.phase === "LIVE" ? (
               <p className="muted">Waiting for the vault&apos;s liquidity to arrive…</p>
             ) : null}
@@ -280,7 +285,7 @@ export function MarketEmbed({ cfg }: { cfg: DemoConfig }) {
               ) : null}
               <button
                 className="primary"
-                disabled={!!busy || !price}
+                disabled={!!busy || !price || spot === null}
                 onClick={buy}
                 title={price ? undefined : "No depth on this side right now"}
               >
@@ -320,8 +325,8 @@ export function MarketEmbed({ cfg }: { cfg: DemoConfig }) {
         <section className="card">
           <strong>Live fills</strong>
           <ul className="fills">
-            {fills.map((f) => (
-              <li key={`${f.txHash}-${f.block}-${f.shares}`}>
+            {fills.map((f, i) => (
+              <li key={`${f.txHash}-${f.block}-${f.shares}-${i}`}>
                 {f.action === "BUY" ? "Bought" : "Sold"} {f.side === "UP" ? "Yes" : "No"}{" "}
                 {sharesToUsd(f.shares).toFixed(2)} at {cents(f.price)}
               </li>

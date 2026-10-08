@@ -64,6 +64,8 @@ export interface FlowEvidence {
   };
   buyTx: Hex;
   order: { id: string; executesAt: number };
+  /** How many orders it took (1 unless one expired unexecuted and was placed again). */
+  orderAttempts: number;
   fill: { status: string; filled: string; premium: string; avgPrice: number | null; txHash: Hex };
   /** Seconds from placing the order to its execution (chain time of the blocks). */
   fillLatencyMs: number;
@@ -136,15 +138,30 @@ export async function runDemoFlow(i: FlowInput): Promise<FlowEvidence> {
     })) as bigint;
   const takerAddr = taker.account as Address;
   const before = await balanceOf(takerAddr);
-  const placedAt = Date.now();
-  const order = await taker.buy({
+  // An order nobody executes inside its window expires and the escrow comes back; a page would
+  // offer to place it again, and so does this flow (at most twice more).
+  let orderAttempts = 0;
+  let placedAt = Date.now();
+  let order = await taker.buy({
     market: created.market,
     side: "UP",
     amount: i.buyUsd,
     spot: i.spot,
   });
+  let fill = await taker.waitForFill(order.orderId, {
+    timeoutMs: 60_000,
+    fromBlock: order.blockNumber,
+  });
+  for (orderAttempts = 1; orderAttempts < 3 && fill.status === "EXPIRED"; orderAttempts++) {
+    step("order expired, placing it again", { id: order.orderId.toString() });
+    placedAt = Date.now();
+    order = await taker.buy({ market: created.market, side: "UP", amount: i.buyUsd, spot: i.spot });
+    fill = await taker.waitForFill(order.orderId, {
+      timeoutMs: 60_000,
+      fromBlock: order.blockNumber,
+    });
+  }
   step("order", { id: order.orderId.toString(), executesAt: order.executesAt });
-  const fill = await taker.waitForFill(order.orderId, { timeoutMs: 60_000 });
   const fillLatencyMs = Date.now() - placedAt;
   step("fill", { status: fill.status, filled: fill.filled.toString() });
   for (let n = 0; n < 40 && fillsSeen.length === 0; n++) await sleep(250);
@@ -183,6 +200,7 @@ export async function runDemoFlow(i: FlowInput): Promise<FlowEvidence> {
     },
     buyTx: order.txHash,
     order: { id: order.orderId.toString(), executesAt: order.executesAt },
+    orderAttempts,
     fill: {
       status: fill.status,
       filled: fill.filled.toString(),

@@ -29,7 +29,7 @@ const quotes = await converge.getQuotes(market, { spot: 3150 });
 console.log(quotes.up.ask?.price, quotes.down.ask?.price);
 // 3. a user buys 5 USDC of UP; a keeper fills it ~2 s later at the oracle price of that second
 const order = await converge.buy({ market, side: "UP", amount: "5", spot: 3150 });
-console.log(await converge.waitForFill(order.orderId));
+console.log(await converge.waitForFill(order.orderId, { fromBlock: order.blockNumber }));
 // 4. follow every fill (the indexer if you pass `indexer: { url }`, else the vault's events)
 converge.subscribeFills({ market }, (f) => console.log(f.action, f.side, f.price));
 // 5. after the end: submit the oracle price, then the winners redeem

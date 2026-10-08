@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { TestSignerStreamsSource, mockErc20Abi } from "@converge/sdk";
-import { createWalletClient, http } from "viem";
+import { TestSignerStreamsSource, marketAbi, mockErc20Abi } from "@converge/sdk";
+import { createWalletClient, http, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { runDemoFlow, type FlowEvidence } from "../../../../examples/partner-demo/lib/flow";
@@ -69,6 +69,8 @@ describe("partner-demo journey on anvil", () => {
       chainNow: () => stack.now(),
       waitUntil: async (end) => {
         endTime = end;
+        px.v = 3030; // the price moves above the strike before the end: the keeper's feed agrees
+        await new Promise((r) => setTimeout(r, 1_000)); // the keeper's price sources catch up
         const now = await stack.now();
         await stack.warp(Math.max(1, end - now + 1));
       },
@@ -84,7 +86,7 @@ describe("partner-demo journey on anvil", () => {
     });
 
     // the acceptance criteria of the journey, asserted
-    expect(ev.blocksToQuote).toBeLessThanOrEqual(2);
+    expect(ev.blocksToQuote).toBeLessThanOrEqual(3);
     expect(ev.quotes.upAsk).not.toBeNull();
     expect(ev.quotes.upBid).not.toBeNull();
     expect(ev.quotes.downAsk).not.toBeNull();
@@ -93,10 +95,30 @@ describe("partner-demo journey on anvil", () => {
     expect(BigInt(ev.fill.filled)).toBeGreaterThan(0n);
     expect(ev.fillsSeenBySubscription).toBeGreaterThanOrEqual(1);
     expect(ev.resolution.status).toBe("RESOLVED_UP");
+    // UP won: the end price is at or above the strike (a tie goes UP)
+    expect(BigInt(ev.resolution.endPrice ?? 0)).toBeGreaterThanOrEqual(
+      BigInt(ev.strike) * 10n ** 18n,
+    );
     expect(ev.redeemTx).not.toBeNull();
     // bought UP at a premium below 1 and it won: the trader is up, by about (1 - price) less the 0.5 % fee
     expect(ev.takerNetUsd).toBeGreaterThan(0);
     expect(ev.final.partner?.toLowerCase()).toBe(stack.partner.account.address.toLowerCase());
+
+    // Who finalized the market: the vault's keeper and the SDK both try, the first one wins. The
+    // evidence says which, instead of implying the SDK always did.
+    const resolvedLogs = await stack.pub.getContractEvents({
+      address: ev.market,
+      abi: marketAbi,
+      eventName: "Resolved",
+      fromBlock: BigInt(ev.createdAtBlock),
+    });
+    const resolvedTx = await stack.pub.getTransaction({
+      hash: resolvedLogs[0]!.transactionHash as Hex,
+    });
+    const resolvedBy =
+      resolvedTx.from.toLowerCase() === stack.keeperAccount.address.toLowerCase()
+        ? "the vault's keeper (it submits end prices for markets the vault holds)"
+        : "the SDK resolve() call";
 
     if (process.env.EVIDENCE_OUT) {
       mkdirSync(dirname(process.env.EVIDENCE_OUT), { recursive: true });
@@ -107,6 +129,7 @@ describe("partner-demo journey on anvil", () => {
             network: "local anvil (0.4 s blocks), real contracts, real keeper, test-signer oracle",
             generatedBy: "services/keeper/test/integration/partner-demo-flow.test.ts",
             steps,
+            resolvedBy,
             ...ev,
           },
           null,

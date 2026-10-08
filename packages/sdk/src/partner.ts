@@ -87,6 +87,11 @@ export interface ConvergeClientConfig {
   indexer?: IndexerClientOptions;
   /** Multicall3 address for batched reads (default: the canonical 0xcA11...CA11). */
   multicall3?: Address;
+  /**
+   * Most blocks one `eth_getLogs` call may span. Monad's public RPC rejects ranges above 100
+   * (docs/EXTERNAL.md); the default of 90 keeps every log scan inside that.
+   */
+  maxLogRange?: number;
 }
 
 /** A market as the partner's page needs it. */
@@ -165,6 +170,8 @@ export interface OrderResult {
   /** Venue order id; pass it to `waitForFill`. */
   orderId: bigint;
   txHash: Hex;
+  /** The block that included the order: pass it to `waitForFill` as `fromBlock`. */
+  blockNumber: bigint;
   /** Chain time at which the order is priced and executed. */
   executesAt: number;
   /** Set for buys: the sizing the SDK chose. */
@@ -215,7 +222,7 @@ export interface PartnerView {
   /** Fees credited and not yet withdrawn (base units). */
   feesOwed: bigint;
   marketsCreated: number;
-  /** The partner can create a market right now. */
+  /** The partner can create a market right now (approved, not suspended, bonded, not paused). */
   canCreate: boolean;
 }
 
@@ -266,9 +273,19 @@ export function assetIdFor(asset: string): Hex {
  * A strike as the contracts want it: the oracle's 18-decimal integer. A string or number is read
  * as a plain decimal ("3200.5"); a bigint is taken as already scaled.
  */
+const INT192_MAX = 2n ** 191n - 1n;
+
 export function parseStrike(strike: string | number | bigint): bigint {
   if (typeof strike === "bigint") {
     if (strike <= 0n) throw new ConvergeError("strike must be positive", "BAD_INPUT");
+    // Below 1e-9 of a dollar no feed has a real price: this is `3200n` where "3200" was meant
+    if (strike < 10n ** 9n) {
+      throw new ConvergeError(
+        'a bigint strike is taken as already scaled by 1e18; this one is below 1e-9: pass a decimal string such as "3200"',
+        "BAD_INPUT",
+      );
+    }
+    if (strike > INT192_MAX) throw new ConvergeError("strike is above int192.max", "BAD_INPUT");
     return strike;
   }
   const s = typeof strike === "number" ? numberToDecimal(strike) : strike.trim();
@@ -277,6 +294,7 @@ export function parseStrike(strike: string | number | bigint): bigint {
   }
   const v = parseUnits(s, 18);
   if (v <= 0n) throw new ConvergeError("strike must be positive", "BAD_INPUT");
+  if (v > INT192_MAX) throw new ConvergeError("strike is above int192.max", "BAD_INPUT");
   return v;
 }
 
@@ -403,6 +421,8 @@ export interface ConvergeClient {
 
   /**
    * Waits until a venue order is executed (or expires) and returns what happened.
+   * @param opts.fromBlock where to start looking: pass `order.blockNumber` (default: the last 90
+   *   blocks). Log scans are split into windows the public Monad RPC accepts.
    * @throws `TIMEOUT` after `timeoutMs` (default 30 s); an unexecuted order can be refunded with
    *   `expireOrder` once its window has passed.
    */
@@ -517,6 +537,21 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
   };
 
   const chainNow = async (): Promise<number> => Number((await pub.getBlock()).timestamp);
+
+  /** `getContractEvents` over [from, to] in windows the RPC accepts. */
+  const range = BigInt(Math.max(1, cfg.maxLogRange ?? 90));
+  async function eventsIn<T>(
+    query: (fromBlock: bigint, toBlock: bigint) => Promise<readonly T[]>,
+    from: bigint,
+    to: bigint,
+  ): Promise<T[]> {
+    const out: T[] = [];
+    for (let start = from; start <= to; start += range) {
+      const end = start + range - 1n < to ? start + range - 1n : to;
+      out.push(...(await query(start, end)));
+    }
+    return out;
+  }
 
   const spotWad = (spot: number | bigint): bigint =>
     typeof spot === "bigint" ? spot : parseStrike(spot);
@@ -655,6 +690,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
     return {
       orderId: ev.args.id,
       txHash: hash,
+      blockNumber: receipt.blockNumber,
       executesAt: Number(ev.args.execAt),
       plan,
       shares,
@@ -743,25 +779,42 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
 
     async waitForFill(orderId, opts = {}) {
       const deadline = Date.now() + (opts.timeoutMs ?? 30_000);
-      let fromBlock = opts.fromBlock ?? (await pub.getBlockNumber()) - 200n;
-      if (fromBlock < 0n) fromBlock = 0n;
+      let cursor = opts.fromBlock ?? (await pub.getBlockNumber()) - (range - 1n);
+      if (cursor < 0n) cursor = 0n;
       for (;;) {
-        const [done, expired] = await Promise.all([
-          pub.getContractEvents({
-            address: A.venue,
-            abi: forwardVenueAbi,
-            eventName: "OrderExecuted",
-            args: { id: orderId },
-            fromBlock,
-          }),
-          pub.getContractEvents({
-            address: A.venue,
-            abi: forwardVenueAbi,
-            eventName: "OrderExpired",
-            args: { id: orderId },
-            fromBlock,
-          }),
-        ]);
+        const head = await pub.getBlockNumber();
+        const [done, expired] =
+          head < cursor
+            ? [[], []]
+            : await Promise.all([
+                eventsIn(
+                  (fromBlock, toBlock) =>
+                    pub.getContractEvents({
+                      address: A.venue,
+                      abi: forwardVenueAbi,
+                      eventName: "OrderExecuted",
+                      args: { id: orderId },
+                      fromBlock,
+                      toBlock,
+                    }),
+                  cursor,
+                  head,
+                ),
+                eventsIn(
+                  (fromBlock, toBlock) =>
+                    pub.getContractEvents({
+                      address: A.venue,
+                      abi: forwardVenueAbi,
+                      eventName: "OrderExpired",
+                      args: { id: orderId },
+                      fromBlock,
+                      toBlock,
+                    }),
+                  cursor,
+                  head,
+                ),
+              ]);
+        if (head >= cursor) cursor = head + 1n;
         const d = done[0];
         if (d) {
           return {
@@ -810,32 +863,42 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
         await sleep(500);
       }
       const report = await opts.reports.reportAt(feedId, BigInt(cur.end));
-      if (!report) throw new ConvergeError("no oracle report for the end time yet", "NO_REPORT");
       const resolveData = (evidence: Hex): Tx => ({
         to: market,
         data: encodeFunctionData({ abi: marketAbi, functionName: "resolve", args: [evidence] }),
       });
-      // first call submits the report; once the oracle's window passes a second call finalizes
-      try {
-        await sendChecked(resolveData(report));
-      } catch (e) {
-        // someone else (the vault's keeper, another user) may have resolved it between our read
-        // and our transaction: that is a success, not an error
-        cur = await read();
-        if (cur.state !== "OPEN") return cur.state;
-        throw e;
-      }
-      for (;;) {
-        cur = await read();
-        if (cur.state !== "OPEN") return cur.state;
-        if (Date.now() > deadline)
-          throw new ConvergeError("the oracle has not finalized the end price", "TIMEOUT");
-        await sleep(1_000);
+      // The first call submits the report; once the oracle's finalization window passes, another
+      // call finalizes. Anyone can call it, and so does the vault's keeper, so a call can lose a
+      // race (a transaction that simulated fine is mined after the market was resolved, or
+      // estimated its gas against a state the other transaction then changed). Every failure is
+      // therefore re-checked against the market's state and retried until the deadline. The
+      // report is sent every time: it is ignored once the boundary is final.
+      // Without a report the call can still succeed once the oracle's grace has passed: the
+      // market then becomes INVALID (every share pays 0.5), which is the correct outcome.
+      const evidence: Hex = report ?? "0x";
+      let lastError: unknown = null;
+      for (let attempt = 0; ; attempt++) {
         try {
-          await sendChecked(resolveData("0x"));
-        } catch {
-          // still inside the finalization window: try again
+          await sendChecked(resolveData(evidence));
+          lastError = null;
+        } catch (e) {
+          lastError = e;
         }
+        cur = await read();
+        if (cur.state !== "OPEN") return cur.state;
+        if (Date.now() > deadline) {
+          if (!report) {
+            throw new ConvergeError("no oracle report for the end time yet", "NO_REPORT");
+          }
+          throw new ConvergeError(
+            lastError
+              ? `the market was not resolved: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+              : "the oracle has not finalized the end price",
+            "TIMEOUT",
+          );
+        }
+        // an attempt that failed before the oracle's window ended is expected: wait and retry
+        await sleep(attempt === 0 && !lastError ? 1_000 : 1_500);
       }
     },
 
@@ -862,7 +925,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
     async getPartner(who) {
       const partner = who ?? account;
       if (!partner) throw new ConvergeError("no account to read", "NO_WALLET");
-      const [p, minBond, feesOwed] = await batch<
+      const [p, minBond, feesOwed, paused] = await batch<
         readonly [
           {
             approved: boolean;
@@ -874,6 +937,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
           },
           bigint,
           bigint,
+          boolean,
         ]
       >([
         {
@@ -884,6 +948,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
         },
         { address: A.registry, abi: partnerRegistryAbi, functionName: "minBond" },
         { address: A.registry, abi: partnerRegistryAbi, functionName: "feesOwed", args: [partner] },
+        { address: A.registry, abi: partnerRegistryAbi, functionName: "paused" },
       ]);
       return {
         address: partner,
@@ -895,7 +960,7 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
         minBond,
         feesOwed,
         marketsCreated: Number(p.marketsCreated),
-        canCreate: p.approved && !p.suspended && p.bond >= minBond,
+        canCreate: p.approved && !p.suspended && !paused && p.bond >= minBond,
       };
     },
 
@@ -933,9 +998,16 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
       let from: bigint | null = null;
 
       const fromIndexer = async () => {
-        const rows: TradeRow[] = opts.market
-          ? ((await (indexer as IndexerClient).market(opts.market.toLowerCase(), 50))?.trades ?? [])
-          : await (indexer as IndexerClient).recentTrades(50);
+        let rows: TradeRow[];
+        if (opts.market) {
+          const m = await (indexer as IndexerClient).market(opts.market.toLowerCase(), 50);
+          // the indexer has not seen the market yet: stay unprimed, so its first trades are not
+          // mistaken for history
+          if (!m) return;
+          rows = m.trades;
+        } else {
+          rows = await (indexer as IndexerClient).recentTrades(50);
+        }
         for (const t of [...rows].reverse()) {
           if (seen.has(t.id)) continue;
           seen.add(t.id);
@@ -960,14 +1032,19 @@ export function createConvergeClient(cfg: ConvergeClientConfig): ConvergeClient 
         const head = await pub.getBlockNumber();
         if (from === null) from = head + 1n;
         if (head < from) return;
-        const logs = await pub.getContractEvents({
-          address: A.vault,
-          abi: convergeVaultAbi,
-          eventName: "Fill",
-          args: opts.market ? { market: opts.market } : undefined,
-          fromBlock: from,
-          toBlock: head,
-        });
+        const logs = await eventsIn(
+          (fromBlock, toBlock) =>
+            pub.getContractEvents({
+              address: A.vault,
+              abi: convergeVaultAbi,
+              eventName: "Fill",
+              args: opts.market ? { market: opts.market } : undefined,
+              fromBlock,
+              toBlock,
+            }),
+          from,
+          head,
+        );
         from = head + 1n;
         for (const l of logs) {
           const a = l.args as {

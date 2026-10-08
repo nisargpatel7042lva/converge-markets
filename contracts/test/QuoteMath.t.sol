@@ -102,6 +102,9 @@ contract QuoteMathTest is Test {
 
     function test_d2_degenerateAndTies() public pure {
         // tau = 0 or sigma = 0: decided by the sign of ln(S/K), ties go UP.
+        // a strike so far above the spot that spot / strike rounds to zero must not revert
+        assertEq(Q.d2(3000e18, 1e40, 0.6e18, 3600), -Q.D2_MAX);
+        assertEq(Q.d2(3000e18, uint256(uint192(type(int192).max)), 0.6e18, 3600), -Q.D2_MAX);
         assertEq(Q.d2(100e18, 100e18, 0.5e18, 0), Q.D2_MAX);
         assertEq(Q.d2(101e18, 100e18, 0, 100), Q.D2_MAX);
         assertEq(Q.d2(99e18, 100e18, 0.5e18, 0), -Q.D2_MAX);

@@ -8,7 +8,7 @@ Another Monad app can put a prediction market on its own page and get two-sided 
 
 - A market of the form **"will ASSET be at or above STRIKE at END?"** (a price-threshold market). You choose the feed, the strike and the end (15 minutes to 7 days from now). The market is created open, in one transaction, by your own account.
 - **Instant two-sided depth.** The vault's keeper puts liquidity into your market and the vault quotes both outcomes, re-priced from the oracle at every trade. On a local chain this happened one block after creation.
-- **Settlement you do not run.** The end price is the Chainlink Data Streams report whose window contains the end time, through the same audited path as the core 15 minute and 1 hour markets. If the oracle cannot produce it the market is invalid and every share pays 50 cents.
+- **Settlement you do not run.** The end price is the Chainlink Data Streams report whose window contains the end time, through the same path as the core 15 minute and 1 hour markets. If the oracle cannot produce it the market is invalid and every share pays 50 cents.
 - **A share of the fees** on winning payouts, paid to your account.
 - **Users who can always get out.** Nothing in the programme can stop a holder from redeeming a resolved market or merging a pair.
 
@@ -60,7 +60,7 @@ cast send $REGISTRY "setFeed(bytes32,bool)" $ASSET_ID true
 ## 4. Integrating
 
 ```sh
-pnpm add @converge/sdk viem
+pnpm add @converge/sdk viem   # once published; in this monorepo it is a workspace package
 ```
 
 The 20-line quickstart is in the [SDK README](../packages/sdk/README.md). The calls, in the order a page uses them:
@@ -122,7 +122,7 @@ Everything here is enforced in code and covered by tests (`PartnerRegistry.t.sol
 | --- | --- | --- |
 | Exposure per partner (collateral the vault may have split into all your markets at once) | owner-set; testnet 40 USDC | vault, on every `splitForInventory`, from its own position table |
 | Exposure of all partners together | owner-set in the registry (testnet 500 USDC) **and** `maxPartnerFraction` of NAV (default 10 %, hard ceiling 30 % in the code); the lower applies | vault |
-| Registry slots partner markets can use | 6 of 16 | vault |
+| Registry slots partner markets can use | 6 of 16, and 3 per partner | vault |
 | Markets per partner that have not ended | 8 | registry |
 | Duration | 15 minutes to 7 days | registry |
 | Per-market allocation | 30 % of NAV | vault (unchanged) |
@@ -134,20 +134,22 @@ Everything here is enforced in code and covered by tests (`PartnerRegistry.t.sol
 | Who can pause or suspend | guardian or owner | registry |
 | Who can approve, set caps, onboard feeds, slash, void | owner only (a Safe on mainnet) | registry |
 
-**The worst case for LPs from one partner is its exposure cap**: the vault cannot lose more on a market than the collateral it put into it, and the loss ceiling stops quoting well before that. The invariant suite runs a keeper that asks for arbitrary amounts, with caps changing under it, suspensions and voids, and checks after every accepted allocation that no cap is exceeded.
+**What the cap bounds, exactly.** The exposure cap bounds the collateral the vault **splits** into a partner's markets (the position's `basis`, summed over the partner's registered markets, recomputed by the vault on every split). It is not a bound on everything the vault can lose there: when the vault trades (buys tokens from takers, sells tokens to them) its directional loss in a market is bounded by the **per-market loss ceiling (1 % of NAV) and the 8 % total**, whatever the cap, and the vault stops quoting at the ceiling. So a partner market can cost LPs at most the ceiling in directional loss, over at most six slots, and the capital it ties up is at most the cap. Tests: `VaultPartners.t.sol` (split caps, and sells driven into the vault with a 40 USDC and a 1 USDC cap: loss stays under the ceiling), `PartnerCapInvariants.t.sol` (no accepted allocation ever exceeds a split cap, with a keeper asking for arbitrary amounts).
 
 **Governance** (documented, centralised in v1):
 
-- The owner can **slash** a partner's bond (the active bond first, then a pending withdrawal) for invalid markets: a misdescribed feed or strike, a market built to harm LPs, a market that cannot be resolved. The slash goes to the vault by default, so LPs are compensated first, and carries a hash of a public write-up. The slash is discretionary; there is no dispute process in v1.
+- The owner can **slash** a partner's bond (the active bond first, then a pending withdrawal) for invalid markets: a misdescribed feed or strike, a market built to harm LPs, a market that cannot be resolved. The slash goes to `slashRecipient`: the contract's default is the treasury and the deployment script sets it to the vault, so LPs are compensated first. It carries a hash of a public write-up. The slash is discretionary; there is no dispute process in v1.
 - The owner can **void** one market: the vault stops allocating to it and quoting it. Voiding does not change the market, does not refund anyone, and does not stop merge or redeem.
 - The guardian or owner can **suspend** a partner: no new markets, no new allocation, no quoting of its markets, no bond withdrawal. Only the owner lifts it.
 - The owner can **never** touch a user's tokens, change a market's terms or outcome, or block `redeem` and `merge`.
 
+**Governance gaps in v1** (known, accepted): a void cannot be undone; a partner cannot be revoked, only suspended (an approved partner keeps one of the 64 partner entries for good); credited fees (`feesOwed`) cannot be slashed and a suspended partner can still withdraw them; a bond withdrawal's earliest date is computed when it is requested, so markets created between the request and the date are covered only by the remaining active bond (which stays slashable); and anyone can claim a market's fee directly (`Market.claimFees`), after which it is a stray that `sweepStray` credits to the treasury, not to the partner, so collect fees regularly.
+
 **What the limits do not protect against** (stated plainly):
 
-1. **A strike nobody should have chosen.** The registry accepts any positive strike: a partner can create "ETH above $1" or "ETH above $1,000,000". The vault then prices near its 2 cent and 98 cent bounds and the loss ceilings bound what it can lose; the bond and `voidMarket` are the remedy, not a prevention. The bond is typically smaller than a worst-case loss.
+1. **A strike nobody should have chosen.** The registry accepts any positive strike up to the largest an oracle report can carry (`int192.max`): a partner can create "ETH above $1" or "ETH above $1,000,000". The keeper does not fund a market whose strike is more than 5 times from the spot it sees, and if one is funded anyway (by another keeper, or after a price jump) the vault prices near its 2 cent and 98 cent bounds and the loss ceilings bound what it can lose; the bond and `voidMarket` are the remedy, not a prevention. The bond is typically smaller than a worst-case loss. (A review found that a strike ~1e22 times the spot used to make the vault's valuation revert and freeze checkpoints, settlements and fills; `QuoteMath.d2` now saturates, with a regression test.)
 2. **An oracle outage at the end.** If no report arrives within the oracle's grace (30 minutes on testnet) the market becomes invalid and pays 50 cents. Until then it is unresolved, which can make an LP settlement epoch expire (the vault then refunds deposits and requeues redemptions instead of pricing late).
-3. **Liquidity locked for up to 7 days.** Inventory in a long-dated market is not available to LP redemptions until it is merged or the market resolves. The caps bound how much; the keeper merges pairs as a redemption shortfall appears.
+3. **Liquidity locked for up to 7 days, and wide depth for a long time.** Inventory in a long-dated market is not available to LP redemptions until it is merged or the market resolves. The caps bound how much; the keeper merges pairs as a redemption shortfall appears. The quote ladder narrows with the square root of the time left, so a 7-day market is quoted near its widest for days; the vault's NAV band for unmatched tokens in such a market is wide, which costs LPs entering or leaving. Partner losses draw on the same 8 % total loss budget the core rounds use.
 4. **One trust anchor.** The owner approves, slashes and voids; a bad or compromised owner can harm partners (not users' tokens). On mainnet the owner is a Safe multisig.
 5. **Testnet oracle.** The testnet Data Streams verifier is a mock with a test signer: any feed id works there, and whoever holds the signer decides prices. Mainnet needs a real feed id per asset.
 
@@ -166,6 +168,6 @@ Everything here is enforced in code and covered by tests (`PartnerRegistry.t.sol
 
 **Who pays the keeper's gas?** The vault's operator. Executing a user's order is paid by the reward the user attaches to the order (0.001 MON on testnet).
 
-**What if the vault does not quote my market?** `getMarket().quoting` is false when your cap or the global cap is used, the slots are full, the vault is halted or paused, or the market is inside its last 30 seconds. `getQuotes().quoting` is the same flag for the ladder.
+**What if the vault does not quote my market?** `getMarket().quoting` is the vault's own flag (`venueView.tradable`): false until the keeper has put liquidity into the market, and false when the vault is registered-out, halted, paused, its NAV or volatility is stale, a settlement is pending, or the partner is inactive (suspended, voided, bond below the minimum). It stays true in the last 30 seconds and when only part of a cap is used; `getQuotes().quoting` is false in the final 30 seconds and when the ladder has no size. The keeper does not fund a market whose strike is more than 5 times away from its own spot price, when your cap or the global cap is used, when you already hold three registry slots, or when the six partner slots are taken.
 
 **Can I list the same strike and end twice?** Yes; each market is a separate contract. The limit is 8 markets that have not ended.

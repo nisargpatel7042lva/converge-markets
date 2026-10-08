@@ -17,8 +17,8 @@ scripts/spike typecheck: Done
 packages/sdk typecheck: Done
 apps/web typecheck$ tsc -p tsconfig.json --noEmit && tsc -p tsconfig.e2e.json --noEmit
 backtest typecheck$ tsc -p tsconfig.json
-scripts/keeper-live typecheck$ tsc -p tsconfig.json
 examples/partner-demo typecheck$ tsc -p tsconfig.json --noEmit
+scripts/keeper-live typecheck$ tsc -p tsconfig.json
 backtest typecheck: Done
 scripts/reconcile typecheck$ tsc -p tsconfig.json
 examples/partner-demo typecheck: Done
@@ -39,150 +39,158 @@ packages/sdk test$ vitest run
 packages/strategy test$ vitest run
 scripts/spike test$ vitest run
 packages/sdk test:  RUN  v2.1.9 /home/mysterioxplorer/converge/packages/sdk
-scripts/spike test:  RUN  v2.1.9 /home/mysterioxplorer/converge/scripts/spike
 packages/strategy test:  RUN  v2.1.9 /home/mysterioxplorer/converge/packages/strategy
-scripts/spike test:  ✓ src/cost-model.test.ts (3 tests) 5ms
+scripts/spike test:  RUN  v2.1.9 /home/mysterioxplorer/converge/scripts/spike
+scripts/spike test:  ✓ src/cost-model.test.ts (3 tests) 8ms
 scripts/spike test:  Test Files  1 passed (1)
 scripts/spike test:       Tests  3 passed (3)
-scripts/spike test:    Start at  19:07:33
-scripts/spike test:    Duration  1.05s (transform 184ms, setup 0ms, collect 114ms, tests 5ms, environment 0ms, prepare 305ms)
+scripts/spike test:    Start at  06:07:15
+scripts/spike test:    Duration  1.25s (transform 101ms, setup 0ms, collect 85ms, tests 8ms, environment 0ms, prepare 172ms)
+packages/sdk test:  ✓ test/time.test.ts (5 tests) 23ms
 scripts/spike test: Done
-packages/sdk test:  ✓ test/time.test.ts (5 tests) 7ms
-packages/strategy test:  ✓ src/index.test.ts (1 test) 3ms
-packages/strategy test:  ✓ test/params.test.ts (32 tests) 23ms
-packages/strategy test:  ✓ test/liquidity.test.ts (6 tests) 39ms
-packages/strategy test:  ✓ test/math.test.ts (8 tests) 56ms
-packages/strategy test:  ✓ test/vol.test.ts (12 tests) 88ms
-packages/strategy test:  ✓ test/risk.test.ts (7 tests) 118ms
-packages/strategy test:  ✓ test/onchain.test.ts (9 tests) 220ms
-packages/strategy test:  ✓ test/prob.test.ts (10 tests) 243ms
+packages/strategy test:  ✓ src/index.test.ts (1 test) 4ms
+packages/strategy test:  ✓ test/params.test.ts (32 tests) 21ms
+packages/strategy test:  ✓ test/liquidity.test.ts (6 tests) 44ms
+packages/strategy test:  ✓ test/math.test.ts (8 tests) 79ms
+packages/strategy test:  ✓ test/risk.test.ts (7 tests) 178ms
+packages/strategy test:  ✓ test/vol.test.ts (12 tests) 184ms
 indexer test:  RUN  v2.1.9 /home/mysterioxplorer/converge/indexer
-packages/sdk test:  ✓ test/trade.test.ts (7 tests) 17ms
-packages/sdk test:  ✓ test/rounds.test.ts (8 tests) 27ms
-packages/sdk test:  ✓ test/snapshot.test.ts (2 tests) 17ms
-packages/sdk test:  ✓ test/planner.test.ts (8 tests) 64ms
-packages/sdk test:  ✓ test/report.test.ts (1 test) 7ms
-packages/sdk test:  ✓ test/evidence.test.ts (5 tests) 116ms
-packages/strategy test:  ✓ test/quotes.test.ts (17 tests) 633ms
-packages/strategy test:    ✓ generateQuotes: invariants (property tests) > prices stay in bounds on the tick grid, are never crossed, and never quote through fair value 365ms
+packages/strategy test:  ✓ test/onchain.test.ts (9 tests) 309ms
+packages/strategy test:  ✓ test/prob.test.ts (10 tests) 374ms
+packages/sdk test:  ✓ test/rounds.test.ts (8 tests) 56ms
+packages/sdk test:  ✓ test/trade.test.ts (7 tests) 136ms
+packages/sdk test:  ✓ test/snapshot.test.ts (2 tests) 50ms
+packages/sdk test:  ✓ test/planner.test.ts (8 tests) 196ms
+packages/sdk test:  ✓ test/report.test.ts (1 test) 33ms
+packages/sdk test:  ✓ test/evidence.test.ts (5 tests) 231ms
+packages/sdk test:  ✓ test/readme.test.ts (3 tests) 8ms
+packages/strategy test:  ✓ test/quotes.test.ts (17 tests) 1140ms
+packages/strategy test:    ✓ generateQuotes: invariants (property tests) > prices stay in bounds on the tick grid, are never crossed, and never quote through fair value 750ms
+packages/strategy test:    ✓ generateQuotes: invariants (property tests) > filling every posted level never pushes a market's worst-case loss past its ceiling 316ms
 packages/strategy test:  Test Files  9 passed (9)
 packages/strategy test:       Tests  102 passed (102)
-packages/strategy test:    Start at  19:07:33
-packages/strategy test:    Duration  1.88s (transform 734ms, setup 0ms, collect 2.18s, tests 1.42s, environment 2ms, prepare 2.53s)
-packages/strategy test: Done
-packages/sdk test:  ✓ test/indexer.test.ts (20 tests) 29ms
-packages/sdk test:  ✓ test/readme.test.ts (3 tests) 5ms
-indexer test:  ✓ src/index.test.ts (1 test) 3ms
+packages/strategy test:    Start at  06:07:15
+packages/strategy test:    Duration  2.72s (transform 1.02s, setup 0ms, collect 3.85s, tests 2.33s, environment 3ms, prepare 3.61s)
 indexer test:  ✓ test/handlers-cover-config.test.ts (2 tests) 5ms
-indexer test:  ✓ test/sdk-parity.test.ts (4 tests) 7ms
-indexer test:  ✓ test/lp-apy.test.ts (8 tests) 7ms
-indexer test:  ✓ test/position.test.ts (11 tests) 328ms
-indexer test:    ✓ conservation property > costBasis == totalIn - totalOut + realizedPnl after any sequence of ops (no rounding leak) 322ms
-indexer test:  ✓ test/abi-parity.test.ts (49 tests) 14ms
-indexer test:  ✓ test/partner.test.ts (4 tests) 138ms
-indexer test:  ✓ test/lifecycle.test.ts (20 tests) 242ms
+indexer test:  ✓ src/index.test.ts (1 test) 4ms
+packages/sdk test:  ✓ test/indexer.test.ts (20 tests) 36ms
+indexer test:  ✓ test/lp-apy.test.ts (8 tests) 8ms
+indexer test:  ✓ test/sdk-parity.test.ts (4 tests) 10ms
+packages/strategy test: Done
+indexer test:  ✓ test/position.test.ts (11 tests) 377ms
+indexer test:    ✓ conservation property > costBasis == totalIn - totalOut + realizedPnl after any sequence of ops (no rounding leak) 366ms
+indexer test:  ✓ test/abi-parity.test.ts (50 tests) 19ms
+indexer test:  ✓ test/partner.test.ts (4 tests) 127ms
+indexer test:  ✓ test/lifecycle.test.ts (20 tests) 252ms
 indexer test:  Test Files  8 passed (8)
-indexer test:       Tests  99 passed (99)
-indexer test:    Start at  19:07:34
-indexer test:    Duration  1.35s (transform 535ms, setup 0ms, collect 2.09s, tests 743ms, environment 2ms, prepare 1.22s)
+indexer test:       Tests  100 passed (100)
+indexer test:    Start at  06:07:17
+indexer test:    Duration  1.73s (transform 723ms, setup 0ms, collect 2.66s, tests 802ms, environment 3ms, prepare 1.82s)
 indexer test: Done
-packages/sdk test:  ✓ test/partner.test.ts (31 tests) 1583ms
-packages/sdk test:    ✓ client: waiting for an order > returns the fill when the venue emitted OrderExecuted, and times out otherwise 1203ms
+packages/sdk test:  ✓ test/partner.test.ts (36 tests) 8126ms
+packages/sdk test:    ✓ client: resolving > still raises a revert when the market is not resolved 1508ms
+packages/sdk test:    ✓ client: resolving > fails clearly when there is no oracle report yet and finalizing is refused 1511ms
+packages/sdk test:    ✓ client: resolving > retries a transaction that reverted after a passing simulation (a lost race) until it works 1507ms
+packages/sdk test:    ✓ client: resolving > times out with the last error when the market never resolves 1509ms
+packages/sdk test:    ✓ client: log windows (the public Monad RPC allows 100 blocks per eth_getLogs) > waitForFill never asks for more than the limit, even from a far-back block 809ms
+packages/sdk test:    ✓ client: waiting for an order > returns the fill when the venue emitted OrderExecuted, and times out otherwise 809ms
 packages/sdk test:  Test Files  10 passed (10)
-packages/sdk test:       Tests  90 passed (90)
-packages/sdk test:    Start at  19:07:33
-packages/sdk test:    Duration  3.20s (transform 1.59s, setup 0ms, collect 6.87s, tests 1.87s, environment 3ms, prepare 2.94s)
+packages/sdk test:       Tests  95 passed (95)
+packages/sdk test:    Start at  06:07:15
+packages/sdk test:    Duration  10.54s (transform 2.31s, setup 0ms, collect 10.97s, tests 8.89s, environment 3ms, prepare 4.75s)
 packages/sdk test: Done
 apps/web test$ vitest run
 backtest test$ vitest run
 examples/partner-demo test$ vitest run
 scripts/reconcile test$ vitest run
-backtest test:  RUN  v2.1.9 /home/mysterioxplorer/converge/backtest
 apps/web test:  RUN  v2.1.9 /home/mysterioxplorer/converge/apps/web
-examples/partner-demo test:  RUN  v2.1.9 /home/mysterioxplorer/converge/examples/partner-demo
 scripts/reconcile test:  RUN  v2.1.9 /home/mysterioxplorer/converge/scripts/reconcile
-backtest test:  ✓ src/index.test.ts (1 test) 3ms
-backtest test:  ✓ test/config.test.ts (1 test) 3ms
-scripts/reconcile test:  ✓ test/common.test.ts (9 tests) 138ms
+backtest test:  RUN  v2.1.9 /home/mysterioxplorer/converge/backtest
+examples/partner-demo test:  RUN  v2.1.9 /home/mysterioxplorer/converge/examples/partner-demo
+backtest test:  ✓ src/index.test.ts (1 test) 4ms
+scripts/reconcile test:  ✓ test/common.test.ts (9 tests) 140ms
 scripts/reconcile test:  Test Files  1 passed (1)
 scripts/reconcile test:       Tests  9 passed (9)
-scripts/reconcile test:    Start at  19:07:36
-scripts/reconcile test:    Duration  1.19s (transform 100ms, setup 0ms, collect 77ms, tests 138ms, environment 0ms, prepare 270ms)
-backtest test:  ✓ test/basics.test.ts (11 tests) 121ms
-backtest test:  ✓ test/pipeline.test.ts (10 tests) 47ms
+scripts/reconcile test:    Start at  06:07:26
+scripts/reconcile test:    Duration  1.64s (transform 314ms, setup 0ms, collect 225ms, tests 140ms, environment 0ms, prepare 421ms)
+backtest test:  ✓ test/config.test.ts (1 test) 7ms
 scripts/reconcile test: Done
 services/keeper test$ vitest run test/unit
+backtest test:  ✓ test/pipeline.test.ts (10 tests) 42ms
+backtest test:  ✓ test/basics.test.ts (11 tests) 170ms
 services/keeper test:  RUN  v2.1.9 /home/mysterioxplorer/converge/services/keeper
-examples/partner-demo test:  ✓ test/view.test.ts (7 tests) 66ms
-apps/web test:  ✓ test/lib.test.ts (8 tests) 230ms
-apps/web test:  Test Files  1 passed (1)
-apps/web test:       Tests  8 passed (8)
-apps/web test:    Start at  19:07:36
-apps/web test:    Duration  1.93s (transform 494ms, setup 0ms, collect 884ms, tests 230ms, environment 0ms, prepare 241ms)
-apps/web test: Done
-services/scheduler/fallback test$ vitest run test/unit
-examples/partner-demo test:  ✓ test/page.test.tsx (2 tests) 12ms
+examples/partner-demo test:  ✓ test/view.test.ts (7 tests) 72ms
+examples/partner-demo test:  ✓ test/page.test.tsx (2 tests) 16ms
+apps/web test:  ✓ test/lib.test.ts (8 tests) 195ms
 examples/partner-demo test:  Test Files  2 passed (2)
 examples/partner-demo test:       Tests  9 passed (9)
-examples/partner-demo test:    Start at  19:07:36
-examples/partner-demo test:    Duration  2.06s (transform 506ms, setup 0ms, collect 1.84s, tests 78ms, environment 0ms, prepare 601ms)
+examples/partner-demo test:    Start at  06:07:26
+examples/partner-demo test:    Duration  3.08s (transform 705ms, setup 0ms, collect 3.11s, tests 88ms, environment 1ms, prepare 614ms)
+services/keeper test:  ✓ test/unit/risk.test.ts (12 tests) 11ms
+services/keeper test:  ✓ test/unit/tx.test.ts (19 tests) 27ms
+apps/web test:  Test Files  1 passed (1)
+apps/web test:       Tests  8 passed (8)
+apps/web test:    Start at  06:07:26
+apps/web test:    Duration  3.14s (transform 768ms, setup 0ms, collect 1.35s, tests 195ms, environment 0ms, prepare 610ms)
 examples/partner-demo test: Done
-services/keeper test:  ✓ test/unit/risk.test.ts (12 tests) 9ms
-services/keeper test:  ✓ test/unit/tx.test.ts (19 tests) 16ms
-services/keeper test:  ✓ test/unit/price.test.ts (12 tests) 10ms
+services/scheduler/fallback test$ vitest run test/unit
+apps/web test: Done
+services/keeper test:  ✓ test/unit/price.test.ts (12 tests) 13ms
 services/scheduler/fallback test:  RUN  v2.1.9 /home/mysterioxplorer/converge/services/scheduler/fallback
-services/keeper test:  ✓ test/unit/blocks.test.ts (1 test) 446ms
-services/keeper test:    ✓ block source over HTTP polling > emits each new block once, in order, and survives RPC failures 445ms
-services/keeper test:  ✓ test/unit/inventory.test.ts (10 tests) 6ms
-services/keeper test:  ✓ test/unit/planner.test.ts (34 tests) 17ms
+services/keeper test:  ✓ test/unit/inventory.test.ts (10 tests) 12ms
+services/keeper test:  ✓ test/unit/planner.test.ts (41 tests) 30ms
+services/keeper test:  ✓ test/unit/blocks.test.ts (1 test) 451ms
+services/keeper test:    ✓ block source over HTTP polling > emits each new block once, in order, and survives RPC failures 449ms
 services/scheduler/fallback test:  ✓ test/unit/service.test.ts (5 tests) 46ms
 services/scheduler/fallback test:  ✓ test/unit/errors.test.ts (2 tests) 4ms
 services/scheduler/fallback test:  Test Files  2 passed (2)
 services/scheduler/fallback test:       Tests  7 passed (7)
-services/scheduler/fallback test:    Start at  19:07:39
-services/scheduler/fallback test:    Duration  821ms (transform 336ms, setup 0ms, collect 605ms, tests 49ms, environment 0ms, prepare 181ms)
+services/scheduler/fallback test:    Start at  06:07:30
+services/scheduler/fallback test:    Duration  1.08s (transform 431ms, setup 0ms, collect 764ms, tests 50ms, environment 0ms, prepare 236ms)
 services/scheduler/fallback test: Done
-services/keeper test:  ✓ test/unit/ops.test.ts (13 tests) 4709ms
-services/keeper test:    ✓ reconnecting websocket price source > reconnects after the server drops it and after silence (watchdog) 4428ms
+services/keeper test:  ✓ test/unit/ops.test.ts (13 tests) 4697ms
+services/keeper test:    ✓ reconnecting websocket price source > reconnects after the server drops it and after silence (watchdog) 4420ms
 services/keeper test:  Test Files  7 passed (7)
-services/keeper test:       Tests  101 passed (101)
-services/keeper test:    Start at  19:07:38
-services/keeper test:    Duration  5.50s (transform 1.24s, setup 0ms, collect 2.75s, tests 5.21s, environment 4ms, prepare 1.15s)
+services/keeper test:       Tests  108 passed (108)
+services/keeper test:    Start at  06:07:29
+services/keeper test:    Duration  5.81s (transform 1.37s, setup 0ms, collect 3.49s, tests 5.24s, environment 2ms, prepare 1.21s)
 services/keeper test: Done
-backtest test:  ✓ test/sim.test.ts (22 tests) 22438ms
-backtest test:    ✓ accounting > no taker flow means no fills and P&L equals minus gas 797ms
-backtest test:    ✓ accounting > an LP-side taker fee is income that keeps the decomposition exact; a protocol fee is not 1182ms
-backtest test:    ✓ accounting > redeem fees only ever cost the vault money 1045ms
-backtest test:    ✓ accounting > noise takers with no tolerance only trade when the quote is through fair value 1605ms
-backtest test:    ✓ determinism > the same config and data give identical results (digest and every number) 1070ms
-backtest test:    ✓ determinism > a different seed changes the flow 1134ms
-backtest test:    ✓ causality (no look-ahead) > changing prices after a cutoff cannot change any fill before it 462ms
-backtest test:    ✓ causality (no look-ahead) > ...but changing prices BEFORE the cutoff does change them 486ms
-backtest test:    ✓ causality (no look-ahead) > a longer vault latency never improves a pure sniper's edge against it 1159ms
-backtest test:    ✓ causality tripwire and fill-time cutoffs (review M2) > no block ever reads a price newer than the bar at its own timestamp 1897ms
-backtest test:    ✓ causality tripwire and fill-time cutoffs (review M2) > rewriting the future from the very bar after a fill never changes that fill or any earlier one 5147ms
-backtest test:    ✓ independent P&L reconstruction (review: the identity alone is algebraic) > rebuilding settlement from the raw fills reproduces the simulator's total 998ms
-backtest test:    ✓ single-shot execution vs a sniper with a timing option (review H1) > letting a sniper wait for a favourable block costs the vault money 1275ms
-backtest test:    ✓ single-shot execution vs a sniper with a timing option (review H1) > counts informed gains as zero per day, and losses in full 593ms
-backtest test:    ✓ gas, risk caps and statistics (review iteration 2) > forward-priced execution charges gas for every executed order that fills, informed ones included 556ms
-backtest test:    ✓ gas, risk caps and statistics (review iteration 2) > the total at-risk cap binds across markets even though each market is under its own cap 1089ms
-backtest test:    ✓ economics sanity > informed flow loses the vault money against a drifting price; noise flow earns 641ms
-backtest test:    ✓ economics sanity > the breaker pauses quoting after a large drawdown but never touches settled accounting 757ms
-backtest test:    ✓ economics sanity > evaluates only strided days when asked 542ms
+backtest test:  ✓ test/sim.test.ts (22 tests) 19699ms
+backtest test:    ✓ accounting > no taker flow means no fills and P&L equals minus gas 932ms
+backtest test:    ✓ accounting > an LP-side taker fee is income that keeps the decomposition exact; a protocol fee is not 1164ms
+backtest test:    ✓ accounting > redeem fees only ever cost the vault money 914ms
+backtest test:    ✓ accounting > noise takers with no tolerance only trade when the quote is through fair value 1303ms
+backtest test:    ✓ determinism > the same config and data give identical results (digest and every number) 862ms
+backtest test:    ✓ determinism > a different seed changes the flow 912ms
+backtest test:    ✓ causality (no look-ahead) > changing prices after a cutoff cannot change any fill before it 418ms
+backtest test:    ✓ causality (no look-ahead) > ...but changing prices BEFORE the cutoff does change them 338ms
+backtest test:    ✓ causality (no look-ahead) > a longer vault latency never improves a pure sniper's edge against it 1124ms
+backtest test:    ✓ causality tripwire and fill-time cutoffs (review M2) > no block ever reads a price newer than the bar at its own timestamp 1550ms
+backtest test:    ✓ causality tripwire and fill-time cutoffs (review M2) > rewriting the future from the very bar after a fill never changes that fill or any earlier one 4636ms
+backtest test:    ✓ independent P&L reconstruction (review: the identity alone is algebraic) > rebuilding settlement from the raw fills reproduces the simulator's total 858ms
+backtest test:    ✓ single-shot execution vs a sniper with a timing option (review H1) > letting a sniper wait for a favourable block costs the vault money 1103ms
+backtest test:    ✓ single-shot execution vs a sniper with a timing option (review H1) > counts informed gains as zero per day, and losses in full 465ms
+backtest test:    ✓ gas, risk caps and statistics (review iteration 2) > forward-priced execution charges gas for every executed order that fills, informed ones included 470ms
+backtest test:    ✓ gas, risk caps and statistics (review iteration 2) > the total at-risk cap binds across markets even though each market is under its own cap 839ms
+backtest test:    ✓ economics sanity > informed flow loses the vault money against a drifting price; noise flow earns 803ms
+backtest test:    ✓ economics sanity > the breaker pauses quoting after a large drawdown but never touches settled accounting 579ms
+backtest test:    ✓ economics sanity > evaluates only strided days when asked 421ms
 backtest test:  Test Files  5 passed (5)
 backtest test:       Tests  45 passed (45)
-backtest test:    Start at  19:07:36
-backtest test:    Duration  24.66s (transform 734ms, setup 0ms, collect 2.10s, tests 22.61s, environment 1ms, prepare 1.61s)
+backtest test:    Start at  06:07:26
+backtest test:    Duration  23.04s (transform 817ms, setup 0ms, collect 2.78s, tests 19.92s, environment 2ms, prepare 1.87s)
 backtest test: Done
 cd contracts && forge fmt --check && forge build && forge lint --deny warnings && forge test
 No files changed, compilation skipped
 No files changed, compilation skipped
 
-Ran 3 tests for test/unit/MarketFactory.t.sol:OutcomeTokenTest
-[PASS] test_implementationLocked() (gas: 37094)
-[PASS] test_initialize_rejectsZeroMarket() (gas: 266002)
-[PASS] test_onlyMarketMintBurn_andReinitBlocked() (gas: 692960)
-Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 4.21ms (428.90µs CPU time)
+Ran 5 tests for test/unit/Libraries.t.sol:LibrariesTest
+[PASS] testFuzz_series_roundStartProperties(uint64,bool) (runs: 256, μ: 19130, ~: 19125)
+[PASS] test_dateTime_vectors() (gas: 21344)
+[PASS] test_names() (gas: 28461)
+[PASS] test_series_boundaries() (gas: 36273)
+[PASS] test_series_rejectsUnsupported() (gas: 18739)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 12.91ms (10.15ms CPU time)
 
 Ran 29 tests for test/unit/ChainlinkRoundResolver.t.sol:ChainlinkRoundResolverTest
 [PASS] test_adjacentRoundsShareBoundary() (gas: 209315)
@@ -214,33 +222,13 @@ Ran 29 tests for test/unit/ChainlinkRoundResolver.t.sol:ChainlinkRoundResolverTe
 [PASS] test_wrongRound_beforeBoundary() (gas: 57228)
 [PASS] test_wrongRound_notFirst() (gas: 204303)
 [PASS] test_zeroedRound_reverts() (gas: 262403)
-Suite result: ok. 29 passed; 0 failed; 0 skipped; finished in 5.35ms (2.86ms CPU time)
+Suite result: ok. 29 passed; 0 failed; 0 skipped; finished in 15.09ms (3.76ms CPU time)
 
 Ran 3 tests for test/unit/DeployPartners.t.sol:DeployPartnersTest
 [PASS] test_refusesAMainnetChain() (gas: 30110)
-[PASS] test_theDemoPartnerCanCreateAfterPostingItsBond() (gas: 1178900)
-[PASS] test_wiring() (gas: 146702)
-Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 5.89ms (572.30µs CPU time)
-
-Ran 17 tests for test/unit/MarketFactory.t.sol:MarketFactoryTest
-[PASS] test_constructor_rejectsZero() (gas: 6045)
-[PASS] test_constructor_state() (gas: 41238)
-[PASS] test_createMarket_atCurrentBoundary() (gas: 596204)
-[PASS] test_createMarket_oneHour() (gas: 622560)
-[PASS] test_createMarket_onlyCreator() (gas: 41320)
-[PASS] test_createMarket_registersAndNames() (gas: 696005)
-[PASS] test_createMarket_revertsBadDuration() (gas: 45371)
-[PASS] test_createMarket_revertsDuplicate() (gas: 635055)
-[PASS] test_createMarket_revertsInPast() (gas: 46262)
-[PASS] test_createMarket_revertsNotAligned() (gas: 83472)
-[PASS] test_createMarket_revertsUnknownOrDisabledAsset() (gas: 126072)
-[PASS] test_createMarket_sameStartDifferentDurations() (gas: 1166708)
-[PASS] test_pause_blocksCreation_onlyGuardian_unpauseOnlyAdmin() (gas: 783688)
-[PASS] test_redeemFee_capAndEvents() (gas: 723074)
-[PASS] test_redeemFee_onlyAdmin() (gas: 66434)
-[PASS] test_setAsset_onlyAdmin() (gas: 44267)
-[PASS] test_setAsset_validations() (gas: 188288)
-Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 8.63ms (6.03ms CPU time)
+[PASS] test_theDemoPartnerCanCreateAfterPostingItsBond() (gas: 1201083)
+[PASS] test_wiring() (gas: 146791)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 15.00ms (847.76µs CPU time)
 
 Ran 21 tests for test/unit/DataStreamsResolver.t.sol:DataStreamsResolverTest
 [PASS] test_adminFunctions() (gas: 254091)
@@ -264,7 +252,33 @@ Ran 21 tests for test/unit/DataStreamsResolver.t.sol:DataStreamsResolverTest
 [PASS] test_windowBoundsInclusive() (gas: 255590)
 [PASS] test_wrongFeed_reverts() (gas: 67564)
 [PASS] test_wrongVersion_reverts() (gas: 52019)
-Suite result: ok. 21 passed; 0 failed; 0 skipped; finished in 9.19ms (6.70ms CPU time)
+Suite result: ok. 21 passed; 0 failed; 0 skipped; finished in 25.49ms (14.37ms CPU time)
+
+Ran 17 tests for test/unit/MarketFactory.t.sol:MarketFactoryTest
+[PASS] test_constructor_rejectsZero() (gas: 6045)
+[PASS] test_constructor_state() (gas: 41238)
+[PASS] test_createMarket_atCurrentBoundary() (gas: 596204)
+[PASS] test_createMarket_oneHour() (gas: 622560)
+[PASS] test_createMarket_onlyCreator() (gas: 41320)
+[PASS] test_createMarket_registersAndNames() (gas: 696005)
+[PASS] test_createMarket_revertsBadDuration() (gas: 45371)
+[PASS] test_createMarket_revertsDuplicate() (gas: 635055)
+[PASS] test_createMarket_revertsInPast() (gas: 46262)
+[PASS] test_createMarket_revertsNotAligned() (gas: 83472)
+[PASS] test_createMarket_revertsUnknownOrDisabledAsset() (gas: 126072)
+[PASS] test_createMarket_sameStartDifferentDurations() (gas: 1166708)
+[PASS] test_pause_blocksCreation_onlyGuardian_unpauseOnlyAdmin() (gas: 783688)
+[PASS] test_redeemFee_capAndEvents() (gas: 723074)
+[PASS] test_redeemFee_onlyAdmin() (gas: 66434)
+[PASS] test_setAsset_onlyAdmin() (gas: 44267)
+[PASS] test_setAsset_validations() (gas: 188288)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 26.41ms (15.78ms CPU time)
+
+Ran 3 tests for test/unit/MarketFactory.t.sol:OutcomeTokenTest
+[PASS] test_implementationLocked() (gas: 37094)
+[PASS] test_initialize_rejectsZeroMarket() (gas: 266002)
+[PASS] test_onlyMarketMintBurn_andReinitBlocked() (gas: 692960)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 7.52ms (5.79ms CPU time)
 
 Ran 17 tests for test/unit/SchedulerReceiver.t.sol:SchedulerReceiverTest
 [PASS] test_admin_roles() (gas: 200110)
@@ -284,109 +298,220 @@ Ran 17 tests for test/unit/SchedulerReceiver.t.sol:SchedulerReceiverTest
 [PASS] test_oversizedBatchDegradesWithinGasLimit() (gas: 11530505)
 [PASS] test_setMaxReportAge_rejectsZero() (gas: 34653)
 [PASS] test_supportsInterface() (gas: 17010)
-Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 13.89ms (9.93ms CPU time)
-
-Ran 5 tests for test/unit/Libraries.t.sol:LibrariesTest
-[PASS] testFuzz_series_roundStartProperties(uint64,bool) (runs: 256, μ: 19130, ~: 19125)
-[PASS] test_dateTime_vectors() (gas: 21344)
-[PASS] test_names() (gas: 28461)
-[PASS] test_series_boundaries() (gas: 36273)
-[PASS] test_series_rejectsUnsupported() (gas: 18739)
-Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 18.47ms (18.19ms CPU time)
-
-Ran 2 tests for test/unit/VaultE2E.t.sol:VaultE2ETest
-[PASS] test_e2e_downWins_lpGainsFiveFifty_feeOnTheGain() (gas: 3536235)
-[PASS] test_e2e_upWins_lpLosesFourFifty() (gas: 3617336)
-Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 9.23ms (5.78ms CPU time)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 40.00ms (29.06ms CPU time)
 
 Ran 31 tests for test/unit/VaultFlows.t.sol:VaultFlowsTest
-[PASS] test_claimDeposit_reverts() (gas: 705076)
-[PASS] test_claimDeposit_toOtherReceiver() (gas: 1014665)
-[PASS] test_claimRedeem_reverts() (gas: 942452)
+[PASS] test_claimDeposit_reverts() (gas: 705141)
+[PASS] test_claimDeposit_toOtherReceiver() (gas: 1014795)
+[PASS] test_claimRedeem_reverts() (gas: 942582)
 [PASS] test_constructor_revertsOnBadConfig() (gas: 18589)
 [PASS] test_constructor_state() (gas: 148924)
-[PASS] test_deposit_batchSharesProRata() (gas: 1254046)
-[PASS] test_deposit_refundedWhenNavIsWiped() (gas: 1108959)
-[PASS] test_donationBeforeSecondDepositDoesNotZeroShares() (gas: 1077060)
-[PASS] test_epochMath() (gas: 22601)
+[PASS] test_deposit_batchSharesProRata() (gas: 1254176)
+[PASS] test_deposit_refundedWhenNavIsWiped() (gas: 1109089)
+[PASS] test_donationBeforeSecondDepositDoesNotZeroShares() (gas: 1077190)
+[PASS] test_epochMath() (gas: 22666)
 [PASS] test_fee_capEnforced() (gas: 93088)
-[PASS] test_fee_chargedOnGainsAboveHighWaterMark() (gas: 1090454)
-[PASS] test_fee_noneBelowHighWaterMarkAndZeroWhenDisabled() (gas: 1862588)
-[PASS] test_firstDeposit_mintsOneToOneMinusDeadShares() (gas: 651320)
-[PASS] test_redeem_fullAtFlatNav() (gas: 1398935)
-[PASS] test_redeem_neverBlockedByPauseOrBreaker() (gas: 952330)
-[PASS] test_redeem_partialFillRequeuesRemainder() (gas: 2637414)
+[PASS] test_fee_chargedOnGainsAboveHighWaterMark() (gas: 1090584)
+[PASS] test_fee_noneBelowHighWaterMarkAndZeroWhenDisabled() (gas: 1862848)
+[PASS] test_firstDeposit_mintsOneToOneMinusDeadShares() (gas: 651385)
+[PASS] test_redeem_fullAtFlatNav() (gas: 1399130)
+[PASS] test_redeem_neverBlockedByPauseOrBreaker() (gas: 952460)
+[PASS] test_redeem_partialFillRequeuesRemainder() (gas: 2637609)
 [PASS] test_redeem_revertsZeroAndWithoutShares() (gas: 69024)
-[PASS] test_requestDeposit_enforcesTvlCapIncludingPending() (gas: 1000691)
+[PASS] test_requestDeposit_enforcesTvlCapIncludingPending() (gas: 1000712)
 [PASS] test_requestDeposit_rejectsFeeOnTransferAsset() (gas: 495368)
 [PASS] test_requestDeposit_revertsBelowMinimum() (gas: 160314)
 [PASS] test_requestDeposit_revertsWithoutAllowance() (gas: 127285)
-[PASS] test_secondDeposit_samePriceAtFlatNav() (gas: 1007047)
-[PASS] test_settleWindow_mustBeShorterThanARound_andEpochsOnTheRoundGrid() (gas: 87381)
-[PASS] test_settle_eachEpochHasItsOwnDisjointWindow() (gas: 950898)
-[PASS] test_settle_endedButUnresolvedRoundBlocksUntilResolved() (gas: 2915140)
-[PASS] test_settle_expiresAfterTheWindow_refundsAndRequeues() (gas: 1210599)
-[PASS] test_settle_lastSecondOfTheWindowStillSettles() (gas: 588715)
-[PASS] test_settle_laterInTheWindowGivesTheSameShares() (gas: 2905294)
-[PASS] test_settle_revertsBeforeEpochEnds() (gas: 326414)
-[PASS] test_settle_revertsOnUnknownDuplicateOrNonCanonicalReport() (gas: 2311623)
-[PASS] test_settle_revertsTwiceAndWhenEmpty() (gas: 447848)
-Suite result: ok. 31 passed; 0 failed; 0 skipped; finished in 24.49ms (19.30ms CPU time)
+[PASS] test_secondDeposit_samePriceAtFlatNav() (gas: 1007177)
+[PASS] test_settleWindow_mustBeShorterThanARound_andEpochsOnTheRoundGrid() (gas: 87515)
+[PASS] test_settle_eachEpochHasItsOwnDisjointWindow() (gas: 951028)
+[PASS] test_settle_endedButUnresolvedRoundBlocksUntilResolved() (gas: 2915226)
+[PASS] test_settle_expiresAfterTheWindow_refundsAndRequeues() (gas: 1210729)
+[PASS] test_settle_lastSecondOfTheWindowStillSettles() (gas: 588780)
+[PASS] test_settle_laterInTheWindowGivesTheSameShares() (gas: 2905628)
+[PASS] test_settle_revertsBeforeEpochEnds() (gas: 326479)
+[PASS] test_settle_revertsOnUnknownDuplicateOrNonCanonicalReport() (gas: 2311753)
+[PASS] test_settle_revertsTwiceAndWhenEmpty() (gas: 447978)
+Suite result: ok. 31 passed; 0 failed; 0 skipped; finished in 43.72ms (30.63ms CPU time)
 
-Ran 1 test for test/fork/VaultFork.t.sol:VaultForkTest
-[SKIP: skipped] setUp() (gas: 0)
-Suite result: ok. 0 passed; 0 failed; 1 skipped; finished in 1.14ms (0.00ns CPU time)
-
-Ran 35 tests for test/unit/PartnerRegistry.t.sol:PartnerRegistryTest
-[PASS] test_approve_onlyOwnerAndValidates() (gas: 337339)
-[PASS] test_bond_cancelRestoresTheActiveBond() (gas: 152564)
-[PASS] test_bond_postRequiresApprovalAndAmount() (gas: 175878)
-[PASS] test_bond_withdrawalGuards() (gas: 297698)
-[PASS] test_bond_withdrawalWaitsForTheDelayAndTheChallengePeriod() (gas: 1196506)
-[PASS] test_bond_withdrawalWithNoMarketsWaitsTheDelay() (gas: 221398)
-[PASS] test_create_durationBounds() (gas: 2039809)
-[PASS] test_create_emitsFactoryShapedEventAndPartnerEvent() (gas: 975503)
-[PASS] test_create_liveSlotsAreBoundedAndEndedMarketsFreeThem() (gas: 8487968)
-[PASS] test_create_marketCreatedIsEmittedBeforeOpened() (gas: 970072)
-[PASS] test_create_opensAtOnceWithThePinnedStrike() (gas: 1065087)
-[PASS] test_create_pauseBlocksCreationAndSplitButNotMergeOrRedeem() (gas: 1545178)
-[PASS] test_create_rejectsBadStrike() (gas: 96997)
-[PASS] test_create_requiresApprovalFeedBondAndNotSuspended() (gas: 374075)
-[PASS] test_create_tokenNamesCarryTheStrikeAndEnd() (gas: 3782969)
-[PASS] test_fees_shareIsSnapshottedAtCreation() (gas: 1776042)
-[PASS] test_fees_splitBetweenPartnerAndTreasury() (gas: 1924293)
-[PASS] test_fees_unknownMarketAndEmptyFeesRevert() (gas: 1040861)
-[PASS] test_fees_zeroFeeMarketsAccrueNothing() (gas: 1656508)
-[PASS] test_limits_reflectsStatus() (gas: 1032537)
-[PASS] test_liveMarkets_listsEveryRunningMarketAcrossPartners() (gas: 3181510)
-[PASS] test_pin_cannotBeReinitialisedAndImplementationIsLocked() (gas: 1038325)
+Ran 36 tests for test/unit/PartnerRegistry.t.sol:PartnerRegistryTest
+[PASS] test_approve_onlyOwnerAndValidates() (gas: 373547)
+[PASS] test_bond_cancelRestoresTheActiveBond() (gas: 152608)
+[PASS] test_bond_postRequiresApprovalAndAmount() (gas: 175900)
+[PASS] test_bond_withdrawalGuards() (gas: 297808)
+[PASS] test_bond_withdrawalWaitsForTheDelayAndTheChallengePeriod() (gas: 1201624)
+[PASS] test_bond_withdrawalWithNoMarketsWaitsTheDelay() (gas: 225518)
+[PASS] test_create_durationBounds() (gas: 2040171)
+[PASS] test_create_emitsFactoryShapedEventAndPartnerEvent() (gas: 975454)
+[PASS] test_create_liveSlotsAreBoundedAndEndedMarketsFreeThem() (gas: 9484572)
+[PASS] test_create_marketCreatedIsEmittedBeforeOpened() (gas: 970023)
+[PASS] test_create_opensAtOnceWithThePinnedStrike() (gas: 1065060)
+[PASS] test_create_pauseBlocksCreationAndSplitButNotMergeOrRedeem() (gas: 1545129)
+[PASS] test_create_rejectsBadStrike() (gas: 1276191)
+[PASS] test_create_requiresApprovalFeedBondAndNotSuspended() (gas: 374097)
+[PASS] test_create_tokenNamesCarryTheStrikeAndEnd() (gas: 3784291)
+[PASS] test_fees_aDirectClaimOnTheMarketDoesNotBreakAccounting() (gas: 3590678)
+[PASS] test_fees_shareIsSnapshottedAtCreation() (gas: 1776682)
+[PASS] test_fees_splitBetweenPartnerAndTreasury() (gas: 2027597)
+[PASS] test_fees_unknownMarketAndEmptyFeesRevert() (gas: 1030451)
+[PASS] test_fees_zeroFeeMarketsAccrueNothing() (gas: 1656482)
+[PASS] test_limits_reflectsStatus() (gas: 1032488)
+[PASS] test_liveMarkets_listsEveryRunningMarketAcrossPartners() (gas: 3299852)
+[PASS] test_pin_cannotBeReinitialisedAndImplementationIsLocked() (gas: 1038276)
 [PASS] test_pin_initializeValidatesInputs() (gas: 327111)
-[PASS] test_pin_startIsFixedEndForwards() (gas: 1109498)
-[PASS] test_resolve_belowStrikeIsDown() (gas: 1207576)
-[PASS] test_resolve_noReportIsInvalidAfterGrace() (gas: 1477413)
-[PASS] test_resolve_submitThroughTheMarketWithEvidence() (gas: 1236134)
-[PASS] test_resolve_usesTheRealOracleForTheEndPrice_upOnTie() (gas: 1215340)
-[PASS] test_setConfig_validatesAndGuardianRoles() (gas: 324247)
+[PASS] test_pin_startIsFixedEndForwards() (gas: 1109449)
+[PASS] test_resolve_belowStrikeIsDown() (gas: 1207527)
+[PASS] test_resolve_noReportIsInvalidAfterGrace() (gas: 1477386)
+[PASS] test_resolve_submitThroughTheMarketWithEvidence() (gas: 1236085)
+[PASS] test_resolve_usesTheRealOracleForTheEndPrice_upOnTie() (gas: 1215291)
+[PASS] test_setConfig_validatesAndGuardianRoles() (gas: 324269)
 [PASS] test_setFeed_needsACoreAssetAndAVaultAsset() (gas: 318921)
 [PASS] test_setPartnerTerms_andFeeds() (gas: 236332)
 [PASS] test_setVault_onceAndValidated() (gas: 111490)
-[PASS] test_slash_guards() (gas: 107872)
-[PASS] test_slash_takesTheBondFirstThenThePendingWithdrawal() (gas: 248958)
+[PASS] test_slash_guards() (gas: 107828)
+[PASS] test_slash_takesTheBondFirstThenThePendingWithdrawal() (gas: 258169)
 [PASS] test_voidMarket_unknownReverts() (gas: 37145)
-Suite result: ok. 35 passed; 0 failed; 0 skipped; finished in 32.66ms (18.94ms CPU time)
+Suite result: ok. 36 passed; 0 failed; 0 skipped; finished in 48.03ms (35.92ms CPU time)
+
+Ran 1 test for test/fork/VaultFork.t.sol:VaultForkTest
+[SKIP: skipped] setUp() (gas: 0)
+Suite result: ok. 0 passed; 0 failed; 1 skipped; finished in 4.99ms (0.00ns CPU time)
+
+Ran 37 tests for test/unit/VaultInventory.t.sol:VaultInventoryTest
+[PASS] test_breaker_omittedReportCannotTripIt() (gas: 1023568)
+[PASS] test_breaker_roundEndedButUnresolvedDoesNotTripIt() (gas: 1011609)
+[PASS] test_breaker_tripsOnDrawdownAndNeverBlocksExits() (gas: 876455)
+[PASS] test_breaker_withinLimitAndNewDayResets() (gas: 406287)
+[PASS] test_checkpoint_onEmptyVaultIsNoop() (gas: 50550)
+[PASS] test_enableAsset_bandValidationAndSetBand() (gas: 245830)
+[PASS] test_enableAsset_limitsAssetCount() (gas: 2232900)
+[PASS] test_enableAsset_rules() (gas: 85396)
+[PASS] test_merge_returnsCollateralAndPrunesEmptyMarket() (gas: 592052)
+[PASS] test_merge_reverts() (gas: 493203)
+[PASS] test_merge_worksWhilePaused() (gas: 478175)
+[PASS] test_nav_excessPricedFromReportWithBand() (gas: 1372117)
+[PASS] test_nav_marksNeededEmptyWhenNoExcess() (gas: 366952)
+[PASS] test_nav_resolvedMarketsAreExactNetOfFee() (gas: 2104990)
+[PASS] test_nav_strictSettlementNeedsTheCanonicalMark() (gas: 2166143)
+[PASS] test_nav_unopenedMarketIsHalfWithBand() (gas: 1341442)
+[PASS] test_ownerSetters_authAndZeroChecks() (gas: 360704)
+[PASS] test_ownership_isTwoStep() (gas: 136315)
+[PASS] test_pause_guardianAndOwnerOnly() (gas: 216099)
+[PASS] test_quoteParams_hardLimits() (gas: 263768)
+[PASS] test_redeemResolved_losingExcessPaysNothingAndInvalidPaysHalf() (gas: 2442098)
+[PASS] test_redeemResolved_pairsAndWinningExcess() (gas: 1031025)
+[PASS] test_redeemResolved_reverts() (gas: 826803)
+[PASS] test_riskAndSigmaConfig_validation() (gas: 403711)
+[PASS] test_setInitialVenue_zeroAndFirstUse() (gas: 103207)
+[PASS] test_setSigma_bandStepAndRate() (gas: 274009)
+[PASS] test_setSigma_firstValueAndEvent() (gas: 75195)
+[PASS] test_setSigma_revertsForNonKeeperAndUnknownAsset() (gas: 93057)
+[PASS] test_split_pairAndInventoryCaps() (gas: 1501797)
+[PASS] test_split_registersAndMovesCollateral() (gas: 533721)
+[PASS] test_split_registryIsBounded() (gas: 15253342)
+[PASS] test_split_rejectsForeignAndUnsupportedMarkets() (gas: 1090491)
+[PASS] test_split_rejectsResolvedAndNoQuoteWindow() (gas: 363155)
+[PASS] test_split_revertsForNonKeeper() (gas: 42070)
+[PASS] test_split_revertsZeroAndPaused() (gas: 108247)
+[PASS] test_venueFill_onlyVenue() (gas: 79590)
+[PASS] test_venue_initialOnceThenTimelocked() (gas: 333125)
+Suite result: ok. 37 passed; 0 failed; 0 skipped; finished in 43.02ms (37.17ms CPU time)
+
+Ran 42 tests for test/unit/ForwardVenue.t.sol:ForwardVenueTest
+[PASS] test_audit_F02_realisedLossSurvivesFlatteningAndResplit() (gas: 1200759)
+[PASS] test_audit_F03_executionAfterTheLatenessWindowReverts() (gas: 357645)
+[PASS] test_audit_F07_totalAtRiskCapLimitsTheSecondMarket() (gas: 1812806)
+[PASS] test_autoCheckpoint_ignoresAVenueMarkOlderThanAMinute() (gas: 841336)
+[PASS] test_autoCheckpoint_neverRaisesTheNav() (gas: 872174)
+[PASS] test_autoCheckpoint_tripsTheBreakerFromFills() (gas: 956935)
+[PASS] test_constructor_validation() (gas: 4104)
+[PASS] test_exec_badReportsRevert() (gas: 707005)
+[PASS] test_exec_buyDown_usesComplementOfBid() (gas: 717327)
+[PASS] test_exec_buyUp_fillsAtAskWithPriceImprovementAndRefund() (gas: 959205)
+[PASS] test_exec_cannotReplayOrExpireAfterwards() (gas: 773658)
+[PASS] test_exec_laterCallSamePriceSameFill() (gas: 1074968)
+[PASS] test_exec_limitBelowAskLeavesOrderUnfilledAndRefunds() (gas: 1362481)
+[PASS] test_exec_noFillInNoQuoteWindowOrAfterEnd() (gas: 671204)
+[PASS] test_exec_overlappingReports_isTheDocumentedTrustAssumption() (gas: 1054088)
+[PASS] test_exec_priceFollowsTheReport() (gas: 1108071)
+[PASS] test_exec_riskCeilingBindsTheFill() (gas: 846574)
+[PASS] test_exec_sellDown_usesComplementOfAsk() (gas: 897754)
+[PASS] test_exec_sellUp_fillsAtBid() (gas: 950327)
+[PASS] test_exec_staleSigmaMeansNoQuote() (gas: 1278768)
+[PASS] test_exec_timingRules() (gas: 785128)
+[PASS] test_exec_vaultPausedAfterPlacementRefunds() (gas: 480847)
+[PASS] test_exec_walksSecondLevelWhenLimitAllows() (gas: 1003579)
+[PASS] test_exec_wrongWindowReportsRevert() (gas: 475748)
+[PASS] test_expire_refundsAndPaysCaller() (gas: 481426)
+[PASS] test_expire_worksEvenWhenVaultIsPausedAndTokenOrderRefundsTokens() (gas: 655092)
+[PASS] test_gas_executeOrderIsMeasured() (gas: 680334)
+[PASS] test_gas_executeOrderWithSixteenRegisteredMarkets() (gas: 15938397)
+[PASS] test_halt_isIndependentOfThePause() (gas: 299244)
+[PASS] test_halt_onlyTheKeeperMayHaltOrUnhalt() (gas: 163566)
+[PASS] test_halt_pullsEveryQuoteAndTheKeeperPutsThemBack() (gas: 1419933)
+[PASS] test_place_buyEscrowsCollateralAndSellEscrowsTokens() (gas: 843304)
+[PASS] test_place_reverts() (gas: 1013428)
+[PASS] test_place_withoutApprovalReverts() (gas: 185505)
+[PASS] test_quote_atTheMoney_handChecked() (gas: 155725)
+[PASS] test_quote_notAvailableOutsideOpenWindowOrWhenPaused() (gas: 402785)
+[PASS] test_reward_rejectingExecutorReverts() (gas: 912856)
+[PASS] test_setMinReward_vaultOwnerOnly() (gas: 109266)
+[PASS] test_vaultBounds_buyNeedsFreeLiquidityAndAccountsCash() (gas: 1195432)
+[PASS] test_vaultBounds_pausedAndStaleNav() (gas: 327242)
+[PASS] test_vaultBounds_pullFailuresRevert() (gas: 149554)
+[PASS] test_vaultBounds_rejectBadFills() (gas: 482868)
+Suite result: ok. 42 passed; 0 failed; 0 skipped; finished in 60.36ms (74.34ms CPU time)
+
+Ran 2 tests for test/unit/VaultE2E.t.sol:VaultE2ETest
+[PASS] test_e2e_downWins_lpGainsFiveFifty_feeOnTheGain() (gas: 3536399)
+[PASS] test_e2e_upWins_lpLosesFourFifty() (gas: 3617500)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 13.66ms (8.83ms CPU time)
 
 Ran 10 tests for test/unit/VaultAudit.t.sol:VaultAuditTest
-[PASS] test_audit_F01_fillsAreFrozenWhileAnEndedEpochAwaitsSettlement() (gas: 1623300)
-[PASS] test_audit_F01_noFreezeWithoutRequests_orAfterTheWindow() (gas: 333407)
+[PASS] test_audit_F01_fillsAreFrozenWhileAnEndedEpochAwaitsSettlement() (gas: 1623399)
+[PASS] test_audit_F01_noFreezeWithoutRequests_orAfterTheWindow() (gas: 333472)
 [PASS] test_audit_F04_mergeCanNeverBeKeptHostage() (gas: 447510)
 [PASS] test_audit_F06_pruneEmptyFreesTheSlot() (gas: 302394)
 [PASS] test_audit_F07_invalidRoundPaysHalfOnTheExcess() (gas: 1424880)
 [PASS] test_audit_F07_losingExcessIsWorthNothingOnceResolved() (gas: 1801470)
 [PASS] test_audit_F12_ownershipCanNotBeRenounced() (gas: 13163)
-[PASS] test_audit_F14_worstCaseGas() (gas: 21299076)
+[PASS] test_audit_F14_worstCaseGas() (gas: 21299379)
 [PASS] test_audit_F15_cancelVenueEmits() (gas: 87938)
 [PASS] test_audit_spreadFloorAndLatenessCap() (gas: 41176)
-Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 28.55ms (21.83ms CPU time)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 56.35ms (41.74ms CPU time)
+
+Ran 30 tests for test/unit/VaultPartners.t.sol:VaultPartnersTest
+[PASS] test_aFeedTheVaultHasNotEnabledCannotBeOnboarded() (gas: 67166)
+[PASS] test_absurdStrikeCannotFreezeTheVault() (gas: 4765963)
+[PASS] test_bondBelowMinimumDeactivates() (gas: 1593157)
+[PASS] test_coreMarketsStillWork() (gas: 961606)
+[PASS] test_directionalLossOnAPartnerMarketIsBoundedWhateverTheCap() (gas: 2372623)
+[PASS] test_epochSettlementValuesAPartnerMarketAtItsStrike() (gas: 2694331)
+[PASS] test_fillsOnASuspendedPartnerMarketRevert() (gas: 1862447)
+[PASS] test_globalCap_acrossPartners() (gas: 2945868)
+[PASS] test_globalCap_vaultFractionAppliesEvenIfTheRegistryIsGenerous() (gas: 2967826)
+[PASS] test_lifecycle_createQuoteTradeResolveRedeem_upWins() (gas: 2766207)
+[PASS] test_lifecycle_downWins_andTheVaultKeepsThePremium() (gas: 2508869)
+[PASS] test_lifecycle_invalidPartnerMarketPaysHalf() (gas: 1626413)
+[PASS] test_lifecycle_navUsesThePinnedStrike() (gas: 4120393)
+[PASS] test_onePartnerCannotTakeAllThePartnerSlots() (gas: 6778142)
+[PASS] test_partnerFraction_ownerBoundedAndZeroStopsAllocation() (gas: 1273814)
+[PASS] test_partnerMarketNeedsTheRegistryToBeSet() (gas: 1189483)
+[PASS] test_partnerMarketsCannotCrowdOutTheCoreRounds() (gas: 11700966)
+[PASS] test_partnerSlots_areBoundedAndFreedOnUnregister() (gas: 9464056)
+[PASS] test_perPartnerCap_cannotBeBypassedByManySmallSplits() (gas: 8464474)
+[PASS] test_perPartnerCap_followsTheOwnersLoweredCap() (gas: 1513705)
+[PASS] test_perPartnerCap_isPerPartner() (gas: 2712093)
+[PASS] test_perPartnerCap_isTheSumOverAllItsMarkets() (gas: 4146578)
+[PASS] test_perPartnerCap_roomReturnsAfterMerging() (gas: 1781309)
+[PASS] test_perPartnerCap_singleMarket() (gas: 1489713)
+[PASS] test_registryIsSetOnceAndByTheOwner() (gas: 109423)
+[PASS] test_slashedBondGoesToTheVaultAsADonationToLps() (gas: 221562)
+[PASS] test_suspendedPartner_noNewAllocationAndNoQuoting() (gas: 2210796)
+[PASS] test_tradingCannotPushLossPastTheCeilingAndSplitsStayUnderTheCap() (gas: 2338152)
+[PASS] test_unknownMarketIsRejected() (gas: 1309260)
+[PASS] test_voidedMarket_stopsQuotingAndAllocation() (gas: 2891592)
+Suite result: ok. 30 passed; 0 failed; 0 skipped; finished in 324.53ms (119.88ms CPU time)
 
 Ran 56 tests for test/unit/Market.t.sol:MarketTest
 [PASS] test_18DecimalCollateral_fullLifecycle() (gas: 2322436)
@@ -445,139 +570,10 @@ Ran 56 tests for test/unit/Market.t.sol:MarketTest
 [PASS] test_streamsMarket_feeModeForwardsValue() (gas: 1219284)
 [PASS] test_streamsMarket_lifecycle() (gas: 1534132)
 [PASS] test_streamsMarket_noReportInvalidates() (gas: 681838)
-Suite result: ok. 56 passed; 0 failed; 0 skipped; finished in 39.00ms (16.92ms CPU time)
-
-Ran 42 tests for test/unit/ForwardVenue.t.sol:ForwardVenueTest
-[PASS] test_audit_F02_realisedLossSurvivesFlatteningAndResplit() (gas: 1200759)
-[PASS] test_audit_F03_executionAfterTheLatenessWindowReverts() (gas: 357645)
-[PASS] test_audit_F07_totalAtRiskCapLimitsTheSecondMarket() (gas: 1812806)
-[PASS] test_autoCheckpoint_ignoresAVenueMarkOlderThanAMinute() (gas: 841234)
-[PASS] test_autoCheckpoint_neverRaisesTheNav() (gas: 872038)
-[PASS] test_autoCheckpoint_tripsTheBreakerFromFills() (gas: 956799)
-[PASS] test_constructor_validation() (gas: 4104)
-[PASS] test_exec_badReportsRevert() (gas: 707005)
-[PASS] test_exec_buyDown_usesComplementOfBid() (gas: 717293)
-[PASS] test_exec_buyUp_fillsAtAskWithPriceImprovementAndRefund() (gas: 959137)
-[PASS] test_exec_cannotReplayOrExpireAfterwards() (gas: 773624)
-[PASS] test_exec_laterCallSamePriceSameFill() (gas: 1074900)
-[PASS] test_exec_limitBelowAskLeavesOrderUnfilledAndRefunds() (gas: 1362413)
-[PASS] test_exec_noFillInNoQuoteWindowOrAfterEnd() (gas: 671204)
-[PASS] test_exec_overlappingReports_isTheDocumentedTrustAssumption() (gas: 1054020)
-[PASS] test_exec_priceFollowsTheReport() (gas: 1108003)
-[PASS] test_exec_riskCeilingBindsTheFill() (gas: 846540)
-[PASS] test_exec_sellDown_usesComplementOfAsk() (gas: 897720)
-[PASS] test_exec_sellUp_fillsAtBid() (gas: 950293)
-[PASS] test_exec_staleSigmaMeansNoQuote() (gas: 1278734)
-[PASS] test_exec_timingRules() (gas: 785094)
-[PASS] test_exec_vaultPausedAfterPlacementRefunds() (gas: 480847)
-[PASS] test_exec_walksSecondLevelWhenLimitAllows() (gas: 1003511)
-[PASS] test_exec_wrongWindowReportsRevert() (gas: 475748)
-[PASS] test_expire_refundsAndPaysCaller() (gas: 481426)
-[PASS] test_expire_worksEvenWhenVaultIsPausedAndTokenOrderRefundsTokens() (gas: 655092)
-[PASS] test_gas_executeOrderIsMeasured() (gas: 680300)
-[PASS] test_gas_executeOrderWithSixteenRegisteredMarkets() (gas: 15938363)
-[PASS] test_halt_isIndependentOfThePause() (gas: 299244)
-[PASS] test_halt_onlyTheKeeperMayHaltOrUnhalt() (gas: 163566)
-[PASS] test_halt_pullsEveryQuoteAndTheKeeperPutsThemBack() (gas: 1419899)
-[PASS] test_place_buyEscrowsCollateralAndSellEscrowsTokens() (gas: 843304)
-[PASS] test_place_reverts() (gas: 1013428)
-[PASS] test_place_withoutApprovalReverts() (gas: 185505)
-[PASS] test_quote_atTheMoney_handChecked() (gas: 155691)
-[PASS] test_quote_notAvailableOutsideOpenWindowOrWhenPaused() (gas: 402751)
-[PASS] test_reward_rejectingExecutorReverts() (gas: 912822)
-[PASS] test_setMinReward_vaultOwnerOnly() (gas: 109266)
-[PASS] test_vaultBounds_buyNeedsFreeLiquidityAndAccountsCash() (gas: 1195432)
-[PASS] test_vaultBounds_pausedAndStaleNav() (gas: 327242)
-[PASS] test_vaultBounds_pullFailuresRevert() (gas: 149554)
-[PASS] test_vaultBounds_rejectBadFills() (gas: 482868)
-Suite result: ok. 42 passed; 0 failed; 0 skipped; finished in 50.61ms (48.09ms CPU time)
-
-Ran 37 tests for test/unit/VaultInventory.t.sol:VaultInventoryTest
-[PASS] test_breaker_omittedReportCannotTripIt() (gas: 1023364)
-[PASS] test_breaker_roundEndedButUnresolvedDoesNotTripIt() (gas: 1011405)
-[PASS] test_breaker_tripsOnDrawdownAndNeverBlocksExits() (gas: 876390)
-[PASS] test_breaker_withinLimitAndNewDayResets() (gas: 406287)
-[PASS] test_checkpoint_onEmptyVaultIsNoop() (gas: 50550)
-[PASS] test_enableAsset_bandValidationAndSetBand() (gas: 245830)
-[PASS] test_enableAsset_limitsAssetCount() (gas: 2232900)
-[PASS] test_enableAsset_rules() (gas: 85396)
-[PASS] test_merge_returnsCollateralAndPrunesEmptyMarket() (gas: 592052)
-[PASS] test_merge_reverts() (gas: 493203)
-[PASS] test_merge_worksWhilePaused() (gas: 478175)
-[PASS] test_nav_excessPricedFromReportWithBand() (gas: 1371811)
-[PASS] test_nav_marksNeededEmptyWhenNoExcess() (gas: 366974)
-[PASS] test_nav_resolvedMarketsAreExactNetOfFee() (gas: 2104990)
-[PASS] test_nav_strictSettlementNeedsTheCanonicalMark() (gas: 2165998)
-[PASS] test_nav_unopenedMarketIsHalfWithBand() (gas: 1341442)
-[PASS] test_ownerSetters_authAndZeroChecks() (gas: 360748)
-[PASS] test_ownership_isTwoStep() (gas: 136315)
-[PASS] test_pause_guardianAndOwnerOnly() (gas: 216099)
-[PASS] test_quoteParams_hardLimits() (gas: 263768)
-[PASS] test_redeemResolved_losingExcessPaysNothingAndInvalidPaysHalf() (gas: 2442098)
-[PASS] test_redeemResolved_pairsAndWinningExcess() (gas: 1031025)
-[PASS] test_redeemResolved_reverts() (gas: 826803)
-[PASS] test_riskAndSigmaConfig_validation() (gas: 403175)
-[PASS] test_setInitialVenue_zeroAndFirstUse() (gas: 103207)
-[PASS] test_setSigma_bandStepAndRate() (gas: 274009)
-[PASS] test_setSigma_firstValueAndEvent() (gas: 75195)
-[PASS] test_setSigma_revertsForNonKeeperAndUnknownAsset() (gas: 93057)
-[PASS] test_split_pairAndInventoryCaps() (gas: 1501797)
-[PASS] test_split_registersAndMovesCollateral() (gas: 533721)
-[PASS] test_split_registryIsBounded() (gas: 15253342)
-[PASS] test_split_rejectsForeignAndUnsupportedMarkets() (gas: 1090515)
-[PASS] test_split_rejectsResolvedAndNoQuoteWindow() (gas: 363155)
-[PASS] test_split_revertsForNonKeeper() (gas: 42070)
-[PASS] test_split_revertsZeroAndPaused() (gas: 108247)
-[PASS] test_venueFill_onlyVenue() (gas: 79590)
-[PASS] test_venue_initialOnceThenTimelocked() (gas: 333125)
-Suite result: ok. 37 passed; 0 failed; 0 skipped; finished in 59.04ms (26.46ms CPU time)
-
-Ran 3 tests for test/unit/MarketFuzz.t.sol:MarketFuzzTest
-[PASS] testFuzz_pairAlwaysWorthOne(uint256,int256,bool) (runs: 256, μ: 697901, ~: 507107)
-[PASS] testFuzz_splitMergeConserves(address,uint256,uint256) (runs: 256, μ: 536517, ~: 542158)
-[PASS] testFuzz_splitThenFullMerge(address,uint256) (runs: 256, μ: 470434, ~: 470363)
-Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 83.19ms (164.76ms CPU time)
-
-Ran 26 tests for test/unit/VaultPartners.t.sol:VaultPartnersTest
-[PASS] test_aFeedTheVaultHasNotEnabledCannotBeOnboarded() (gas: 67166)
-[PASS] test_bondBelowMinimumDeactivates() (gas: 1565587)
-[PASS] test_coreMarketsStillWork() (gas: 961606)
-[PASS] test_epochSettlementValuesAPartnerMarketAtItsStrike() (gas: 2671660)
-[PASS] test_fillsOnASuspendedPartnerMarketRevert() (gas: 1839998)
-[PASS] test_globalCap_acrossPartners() (gas: 2878450)
-[PASS] test_globalCap_vaultFractionAppliesEvenIfTheRegistryIsGenerous() (gas: 2900352)
-[PASS] test_lifecycle_createQuoteTradeResolveRedeem_upWins() (gas: 2738737)
-[PASS] test_lifecycle_downWins_andTheVaultKeepsThePremium() (gas: 2482092)
-[PASS] test_lifecycle_invalidPartnerMarketPaysHalf() (gas: 1599666)
-[PASS] test_lifecycle_navUsesThePinnedStrike() (gas: 4075405)
-[PASS] test_partnerFraction_ownerBoundedAndZeroStopsAllocation() (gas: 1251387)
-[PASS] test_partnerMarketNeedsTheRegistryToBeSet() (gas: 1189532)
-[PASS] test_partnerMarketsCannotCrowdOutTheCoreRounds() (gas: 11637980)
-[PASS] test_partnerSlots_areBoundedAndFreedOnUnregister() (gas: 9347508)
-[PASS] test_perPartnerCap_cannotBeBypassedByManySmallSplits() (gas: 8442047)
-[PASS] test_perPartnerCap_followsTheOwnersLoweredCap() (gas: 1491217)
-[PASS] test_perPartnerCap_isPerPartner() (gas: 2667173)
-[PASS] test_perPartnerCap_isTheSumOverAllItsMarkets() (gas: 4107296)
-[PASS] test_perPartnerCap_roomReturnsAfterMerging() (gas: 1758882)
-[PASS] test_perPartnerCap_singleMarket() (gas: 1467286)
-[PASS] test_registryIsSetOnceAndByTheOwner() (gas: 109445)
-[PASS] test_slashedBondGoesToTheVaultAsADonationToLps() (gas: 216441)
-[PASS] test_suspendedPartner_noNewAllocationAndNoQuoting() (gas: 2161419)
-[PASS] test_unknownMarketIsRejected() (gas: 1291205)
-[PASS] test_voidedMarket_stopsQuotingAndAllocation() (gas: 2863541)
-Suite result: ok. 26 passed; 0 failed; 0 skipped; finished in 223.64ms (64.27ms CPU time)
-
-Ran 6 tests for test/unit/VaultFuzz.t.sol:VaultFuzzTest
-[PASS] testFuzz_claimsNeverExceedSettlement(uint256,uint256,uint256,uint256) (runs: 256, μ: 2053696, ~: 2055976)
-[PASS] testFuzz_flatNavRoundTripLosesOnlyRounding(uint256) (runs: 256, μ: 811911, ~: 812012)
-[PASS] testFuzz_markBandCoversEverySigmaInTheBand(uint256,uint256,int256,uint256) (runs: 256, μ: 31433, ~: 31948)
-[PASS] testFuzz_roundTripCannotProfit(uint256,uint256,int256) (runs: 256, μ: 1825236, ~: 1839364)
-[PASS] testFuzz_sigmaCannotMoveHardValueOrNavBeyondTheBand(uint256,int256,uint256) (runs: 256, μ: 1315641, ~: 1315760)
-[PASS] testFuzz_splitAndMergeAreValueNeutral(uint256,uint256) (runs: 256, μ: 948376, ~: 952484)
-Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 273.63ms (1.08s CPU time)
+Suite result: ok. 56 passed; 0 failed; 0 skipped; finished in 461.65ms (27.20ms CPU time)
 
 Ran 10 tests for test/unit/SchedulerLens.t.sol:SchedulerLensTest
-[PASS] testFuzz_lensProofIsAcceptedByResolver(uint64,uint64,uint64) (runs: 256, μ: 9519338, ~: 8644005)
+[PASS] testFuzz_lensProofIsAcceptedByResolver(uint64,uint64,uint64) (runs: 256, μ: 9610683, ~: 8825698)
 [PASS] test_feedRevertIsIsolated() (gas: 845642)
 [PASS] test_findings() (gas: 1566550)
 [PASS] test_gasBurningFeedIsIsolated() (gas: 2897413)
@@ -587,26 +583,41 @@ Ran 10 tests for test/unit/SchedulerLens.t.sol:SchedulerLensTest
 [PASS] test_snapshot_respectsEpochAndLookback() (gas: 979659)
 [PASS] test_snapshot_streamsProposalPending() (gas: 1004504)
 [PASS] test_truncatesAndBoundsMissed() (gas: 6978480)
-Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 310.00ms (343.92ms CPU time)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 465.76ms (511.79ms CPU time)
+
+Ran 3 tests for test/unit/MarketFuzz.t.sol:MarketFuzzTest
+[PASS] testFuzz_pairAlwaysWorthOne(uint256,int256,bool) (runs: 256, μ: 697898, ~: 507107)
+[PASS] testFuzz_splitMergeConserves(address,uint256,uint256) (runs: 256, μ: 536171, ~: 542152)
+[PASS] testFuzz_splitThenFullMerge(address,uint256) (runs: 256, μ: 470465, ~: 470386)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 535.11ms (1.09s CPU time)
+
+Ran 6 tests for test/unit/VaultFuzz.t.sol:VaultFuzzTest
+[PASS] testFuzz_claimsNeverExceedSettlement(uint256,uint256,uint256,uint256) (runs: 256, μ: 2053830, ~: 2056108)
+[PASS] testFuzz_flatNavRoundTripLosesOnlyRounding(uint256) (runs: 256, μ: 812030, ~: 812120)
+[PASS] testFuzz_markBandCoversEverySigmaInTheBand(uint256,uint256,int256,uint256) (runs: 256, μ: 31563, ~: 32106)
+[PASS] testFuzz_roundTripCannotProfit(uint256,uint256,int256) (runs: 256, μ: 1825408, ~: 1839786)
+[PASS] testFuzz_sigmaCannotMoveHardValueOrNavBeyondTheBand(uint256,int256,uint256) (runs: 256, μ: 1315841, ~: 1315964)
+[PASS] testFuzz_splitAndMergeAreValueNeutral(uint256,uint256) (runs: 256, μ: 948363, ~: 952484)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 486.02ms (1.95s CPU time)
 
 Ran 16 tests for test/QuoteMath.t.sol:QuoteMathTest
-[PASS] testFuzz_quoteInvariants(uint256,uint256,uint256,uint256) (runs: 256, μ: 36208, ~: 40251)
-[PASS] testFuzz_rooms_areExactAgainstTheLossFunction(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 12139, ~: 12059)
-[PASS] test_d2_degenerateAndTies() (gas: 6562)
-[PASS] test_d2_matchesTypescript() (gas: 2051375)
-[PASS] test_lossAndCeilingBasics() (gas: 6121)
+[PASS] testFuzz_quoteInvariants(uint256,uint256,uint256,uint256) (runs: 256, μ: 36606, ~: 40734)
+[PASS] testFuzz_rooms_areExactAgainstTheLossFunction(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 12111, ~: 12059)
+[PASS] test_d2_degenerateAndTies() (gas: 7462)
+[PASS] test_d2_matchesTypescript() (gas: 2061575)
+[PASS] test_lossAndCeilingBasics() (gas: 6105)
 [PASS] test_normCdf_knownValuesAndSymmetry() (gas: 319529)
 [PASS] test_normCdf_matchesTypescript() (gas: 1869245)
 [PASS] test_normCdf_monotone() (gas: 1188655)
 [PASS] test_normPdf_matchesTypescript() (gas: 143195)
-[PASS] test_quote_depthShrinksTowardExpiry() (gas: 522374)
-[PASS] test_quote_matchesTypescript() (gas: 82020655)
-[PASS] test_quote_noQuoteWindowAndBadInputs() (gas: 122706)
-[PASS] test_quote_skewLeansAgainstInventory() (gas: 130551)
+[PASS] test_quote_depthShrinksTowardExpiry() (gas: 522830)
+[PASS] test_quote_matchesTypescript() (gas: 82041509)
+[PASS] test_quote_noQuoteWindowAndBadInputs() (gas: 122782)
+[PASS] test_quote_skewLeansAgainstInventory() (gas: 130655)
 [PASS] test_rooms_freeBranchesAreAllowedAtZeroCeiling() (gas: 2963)
-[PASS] test_rooms_matchTypescript() (gas: 8702895)
+[PASS] test_rooms_matchTypescript() (gas: 8701295)
 [PASS] test_tanh_matchesTypescriptAndSaturates() (gas: 232692)
-Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 406.52ms (863.17ms CPU time)
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 693.15ms (966.31ms CPU time)
 
 Ran 1 test for test/invariant/PartnerCapInvariants.t.sol:PartnerCapInvariants
 [PASS]
@@ -632,7 +643,7 @@ PartnerCapInvariants invariants:
 | PartnerCapInvariants | h_warp      | 3187  | 0       | 0        |
 ╰----------------------+-------------+-------+---------+----------╯
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 4.02s (4.01s CPU time)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 4.74s (4.72s CPU time)
 
 Ran 1 test for test/invariant/VaultInvariants.t.sol:VaultInvariants
 [PASS]
@@ -684,7 +695,7 @@ VaultInvariants invariants:
 | VaultInvariants | h_warp       | 1285  | 0       | 0        |
 ╰-----------------+--------------+-------+---------+----------╯
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 14.11s (14.10s CPU time)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 14.56s (14.54s CPU time)
 
 Ran 1 test for test/invariant/MarketInvariants.t.sol:MarketInvariants
 [PASS]
@@ -720,9 +731,9 @@ MarketInvariants invariants:
 | MarketHandler | warp          | 2554  | 0       | 0        |
 ╰---------------+---------------+-------+---------+----------╯
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 21.32s (21.31s CPU time)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 21.02s (21.00s CPU time)
 
-Ran 23 test suites in 21.33s (41.06s CPU time): 372 tests passed, 0 failed, 1 skipped (373 total tests)
+Ran 23 test suites in 21.03s (43.71s CPU time): 377 tests passed, 0 failed, 1 skipped (378 total tests)
 cd contracts && slither . --config-file slither.config.json
 'forge clean' running (wd: /home/mysterioxplorer/converge/contracts)
 'forge config --json' running
@@ -776,163 +787,163 @@ SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerRec
 SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#189-224) has external calls inside a loop: Market(m).invalidate() (src/scheduler/SchedulerReceiver.sol#214-218)
 	Calls stack containing the loop:
 		SchedulerReceiver.onReport(bytes,bytes)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#778)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#783)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#780)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#785)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#799)
-	Calls stack containing the loop:
-		ConvergeVault.settleEpoch(uint256,bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#803)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#804)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#808)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#808)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#830-839) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#837)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#813)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#822)
-	Calls stack containing the loop:
-		ConvergeVault.settleEpoch(uint256,bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#854)
+ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#835-844) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#842)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#859)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#827)
+	Calls stack containing the loop:
+		ConvergeVault.settleEpoch(uint256,bytes[])
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#859)
 	Calls stack containing the loop:
 		ConvergeVault.settleEpoch(uint256,bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#937)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#864)
+	Calls stack containing the loop:
+		ConvergeVault.settleEpoch(uint256,bytes[])
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#942)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#938)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#943)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#940)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#945)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: m.endTime() <= at (src/vault/ConvergeVault.sol#942)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: m.endTime() <= at (src/vault/ConvergeVault.sol#947)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) has external calls inside a loop: needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#946)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) has external calls inside a loop: needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#951)
 	Calls stack containing the loop:
 		ConvergeVault.settlementPlan(uint256)
-ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#896-929) has external calls inside a loop: f = assetCfg[m.assetId()].feedId (src/vault/ConvergeVault.sol#912)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#778)
+ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#901-934) has external calls inside a loop: f = assetCfg[m.assetId()].feedId (src/vault/ConvergeVault.sol#917)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#783)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#780)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#785)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#799)
-	Calls stack containing the loop:
-		ConvergeVault.checkpoint(bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#803)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#804)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#808)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#808)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#830-839) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#837)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#813)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#822)
-	Calls stack containing the loop:
-		ConvergeVault.checkpoint(bytes[])
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#854)
+ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#835-844) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#842)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#859)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#827)
+	Calls stack containing the loop:
+		ConvergeVault.checkpoint(bytes[])
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#859)
 	Calls stack containing the loop:
 		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#778)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#864)
 	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#772-787) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#780)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#799)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#803)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#808)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
-		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#830-839) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#837)
-	Calls stack containing the loop:
-		ConvergeVault.venueFill(ConvergeVault.FillParams)
-		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault.checkpoint(bytes[])
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#822)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: u = IERC20(address(m.up())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#783)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#777-792) has external calls inside a loop: d = IERC20(address(m.down())).balanceOf(address(this)) (src/vault/ConvergeVault.sol#785)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: s = m.state() (src/vault/ConvergeVault.sol#804)
 	Calls stack containing the loop:
 		ConvergeVault.venueFill(ConvergeVault.FillParams)
 		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#854)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: el = half - FixedPointMathLib.mulDivUp(half,m.redeemFeeBps(),BPS) (src/vault/ConvergeVault.sol#808)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: end = m.endTime() (src/vault/ConvergeVault.sol#813)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._settledExcess(Market,bool,bool,uint256) (src/vault/ConvergeVault.sol#835-844) has external calls inside a loop: fee = m.redeemFeeBps() (src/vault/ConvergeVault.sol#842)
 	Calls stack containing the loop:
 		ConvergeVault.venueFill(ConvergeVault.FillParams)
 		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
 		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
 		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#859)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) has external calls inside a loop: m.startTime() > at (src/vault/ConvergeVault.sol#827)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: a = m.assetId() (src/vault/ConvergeVault.sol#859)
+	Calls stack containing the loop:
+		ConvergeVault.venueFill(ConvergeVault.FillParams)
+		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
+		ConvergeVault._navs(ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._marketValue(Market,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+		ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) has external calls inside a loop: strike = uint256(m.strike()) (src/vault/ConvergeVault.sol#864)
 	Calls stack containing the loop:
 		ConvergeVault.venueFill(ConvergeVault.FillParams)
 		ConvergeVault._autoCheckpoint(bytes32,uint192,uint64)
@@ -963,42 +974,46 @@ ForwardVenue._tokenOf(Market,bool) (src/vault/ForwardVenue.sol#370-373) has exte
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation/#calls-inside-a-loop
 INFO:Detectors:
 Detector: reentrancy-benign
-Reentrancy in ConvergeVault.checkpoint(bytes[]) (src/vault/ConvergeVault.sol#956-972):
+Reentrancy in ConvergeVault.checkpoint(bytes[]) (src/vault/ConvergeVault.sol#961-977):
 	External calls:
-	- marks = _collectMarks(reports,0) (src/vault/ConvergeVault.sol#961)
+	- marks = _collectMarks(reports,0) (src/vault/ConvergeVault.sol#966)
 		- r = abi.decode(verifier.verify(payload,parameterPayload),(ReportV3)) (src/vault/ReportLib.sol#43)
-		- r = ReportLib.verify(verifier,param,reports[i],feed) (src/vault/ConvergeVault.sol#711)
+		- r = ReportLib.verify(verifier,param,reports[i],feed) (src/vault/ConvergeVault.sol#716)
 	State variables written after the call(s):
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- dayStart = today (src/vault/ConvergeVault.sol#981)
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- dayStartPps = ppsLo (src/vault/ConvergeVault.sol#982)
-	- _recordMarks(marks) (src/vault/ConvergeVault.sol#963)
-		- lastMark[assetIds[i]] = LastMark(marks[i].price,marks[i].obsTs) (src/vault/ConvergeVault.sol#747)
-	- lastNavUpper = hi (src/vault/ConvergeVault.sol#965)
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- lastPpsLower = ppsLo (src/vault/ConvergeVault.sol#977)
-	- navUpdatedAt = uint64(block.timestamp) (src/vault/ConvergeVault.sol#967)
-	- quoteNavLower = lo (src/vault/ConvergeVault.sol#964)
-	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#969)
-		- quotingPaused = true (src/vault/ConvergeVault.sol#984)
-Reentrancy in PartnerRegistry.collectFees(Market) (src/partners/PartnerRegistry.sol#580-594):
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- dayStart = today (src/vault/ConvergeVault.sol#986)
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- dayStartPps = ppsLo (src/vault/ConvergeVault.sol#987)
+	- _recordMarks(marks) (src/vault/ConvergeVault.sol#968)
+		- lastMark[assetIds[i]] = LastMark(marks[i].price,marks[i].obsTs) (src/vault/ConvergeVault.sol#752)
+	- lastNavUpper = hi (src/vault/ConvergeVault.sol#970)
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- lastPpsLower = ppsLo (src/vault/ConvergeVault.sol#982)
+	- navUpdatedAt = uint64(block.timestamp) (src/vault/ConvergeVault.sol#972)
+	- quoteNavLower = lo (src/vault/ConvergeVault.sol#969)
+	- _updateBreaker(ppsLo) (src/vault/ConvergeVault.sol#974)
+		- quotingPaused = true (src/vault/ConvergeVault.sol#989)
+Reentrancy in PartnerRegistry.collectFees(Market) (src/partners/PartnerRegistry.sol#603-618):
 	External calls:
-	- market.claimFees() (src/partners/PartnerRegistry.sol#586)
+	- market.claimFees() (src/partners/PartnerRegistry.sol#610)
 	State variables written after the call(s):
-	- feesOwed[m.partner] += partnerShare (src/partners/PartnerRegistry.sol#590)
-Reentrancy in ConvergeVault.mergeInventory(Market,uint256) (src/vault/ConvergeVault.sol#1071-1083):
+	- feesOwed[m.partner] += partnerShare (src/partners/PartnerRegistry.sol#613)
+	- feesOwed[treasury] += treasuryShare (src/partners/PartnerRegistry.sol#614)
+	- liabilities += accrued (src/partners/PartnerRegistry.sol#615)
+Reentrancy in ConvergeVault.mergeInventory(Market,uint256) (src/vault/ConvergeVault.sol#1076-1088):
 	External calls:
-	- _merge(m,amount) (src/vault/ConvergeVault.sol#1081)
-		- m.merge(amount) (src/vault/ConvergeVault.sol#1094)
+	- _merge(m,amount) (src/vault/ConvergeVault.sol#1086)
+		- m.merge(amount) (src/vault/ConvergeVault.sol#1099)
 	State variables written after the call(s):
-	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1082)
-		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1186)
-		- _markets.pop() (src/vault/ConvergeVault.sol#1189)
-	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1082)
-		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1192)
-	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1082)
-		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1193)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1195)
+		- _markets.pop() (src/vault/ConvergeVault.sol#1198)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- _partnerCount[_partnerOf[address(m)]] -= 1 (src/vault/ConvergeVault.sol#1202)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1201)
+	- _pruneIfEmpty(m) (src/vault/ConvergeVault.sol#1087)
+		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1203)
 Reentrancy in Market.open(bytes) (src/Market.sol#162-177):
 	External calls:
 	- (s,price) = _boundaryPrice(startTime,data) (src/Market.sol#166)
@@ -1010,19 +1025,21 @@ Reentrancy in Market.open(bytes) (src/Market.sol#162-177):
 		- resolver.submit{value: msg.value}(assetId,boundary,data) (src/Market.sol#285)
 	State variables written after the call(s):
 	- strike = price (src/Market.sol#168)
-Reentrancy in ConvergeVault.redeemResolved(Market) (src/vault/ConvergeVault.sol#1103-1124):
+Reentrancy in ConvergeVault.redeemResolved(Market) (src/vault/ConvergeVault.sol#1108-1129):
 	External calls:
-	- _merge(m,pairs) (src/vault/ConvergeVault.sol#1110)
-		- m.merge(amount) (src/vault/ConvergeVault.sol#1094)
-	- m.redeem() (src/vault/ConvergeVault.sol#1116)
+	- _merge(m,pairs) (src/vault/ConvergeVault.sol#1115)
+		- m.merge(amount) (src/vault/ConvergeVault.sol#1099)
+	- m.redeem() (src/vault/ConvergeVault.sol#1121)
 	State variables written after the call(s):
-	- _unregister(m) (src/vault/ConvergeVault.sol#1123)
-		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1186)
-		- _markets.pop() (src/vault/ConvergeVault.sol#1189)
-	- _unregister(m) (src/vault/ConvergeVault.sol#1123)
-		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1192)
-	- _unregister(m) (src/vault/ConvergeVault.sol#1123)
-		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1193)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- _markets[slot - 1] = moved (src/vault/ConvergeVault.sol#1195)
+		- _markets.pop() (src/vault/ConvergeVault.sol#1198)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- _partnerCount[_partnerOf[address(m)]] -= 1 (src/vault/ConvergeVault.sol#1202)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- _partnerMarkets -= 1 (src/vault/ConvergeVault.sol#1201)
+	- _unregister(m) (src/vault/ConvergeVault.sol#1128)
+		- delete _partnerOf[address(m)] (src/vault/ConvergeVault.sol#1203)
 Reentrancy in Market.resolve(bytes) (src/Market.sol#183-199):
 	External calls:
 	- (s,price) = _boundaryPrice(endTime,data) (src/Market.sol#187)
@@ -1083,22 +1100,23 @@ Market.resolve(bytes) (src/Market.sol#183-199) uses timestamp for comparisons
 MarketFactory.createMarket(bytes32,uint64,uint64) (src/MarketFactory.sol#132-163) uses timestamp for comparisons
 	Dangerous comparisons:
 	- startTime < block.timestamp (src/MarketFactory.sol#142)
-PartnerRegistry.requestBondWithdrawal(uint256) (src/partners/PartnerRegistry.sol#400-414) uses timestamp for comparisons
+PartnerRegistry.requestBondWithdrawal(uint256) (src/partners/PartnerRegistry.sol#413-427) uses timestamp for comparisons
 	Dangerous comparisons:
-	- a > b (src/partners/PartnerRegistry.sol#412)
-PartnerRegistry.executeBondWithdrawal(address) (src/partners/PartnerRegistry.sol#427-438) uses timestamp for comparisons
+	- a > b (src/partners/PartnerRegistry.sol#425)
+PartnerRegistry.executeBondWithdrawal(address) (src/partners/PartnerRegistry.sol#440-452) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp < p.withdrawableAt (src/partners/PartnerRegistry.sol#432)
-PartnerRegistry.createThresholdMarket(bytes32,int256,uint64) (src/partners/PartnerRegistry.sol#448-510) uses timestamp for comparisons
+	- block.timestamp < p.withdrawableAt (src/partners/PartnerRegistry.sol#445)
+PartnerRegistry.createThresholdMarket(bytes32,int256,uint64) (src/partners/PartnerRegistry.sol#462-526) uses timestamp for comparisons
 	Dangerous comparisons:
-	- endTime <= nowTs (src/partners/PartnerRegistry.sol#464)
-	- duration < MIN_DURATION || duration > MAX_DURATION (src/partners/PartnerRegistry.sol#466)
-PartnerRegistry._reserveLiveSlot(address,uint64) (src/partners/PartnerRegistry.sol#528-540) uses timestamp for comparisons
+	- endTime <= nowTs (src/partners/PartnerRegistry.sol#480)
+	- duration < MIN_DURATION || duration > MAX_DURATION (src/partners/PartnerRegistry.sol#482)
+PartnerRegistry._reserveLiveSlot(address,uint64) (src/partners/PartnerRegistry.sol#545-560) uses timestamp for comparisons
 	Dangerous comparisons:
-	- _info[live[i]].endTime <= nowTs (src/partners/PartnerRegistry.sol#532)
-PartnerRegistry.liveMarkets() (src/partners/PartnerRegistry.sol#632-645) uses timestamp for comparisons
+	- end + RESOLVE_WINDOW <= nowTs (src/partners/PartnerRegistry.sol#551)
+	- end > nowTs (src/partners/PartnerRegistry.sol#555)
+PartnerRegistry.liveMarkets() (src/partners/PartnerRegistry.sol#670-686) uses timestamp for comparisons
 	Dangerous comparisons:
-	- _info[live[j]].endTime > block.timestamp (src/partners/PartnerRegistry.sol#638)
+	- _info[live[j]].endTime + RESOLVE_WINDOW > block.timestamp (src/partners/PartnerRegistry.sol#678)
 ChainlinkRoundResolver.submit(bytes32,uint64,bytes) (src/resolvers/ChainlinkRoundResolver.sol#108-139) uses timestamp for comparisons
 	Dangerous comparisons:
 	- block.timestamp > uint256(timestamp) + livenessGrace (src/resolvers/ChainlinkRoundResolver.sol#113)
@@ -1118,71 +1136,71 @@ SchedulerReceiver.onReport(bytes,bytes) (src/scheduler/SchedulerReceiver.sol#133
 	Dangerous comparisons:
 	- uint256(scheduledTime) + maxReportAge < block.timestamp (src/scheduler/SchedulerReceiver.sol#149)
 	- scheduledTime > block.timestamp + MAX_FUTURE_SKEW (src/scheduler/SchedulerReceiver.sol#152)
-ConvergeVault.settleEpoch(uint256,bytes[]) (src/vault/ConvergeVault.sol#497-541) uses timestamp for comparisons
+ConvergeVault.settleEpoch(uint256,bytes[]) (src/vault/ConvergeVault.sol#502-546) uses timestamp for comparisons
 	Dangerous comparisons:
-	- epochId >= currentEpoch() (src/vault/ConvergeVault.sol#498)
-	- block.timestamp > end + settleWindow (src/vault/ConvergeVault.sol#503)
-ConvergeVault._collectMarks(bytes[],uint256) (src/vault/ConvergeVault.sol#690-716) uses timestamp for comparisons
+	- epochId >= currentEpoch() (src/vault/ConvergeVault.sol#503)
+	- block.timestamp > end + settleWindow (src/vault/ConvergeVault.sol#508)
+ConvergeVault._collectMarks(bytes[],uint256) (src/vault/ConvergeVault.sol#695-721) uses timestamp for comparisons
 	Dangerous comparisons:
-	- assetCfg[assetIds[j]].feedId == feed (src/vault/ConvergeVault.sol#702)
-ConvergeVault._markTime(ReportV3,uint256) (src/vault/ConvergeVault.sol#722-739) uses timestamp for comparisons
+	- assetCfg[assetIds[j]].feedId == feed (src/vault/ConvergeVault.sol#707)
+ConvergeVault._markTime(ReportV3,uint256) (src/vault/ConvergeVault.sol#727-744) uses timestamp for comparisons
 	Dangerous comparisons:
-	- at == 0 (src/vault/ConvergeVault.sol#723)
-	- r.observationsTimestamp > block.timestamp || block.timestamp - r.observationsTimestamp > maxMarkAge (src/vault/ConvergeVault.sol#725-726)
-	- r.validFromTimestamp > at || r.observationsTimestamp < at (src/vault/ConvergeVault.sol#733)
-ConvergeVault._recordMarks(ConvergeVault.Mark[]) (src/vault/ConvergeVault.sol#744-750) uses timestamp for comparisons
+	- at == 0 (src/vault/ConvergeVault.sol#728)
+	- r.observationsTimestamp > block.timestamp || block.timestamp - r.observationsTimestamp > maxMarkAge (src/vault/ConvergeVault.sol#730-731)
+	- r.validFromTimestamp > at || r.observationsTimestamp < at (src/vault/ConvergeVault.sol#738)
+ConvergeVault._recordMarks(ConvergeVault.Mark[]) (src/vault/ConvergeVault.sol#749-755) uses timestamp for comparisons
 	Dangerous comparisons:
-	- i < marks.length (src/vault/ConvergeVault.sol#745)
-	- marks[i].known && marks[i].obsTs > lastMark[assetIds[i]].obsTs (src/vault/ConvergeVault.sol#746)
-ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#790-826) uses timestamp for comparisons
+	- i < marks.length (src/vault/ConvergeVault.sol#750)
+	- marks[i].known && marks[i].obsTs > lastMark[assetIds[i]].obsTs (src/vault/ConvergeVault.sol#751)
+ConvergeVault._excessValue(Market,bool,uint256,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#795-831) uses timestamp for comparisons
 	Dangerous comparisons:
-	- end <= at (src/vault/ConvergeVault.sol#809)
-	- m.startTime() > at (src/vault/ConvergeVault.sol#822)
-ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#844-871) uses timestamp for comparisons
+	- end <= at (src/vault/ConvergeVault.sol#814)
+	- m.startTime() > at (src/vault/ConvergeVault.sol#827)
+ConvergeVault._upBand(Market,Market.State,ConvergeVault.Mark[],ConvergeVault.MarkMode,uint256) (src/vault/ConvergeVault.sol#849-876) uses timestamp for comparisons
 	Dangerous comparisons:
-	- p < pLo (src/vault/ConvergeVault.sol#866)
-	- p > pHi (src/vault/ConvergeVault.sol#867)
-	- end > obs (src/vault/ConvergeVault.sol#860)
-	- pLo > band (src/vault/ConvergeVault.sol#869)
-ConvergeVault._markOf(bytes32,ConvergeVault.Mark[],ConvergeVault.MarkMode) (src/vault/ConvergeVault.sol#873-890) uses timestamp for comparisons
+	- p < pLo (src/vault/ConvergeVault.sol#871)
+	- p > pHi (src/vault/ConvergeVault.sol#872)
+	- end > obs (src/vault/ConvergeVault.sol#865)
+	- pLo > band (src/vault/ConvergeVault.sol#874)
+ConvergeVault._markOf(bytes32,ConvergeVault.Mark[],ConvergeVault.MarkMode) (src/vault/ConvergeVault.sol#878-895) uses timestamp for comparisons
 	Dangerous comparisons:
-	- usable = lm.price != 0 && block.timestamp <= uint256(lm.obsTs) + MAX_LAST_MARK_AGE (src/vault/ConvergeVault.sol#885)
-ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#896-929) uses timestamp for comparisons
+	- usable = lm.price != 0 && block.timestamp <= uint256(lm.obsTs) + MAX_LAST_MARK_AGE (src/vault/ConvergeVault.sol#890)
+ConvergeVault.settlementPlan(uint256) (src/vault/ConvergeVault.sol#901-934) uses timestamp for comparisons
 	Dangerous comparisons:
-	- tmp[j] == f (src/vault/ConvergeVault.sol#917)
-ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#934-948) uses timestamp for comparisons
+	- tmp[j] == f (src/vault/ConvergeVault.sol#922)
+ConvergeVault._planOf(Market,uint256) (src/vault/ConvergeVault.sol#939-953) uses timestamp for comparisons
 	Dangerous comparisons:
-	- m.endTime() <= at (src/vault/ConvergeVault.sol#942)
-	- needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#946)
-ConvergeVault._updateBreaker(uint256) (src/vault/ConvergeVault.sol#976-990) uses timestamp for comparisons
+	- m.endTime() <= at (src/vault/ConvergeVault.sol#947)
+	- needs = s != Market.State.CREATED && m.startTime() <= at (src/vault/ConvergeVault.sol#951)
+ConvergeVault._updateBreaker(uint256) (src/vault/ConvergeVault.sol#981-995) uses timestamp for comparisons
 	Dangerous comparisons:
-	- dayStart != today (src/vault/ConvergeVault.sol#980)
-ConvergeVault.setSigma(bytes32,uint256) (src/vault/ConvergeVault.sol#999-1020) uses timestamp for comparisons
+	- dayStart != today (src/vault/ConvergeVault.sol#985)
+ConvergeVault.setSigma(bytes32,uint256) (src/vault/ConvergeVault.sol#1004-1025) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp < uint256(c.sigmaUpdatedAt) + sigmaMinInterval (src/vault/ConvergeVault.sol#1006)
-	- fresh = block.timestamp <= uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1009)
-ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1025-1065) uses timestamp for comparisons
+	- block.timestamp < uint256(c.sigmaUpdatedAt) + sigmaMinInterval (src/vault/ConvergeVault.sol#1011)
+	- fresh = block.timestamp <= uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1014)
+ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1030-1070) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp + _params.noQuoteWindowSec >= m.endTime() (src/vault/ConvergeVault.sol#1031)
-ConvergeVault.venueView(Market) (src/vault/ConvergeVault.sol#1275-1286) uses timestamp for comparisons
+	- block.timestamp + _params.noQuoteWindowSec >= m.endTime() (src/vault/ConvergeVault.sol#1036)
+ConvergeVault.venueView(Market) (src/vault/ConvergeVault.sol#1285-1296) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1277)
-	- c.sigma == 0 || block.timestamp > uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1281)
-ConvergeVault._settlementPending() (src/vault/ConvergeVault.sol#1292-1302) uses timestamp for comparisons
+	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1287)
+	- c.sigma == 0 || block.timestamp > uint256(c.sigmaUpdatedAt) + sigmaMaxAge (src/vault/ConvergeVault.sol#1291)
+ConvergeVault._settlementPending() (src/vault/ConvergeVault.sol#1302-1312) uses timestamp for comparisons
 	Dangerous comparisons:
-	- cur == 0 (src/vault/ConvergeVault.sol#1296)
-	- block.timestamp <= epochEnd(cur - 1) + settleWindow (src/vault/ConvergeVault.sol#1301)
-ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1363-1415) uses timestamp for comparisons
+	- cur == 0 (src/vault/ConvergeVault.sol#1306)
+	- block.timestamp <= epochEnd(cur - 1) + settleWindow (src/vault/ConvergeVault.sol#1311)
+ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1373-1425) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1369)
-	- f.refObs > lastMark[a].obsTs && f.refObs <= block.timestamp (src/vault/ConvergeVault.sol#1394)
-	- block.timestamp >= uint256(navUpdatedAt) + AUTO_CHECKPOINT_INTERVAL (src/vault/ConvergeVault.sol#1412)
-ConvergeVault._autoCheckpoint(bytes32,uint192,uint64) (src/vault/ConvergeVault.sol#1421-1440) uses timestamp for comparisons
+	- block.timestamp > uint256(navUpdatedAt) + navMaxAge (src/vault/ConvergeVault.sol#1379)
+	- f.refObs > lastMark[a].obsTs && f.refObs <= block.timestamp (src/vault/ConvergeVault.sol#1404)
+	- block.timestamp >= uint256(navUpdatedAt) + AUTO_CHECKPOINT_INTERVAL (src/vault/ConvergeVault.sol#1422)
+ConvergeVault._autoCheckpoint(bytes32,uint192,uint64) (src/vault/ConvergeVault.sol#1431-1450) uses timestamp for comparisons
 	Dangerous comparisons:
-	- supply == 0 || obs > block.timestamp || block.timestamp - obs > AUTO_MARK_MAX_AGE (src/vault/ConvergeVault.sol#1425)
-ConvergeVault.acceptVenue() (src/vault/ConvergeVault.sol#1677-1685) uses timestamp for comparisons
+	- supply == 0 || obs > block.timestamp || block.timestamp - obs > AUTO_MARK_MAX_AGE (src/vault/ConvergeVault.sol#1435)
+ConvergeVault.acceptVenue() (src/vault/ConvergeVault.sol#1687-1695) uses timestamp for comparisons
 	Dangerous comparisons:
-	- block.timestamp < pendingVenueEta (src/vault/ConvergeVault.sol#1680)
+	- block.timestamp < pendingVenueEta (src/vault/ConvergeVault.sol#1690)
 ForwardVenue.executeOrder(uint256,bytes) (src/vault/ForwardVenue.sol#204-239) uses timestamp for comparisons
 	Dangerous comparisons:
 	- block.timestamp < o.execAt (src/vault/ForwardVenue.sol#211)
@@ -1205,8 +1223,8 @@ INFO:Detectors:
 Detector: cyclomatic-complexity
 SchedulerReceiver.onReport(bytes,bytes) (src/scheduler/SchedulerReceiver.sol#133-169) has a high cyclomatic complexity (13).
 SchedulerReceiver._execute(SchedulerReceiver.Action) (src/scheduler/SchedulerReceiver.sol#189-224) has a high cyclomatic complexity (13).
-ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1025-1065) has a high cyclomatic complexity (13).
-ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1363-1415) has a high cyclomatic complexity (15).
+ConvergeVault.splitForInventory(Market,uint256) (src/vault/ConvergeVault.sol#1030-1070) has a high cyclomatic complexity (13).
+ConvergeVault.venueFill(ConvergeVault.FillParams) (src/vault/ConvergeVault.sol#1373-1425) has a high cyclomatic complexity (15).
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#cyclomatic-complexity
 INFO:Detectors:
 Detector: low-level-calls
@@ -1215,38 +1233,38 @@ Low level call in ForwardVenue._payReward(uint256) (src/vault/ForwardVenue.sol#3
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
 INFO:Detectors:
 Detector: naming-convention
-Variable ConvergeVault.SCALE (src/vault/ConvergeVault.sol#137) is not in mixedCase
+Variable ConvergeVault.SCALE (src/vault/ConvergeVault.sol#140) is not in mixedCase
 Variable ForwardVenue.SCALE (src/vault/ForwardVenue.sol#75) is not in mixedCase
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
 INFO:Detectors:
 Detector: unimplemented-functions
-PartnerRegistry (src/partners/PartnerRegistry.sol#49-671) does not implement functions:
+PartnerRegistry (src/partners/PartnerRegistry.sol#49-712) does not implement functions:
 	- IMarketFactoryView.paused() (src/Market.sol#12)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unimplemented-functions
 INFO:Detectors:
 Detector: unindexed-event-address
 Event MarketFactory.FeeRecipientSet(address) (src/MarketFactory.sol#49) has address parameters but no indexed parameters
-Event PartnerRegistry.ConfigSet(uint256,uint256,uint16,address,address) (src/partners/PartnerRegistry.sol#168-174) has address parameters but no indexed parameters
+Event PartnerRegistry.ConfigSet(uint256,uint256,uint16,address,address) (src/partners/PartnerRegistry.sol#176-182) has address parameters but no indexed parameters
 Event SchedulerReceiver.WorkflowSet(address,bytes32) (src/scheduler/SchedulerReceiver.sol#71) has address parameters but no indexed parameters
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-event-address-parameters
 INFO:Detectors:
 Detector: cache-array-length
-Loop condition i < assetIds.length (src/vault/ConvergeVault.sol#878) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < _markets.length (src/vault/ConvergeVault.sol#906) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1043) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1307) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition i < partnerList.length (src/partners/PartnerRegistry.sol#635) should use cached array length instead of referencing `length` member of the storage array.
- Loop condition j < assetIds.length (src/vault/ConvergeVault.sol#699) should use cached array length instead of referencing `length` member of the storage array.
+Loop condition j < assetIds.length (src/vault/ConvergeVault.sol#704) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < assetIds.length (src/vault/ConvergeVault.sol#883) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < _markets.length (src/vault/ConvergeVault.sol#911) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1048) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < _markets.length (src/vault/ConvergeVault.sol#1317) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < partnerList.length (src/partners/PartnerRegistry.sol#675) should use cached array length instead of referencing `length` member of the storage array.
  Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#cache-array-length
 INFO:Slither:. analyzed (48 contracts with 102 detectors), 112 result(s) found
 cd contracts && forge build
 Compiling 99 files with Solc 0.8.28
-Solc 0.8.28 finished in 16.72s
+Solc 0.8.28 finished in 19.28s
 Compiler run successful with warnings:
 Warning (2018): Function state mutability can be restricted to pure
-   --> test/QuoteMath.t.sol:220:5:
+   --> test/QuoteMath.t.sol:223:5:
     |
-220 |     function testFuzz_quoteInvariants(
+223 |     function testFuzz_quoteInvariants(
     |     ^ (Relevant source part starts here and spans across multiple lines).
 
 cd contracts && forge test --match-contract PartnerCapInvariants -vv
@@ -1277,16 +1295,16 @@ PartnerCapInvariants invariants:
 ╰----------------------+-------------+-------+---------+----------╯
 
 Logs:
-  creates 14
-  allocations accepted 5
-  allocations rejected 27
-  merges 5
+  creates 10
+  allocations accepted 4
+  allocations rejected 28
+  merges 3
   cap changes 15
   status changes 15
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 3.79s (3.78s CPU time)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 3.77s (3.76s CPU time)
 
-Ran 1 test suite in 3.79s (3.79s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+Ran 1 test suite in 3.77s (3.77s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
 cd contracts && bash script/check-coverage-vault.sh
 Warning: optimizer settings and `viaIR` have been disabled for accurate coverage reports.
 If you encounter "stack too deep" errors, consider using `--ir-minimum` which enables `viaIR` with minimum optimization resolving most of the errors.
@@ -1295,7 +1313,7 @@ OK   src/vault/ConvergeVault.sol lines 99.29% (>= 95%)
 OK   src/vault/ForwardVenue.sol lines 100.00% (>= 95%)
 OK   src/vault/QuoteMath.sol lines 100.00% (>= 95%)
 OK   src/vault/ReportLib.sol lines 100.00% (>= 95%)
-OK   src/partners/PartnerRegistry.sol lines 99.20% (>= 95%)
+OK   src/partners/PartnerRegistry.sol lines 99.26% (>= 95%)
 OK   src/resolvers/ThresholdResolver.sol lines 100.00% (>= 95%)
 cd contracts && forge build
 No files changed, compilation skipped
@@ -1319,31 +1337,40 @@ pnpm --filter @converge/keeper exec vitest run test/integration/partners.test.ts
 stdout | test/integration/partners.test.ts > partner markets on anvil (public SDK, real keeper) > a partner creates a market with the SDK and the vault quotes it within a few blocks
 partner market quoted 1 blocks after creation
 
-(node:204202) TimeoutNegativeWarning: -80 is a negative number.
-Timeout duration was set to 1.
-(Use `node --trace-warnings ...` to show where the warning was created)
- ✓ test/integration/partners.test.ts (7 tests) 42954ms
-   ✓ partner markets on anvil (public SDK, real keeper) > a partner creates a market with the SDK and the vault quotes it within a few blocks 558ms
-   ✓ partner markets on anvil (public SDK, real keeper) > the vault's allocation stops at the partner's cap (40 USD of a 50 USD target) 4434ms
-   ✓ partner markets on anvil (public SDK, real keeper) > shows two-sided quotes and a position changes hands through the SDK 6553ms
-   ✓ partner markets on anvil (public SDK, real keeper) > resolves through the SDK, the winner redeems, and the vault takes its inventory back 17878ms
+ ✓ test/integration/partners.test.ts (7 tests) 48199ms
+   ✓ partner markets on anvil (public SDK, real keeper) > a partner creates a market with the SDK and the vault quotes it within a few blocks 608ms
+   ✓ partner markets on anvil (public SDK, real keeper) > the vault's allocation stops at the partner's cap (40 USD of a 50 USD target) 4440ms
+   ✓ partner markets on anvil (public SDK, real keeper) > shows two-sided quotes and a position changes hands through the SDK 7164ms
+   ✓ partner markets on anvil (public SDK, real keeper) > resolves through the SDK, the winner redeems, and the vault takes its inventory back 22463ms
 
  Test Files  1 passed (1)
       Tests  7 passed (7)
-   Start at  19:09:53
-   Duration  43.96s (transform 427ms, setup 0ms, collect 731ms, tests 42.95s, environment 0ms, prepare 72ms)
+   Start at  06:11:42
+   Duration  49.34s (transform 516ms, setup 0ms, collect 874ms, tests 48.20s, environment 0ms, prepare 70ms)
 
 pnpm --filter @converge/keeper exec vitest run test/integration/partner-demo-flow.test.ts
 
  RUN  v2.1.9 /home/mysterioxplorer/converge/services/keeper
 
- ✓ test/integration/partner-demo-flow.test.ts (1 test) 32944ms
-   ✓ partner-demo journey on anvil > create, quote, trade, resolve, redeem with only the public SDK 19858ms
+ ✓ test/integration/partner-demo-flow.test.ts (1 test) 40509ms
+   ✓ partner-demo journey on anvil > create, quote, trade, resolve, redeem with only the public SDK 27416ms
 
  Test Files  1 passed (1)
       Tests  1 passed (1)
-   Start at  19:10:34
-   Duration  33.90s (transform 394ms, setup 0ms, collect 701ms, tests 32.94s, environment 0ms, prepare 67ms)
+   Start at  06:12:31
+   Duration  41.68s (transform 482ms, setup 0ms, collect 865ms, tests 40.51s, environment 0ms, prepare 64ms)
+
+pnpm --filter @converge/keeper exec vitest run test/integration/partners-kick.test.ts
+
+ RUN  v2.1.9 /home/mysterioxplorer/converge/services/keeper
+
+ ✓ test/integration/partners-kick.test.ts (1 test) 17680ms
+   ✓ partner market pickup does not wait for the slow tick > quotes a new partner market within 3 blocks although the slow tick is 5 s 1517ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  06:13:13
+   Duration  18.86s (transform 518ms, setup 0ms, collect 897ms, tests 17.68s, environment 0ms, prepare 63ms)
 
 pnpm --filter partner-demo check:sdk-only
 $ node scripts/check-sdk-only.mjs
@@ -1351,15 +1378,15 @@ partner-demo imports only react, next, viem and the root of @converge/sdk
 NEXT_PUBLIC_REGISTRY=0x0000000000000000000000000000000000000001 NEXT_PUBLIC_VAULT=0x0000000000000000000000000000000000000002 NEXT_PUBLIC_VENUE=0x0000000000000000000000000000000000000003 NEXT_PUBLIC_COLLATERAL=0x0000000000000000000000000000000000000004 pnpm --filter partner-demo build
 $ next build
 ▲ Next.js 16.4.0 (Turbopack)
-✓ Running next.config.mjs took 15ms
+✓ Running next.config.mjs took 17ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 2.4s
+✓ Compiled successfully in 1093ms
   Running TypeScript ...
-  Finished TypeScript in 4.5s ...
+  Finished TypeScript in 4.4s ...
   Collecting page data using 4 workers ...
   Generating static pages using 4 workers (0/2) ...
-✓ Generating static pages using 4 workers (2/2) in 410ms
+✓ Generating static pages using 4 workers (2/2) in 438ms
   Finalizing page optimization ...
 
 Route (app)
