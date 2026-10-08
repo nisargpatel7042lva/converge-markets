@@ -18,7 +18,8 @@
     "gen": "tsx src/cli.ts gen",
     "check-streams": "tsx src/check-streams.ts",
     "canary:trade": "tsx src/canary/trader.ts",
-    "canary:report": "tsx src/canary/report.ts"
+    "canary:report": "tsx src/canary/report.ts",
+    "timelock-watch": "tsx src/timelock-watch.ts"
   },
   "dependencies": {
     "@converge/sdk": "workspace:*",

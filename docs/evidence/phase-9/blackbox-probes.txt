@@ -1,0 +1,15 @@
+Blackbox exporter v0.25.0 (prom/blackbox-exporter), ops/blackbox/blackbox.yml, run on 2026-10-08.
+`--config.check`: "Config file is ok". Each module probed against a local stub server:
+
+status_ok /ok (body {"level":"ok"}):          probe_success 1
+status_ok /degraded (200, level degraded):    probe_success 0
+status_ok /down (503):                        probe_success 0
+http_2xx  /ok:                                probe_success 1
+http_2xx  /down (503):                        probe_success 0
+graphql   POST {"query":"{ __typename }"}:    probe_success 1
+graphql   endpoint that rejects it (400):     probe_success 0
+http_2xx  closed port:                        probe_success 0
+
+promtool check config ops/prometheus/prometheus.mainnet.yml: valid (file_sd target files absent => warnings only)
+promtool check rules ops/prometheus/alerts.yml ops/prometheus/alerts.mainnet.yml: 14 + 12 rules, SUCCESS
+amtool check-config (rendered ops/alertmanager/alertmanager.mainnet.tmpl.yml): SUCCESS, 3 receivers

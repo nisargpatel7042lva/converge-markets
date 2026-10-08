@@ -416,11 +416,19 @@ contract VaultInvariants is VaultBase {
             if (_hardValue() != h0) _violate("split changed hard value");
         } catch (bytes memory err) {
             bytes4 s = _sel(err);
-            if (
+            if (s == ConvergeVault.InsufficientLiquidity.selector) {
+                // allowed only when the split really would dip into collateral owed to others
+                uint256 owed = vault.pendingDeposits() + vault.claimableAssets();
+                uint256 bal = usdc.balanceOf(address(vault));
+                uint256 free = bal > owed ? bal - owed : 0;
+                if (amt <= free) _violate("split refused although the liquidity was free");
+            } else if (
                 s != ConvergeVault.PairCapExceeded.selector
                     && s != ConvergeVault.InventoryCapExceeded.selector
                     && s != ConvergeVault.TooManyMarkets.selector
-            ) _violate("split reverted for an unexpected reason");
+            ) {
+                _violate("split reverted for an unexpected reason");
+            }
         }
         _track();
     }

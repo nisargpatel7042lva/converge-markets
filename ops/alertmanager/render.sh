@@ -13,7 +13,7 @@ echo "wrote $here/alertmanager.mainnet.yml"
 if command -v docker >/dev/null 2>&1; then
   # the secrets referenced by the config must exist for amtool to accept it; use placeholders in a temp dir
   tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-  printf 'x' > "$tmp/alert_webhook"; printf 'x' > "$tmp/telegram_token"
+  printf 'x' > "$tmp/alert_webhook"; printf 'x' > "$tmp/telegram_token"; printf 'http://127.0.0.1/hb' > "$tmp/heartbeat_url"
   sed "s#/run/secrets#/s#g" "$here/alertmanager.mainnet.yml" > "$tmp/am.yml"
   chmod 755 "$tmp"; chmod 644 "$tmp"/*
   docker run --rm -v "$tmp:/s:ro" --entrypoint amtool prom/alertmanager:v0.28.1 check-config /s/am.yml

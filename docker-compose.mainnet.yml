@@ -1,0 +1,30 @@
+# Mainnet beta monitoring overlay. Use it on top of docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.mainnet.yml up -d
+# It switches Prometheus to the mainnet config (uptime probes + vault rules), adds the blackbox
+# exporter, and gives Alertmanager the two-channel routing (Discord for everything, Telegram for
+# pages). Secret files (never committed): ops/alertmanager/webhook_url, ops/alertmanager/telegram_token, ops/alertmanager/heartbeat_url,
+# ops/grafana/admin_password. Render the Alertmanager config first:
+#   TELEGRAM_CHAT_ID=<id> ops/alertmanager/render.sh
+# Then fire the test alert on every channel:
+#   pnpm --filter @converge/mainnet alert-test      (docs/ops/launch-checklist.md)
+services:
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    restart: unless-stopped
+    command: ["--config.file=/etc/blackbox/blackbox.yml"]
+    volumes:
+      - ./ops/blackbox:/etc/blackbox:ro
+  prometheus:
+    command:
+      - --config.file=/etc/prometheus/prometheus.mainnet.yml
+      - --storage.tsdb.retention.time=30d
+    depends_on: [keeper, alertmanager, blackbox]
+  alertmanager:
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.mainnet.yml
+    secrets: [alert_webhook, telegram_token, heartbeat_url]
+secrets:
+  heartbeat_url:
+    file: ${HEARTBEAT_URL_FILE:-./ops/alertmanager/heartbeat_url}
+  telegram_token:
+    file: ${TELEGRAM_TOKEN_FILE:-./ops/alertmanager/telegram_token}

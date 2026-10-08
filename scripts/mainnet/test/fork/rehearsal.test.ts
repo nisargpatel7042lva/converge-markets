@@ -20,10 +20,16 @@ import { convergeVaultAbi } from "@converge/sdk";
 import { SAFE, USDC, VERIFIER_PROXY } from "../../src/constants";
 import { Deployer, type DeployConfig } from "../../src/deploy";
 import { repoRoot } from "../../src/params";
-import { handoverBatch, launchBatch } from "../../src/safe";
+import {
+  handoverBatch,
+  launchExecuteBatch,
+  launchScheduleBatch,
+  timelockAbi,
+} from "../../src/safe";
 import { readState, statePath } from "../../src/state";
 import { render, verifyDeployment } from "../../src/verify";
 import { verifyCommands } from "../../src/explorer";
+import { pollOnce } from "../../src/timelock-watch";
 import { verifyAsCallers } from "../../src/check-streams";
 import { judgeRounds, judgeTrades, overall } from "../../src/canary/analysis";
 import { collectRounds, readNav } from "../../src/canary/chain";
@@ -47,6 +53,7 @@ const OWNER3 = addr(0x5af03);
 const GUARDIAN = addr(0x600d);
 const KEEPER = addr(0x6e11);
 const SCHEDULER = addr(0x5c4ed);
+const DELAY = 86_400; // the production default: 24 h
 const FEED = (n: number): Hex => `0x0003${n.toString(16).padStart(2, "0").repeat(30)}`;
 
 const chain = defineChain({
@@ -203,6 +210,7 @@ function cfgFor(network: string, safe: Address, partners: boolean): DeployConfig
     tvlCap: 5_000_000_000n,
     enablePartners: partners,
     leader: "fallback",
+    timelockDelaySec: DELAY,
     assets: [
       { label: "BTC/USD", symbol: "BTC", resolver: "streams", streamsFeedId: FEED(0xb1) },
       { label: "ETH/USD", symbol: "ETH", resolver: "streams", streamsFeedId: FEED(0xe1) },
@@ -242,6 +250,7 @@ describe.skipIf(
     const cfg = cfgFor("rehearsal-full", safe, true);
     const d = new Deployer(pub, wallet, cfg, () => undefined);
     const state = await d.run();
+    const st0 = state;
     const txs = state.transactions.length;
     expect(txs).toBeGreaterThan(30);
     expect(state.vault?.vault).toBeDefined();
@@ -280,17 +289,41 @@ describe.skipIf(
     await again.run();
     expect(readState("rehearsal-full", 143).transactions.length).toBe(txs);
 
-    // the Safe (2 of 3) accepts ownership with the generated batch
-    for (const t of handoverBatch(readState("rehearsal-full", 143)).transactions)
+    // the Safe (2 of 3) runs the handover batch: schedule + execute through the timelock
+    const tl = readState("rehearsal-full", 143).timelock!;
+    const delayOf = async () =>
+      (await pub.readContract({
+        address: tl,
+        abi: timelockAbi,
+        functionName: "getMinDelay",
+      })) as bigint;
+    expect(await delayOf()).toBe(0n); // boot state
+    for (const t of handoverBatch(readState("rehearsal-full", 143), DELAY).transactions)
       await safeExec(safe, t.to, t.data);
+    expect(await delayOf()).toBe(BigInt(DELAY));
     checks = await verifyDeployment(pub, readState("rehearsal-full", 143), cfg, account.address);
     expect(
       checks.filter((c) => c.level === "FAIL"),
       render(checks),
     ).toEqual([]);
     expect(checks.some((c) => /PENDING|pending/.test(c.what))).toBe(false);
+    expect(checks.some((c) => /timelock delay is 86400 s/.test(c.what))).toBe(true);
+    // everything is owned by the timelock, not by the Safe or the deployer
+    for (const a of [
+      vault,
+      st0.dataStreamsResolver!,
+      st0.chainlinkRoundResolver!,
+      st0.partners!.partnerRegistry,
+    ]) {
+      const o = (await pub.readContract({
+        address: a,
+        abi: parseAbi(["function owner() view returns (address)"]),
+        functionName: "owner",
+      })) as Address;
+      expect(o.toLowerCase()).toBe(tl.toLowerCase());
+    }
 
-    // the deployer can no longer do owner things
+    // neither the deployer nor the Safe itself can do an owner thing any more: only the timelock can
     await expect(
       wallet.writeContract({
         address: vault,
@@ -300,16 +333,73 @@ describe.skipIf(
         chain,
       }),
     ).rejects.toThrow();
-
-    // the launch batch resumes quoting
-    for (const t of launchBatch(readState("rehearsal-full", 143)).transactions)
-      await safeExec(safe, t.to, t.data);
-    const paused = (await pub.readContract({
-      address: vault,
+    const tvlCall = encodeFunctionData({
       abi: convergeVaultAbi,
-      functionName: "quotingPaused",
-    })) as boolean;
-    expect(paused).toBe(false);
+      functionName: "setTvlCap",
+      args: [1n],
+    });
+    await expect(safeExec(safe, vault, tvlCall)).rejects.toThrow(); // the Safe is not the owner
+
+    // launch: resumeQuoting must be scheduled, and cannot run before the delay has passed
+    const [sch] = launchScheduleBatch(readState("rehearsal-full", 143), DELAY).transactions;
+    await safeExec(safe, sch!.to, sch!.data);
+    const [exe] = launchExecuteBatch(readState("rehearsal-full", 143)).transactions;
+    await expect(safeExec(safe, exe!.to, exe!.data)).rejects.toThrow(); // still waiting
+    await rpc("evm_increaseTime", [DELAY - 60]);
+    await rpc("evm_mine", []);
+    await expect(safeExec(safe, exe!.to, exe!.data)).rejects.toThrow(); // one minute short
+    await rpc("evm_increaseTime", [61]);
+    await rpc("evm_mine", []);
+    await safeExec(safe, exe!.to, exe!.data);
+    expect(
+      (await pub.readContract({
+        address: vault,
+        abi: convergeVaultAbi,
+        functionName: "quotingPaused",
+      })) as boolean,
+    ).toBe(false);
+
+    // the guardian pauses instantly (no timelock)
+    await rpc("anvil_setBalance", [GUARDIAN, hex(10n ** 20n)]);
+    await rpc("anvil_impersonateAccount", [GUARDIAN]);
+    const pauseHash = (await rpc("eth_sendTransaction", [
+      {
+        from: GUARDIAN,
+        to: vault,
+        data: encodeFunctionData({ abi: convergeVaultAbi, functionName: "pauseQuoting" }),
+        gas: "0x30d40",
+      },
+    ])) as Hex;
+    const pauseReceipt = await pub.waitForTransactionReceipt({ hash: pauseHash });
+    expect(pauseReceipt.status, "the guardian's pause transaction").toBe("success");
+    expect(
+      (await pub.readContract({
+        address: vault,
+        abi: convergeVaultAbi,
+        functionName: "quotingPaused",
+      })) as boolean,
+    ).toBe(true);
+
+    // timelock-watch saw all of it: the handover, the delay change, the scheduled resume and its execution
+    const times = new Map<bigint, number>();
+    const events = await pollOnce(
+      pub,
+      tl,
+      BigInt(readState("rehearsal-full", 143).deployBlock ?? 0),
+      await pub.getBlockNumber(),
+      async (b) => {
+        if (!times.has(b)) times.set(b, Number((await pub.getBlock({ blockNumber: b })).timestamp));
+        return times.get(b)!;
+      },
+    );
+    const text = events.map((e) => e.text).join("\n");
+    expect(events.filter((e) => e.kind === "scheduled").length).toBeGreaterThanOrEqual(5); // 4 accepts + updateDelay + resume
+    expect(text).toMatch(/OWNER ACTION SCHEDULED: ConvergeVault\.acceptOwnership\(\)/);
+    expect(text).toMatch(/OWNER ACTION SCHEDULED: ConvergeVault\.resumeQuoting\(\)/);
+    expect(text).toMatch(/OWNER ACTION EXECUTED: ConvergeVault\.resumeQuoting\(\)/);
+    expect(text).toMatch(/TIMELOCK DELAY CHANGED: 0 s -> 86400 s/);
+    const resume = events.find((e) => e.kind === "scheduled" && /resumeQuoting/.test(e.text))!;
+    expect(resume.readyAt).toBeGreaterThan(0);
 
     // explorer commands are produced from the creation transactions
     const cmds = await verifyCommands(pub, readState("rehearsal-full", 143));

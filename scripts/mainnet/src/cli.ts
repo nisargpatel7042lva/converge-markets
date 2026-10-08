@@ -9,7 +9,7 @@
  * Environment (see docs/ops/mainnet-deploy.md):
  *   NETWORK=mainnet|rehearsal  RPC_URL  DEPLOYER_PRIVATE_KEY  SAFE_ADDRESS  GUARDIAN_ADDRESS
  *   KEEPER_ADDRESS  SCHEDULER_ADDRESS  [TREASURY_ADDRESS]  [TVL_CAP_USDC]  [ENABLE_PARTNERS=1]
- *   [SCHEDULER_LEADER=fallback|cre]  CONFIRM_MAINNET=I_UNDERSTAND_THIS_SPENDS_REAL_MONEY (mainnet + --execute)
+ *   [SCHEDULER_LEADER=fallback|cre]  [TIMELOCK_DELAY_SEC=86400]  CONFIRM_MAINNET=I_UNDERSTAND_THIS_SPENDS_REAL_MONEY (mainnet + --execute)
  * Keys are read from the environment only; nothing is printed except addresses.
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -30,7 +30,7 @@ import { Deployer, validateConfig, type DeployConfig, type SeriesAsset } from ".
 import { verifyCommands } from "./explorer";
 import { appDeployment, keeperConfig, launchSummary, writeGenerated } from "./gen";
 import { repoRoot } from "./params";
-import { handoverBatch, launchBatch } from "./safe";
+import { handoverBatch, launchExecuteBatch, launchScheduleBatch } from "./safe";
 import { readState } from "./state";
 import { render, verifyDeployment } from "./verify";
 
@@ -49,6 +49,12 @@ const Env = z.object({
   TVL_CAP_USDC: z.coerce.number().positive().max(100_000).optional(),
   ENABLE_PARTNERS: z.enum(["0", "1"]).default("0"),
   SCHEDULER_LEADER: z.enum(["fallback", "cre"]).default("fallback"),
+  TIMELOCK_DELAY_SEC: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(7 * 86_400)
+    .default(86_400),
 });
 
 export function loadConfig(env: NodeJS.ProcessEnv): DeployConfig {
@@ -67,6 +73,7 @@ export function loadConfig(env: NodeJS.ProcessEnv): DeployConfig {
     tvlCap: e.TVL_CAP_USDC ? BigInt(Math.round(e.TVL_CAP_USDC * 1e6)) : DEFAULT_TVL_CAP,
     enablePartners: e.ENABLE_PARTNERS === "1",
     leader: e.SCHEDULER_LEADER,
+    timelockDelaySec: e.TIMELOCK_DELAY_SEC,
     assets: series.assets,
   };
 }
@@ -148,7 +155,9 @@ async function main() {
   const state = readState(cfg.network, cfg.chainId);
   if (cmd === "verify") {
     const deployer =
-      wallet?.account?.address ?? (process.env.DEPLOYER_ADDRESS as Address | undefined);
+      wallet?.account?.address ??
+      (process.env.DEPLOYER_ADDRESS as Address | undefined) ??
+      state.deployer;
     const checks = await verifyDeployment(pub, state, cfg, deployer);
     console.log(render(checks));
     const fails = checks.filter((c) => c.level === "FAIL").length;
@@ -161,8 +170,12 @@ async function main() {
     const dir = resolve(repoRoot, "deployments");
     mkdirSync(dir, { recursive: true });
     for (const [name, batch] of [
-      ["handover", handoverBatch(state)],
-      ["launch", launchBatch(state)],
+      ["handover", handoverBatch(state, cfg.timelockDelaySec)],
+      [
+        "launch-schedule",
+        launchScheduleBatch(state, cfg.timelockDelaySec, process.env.LAUNCH_LABEL ?? "v1"),
+      ],
+      ["launch-execute", launchExecuteBatch(state, process.env.LAUNCH_LABEL ?? "v1")],
     ] as const) {
       const f = resolve(dir, `safe-${name}.${cfg.network}.json`);
       writeFileSync(f, JSON.stringify(batch, null, 2) + "\n");

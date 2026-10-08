@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 check-7 check-8 lighthouse-7 ts-check sol-check sol-static
+.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 check-7 check-8 check-9 lighthouse-7 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -147,3 +147,28 @@ check-8: check-all
 	@test -f docs/partners.md && test -f docs/adr/ADR-008-partner-liquidity.md && test -f docs/phases/PHASE-8-plan.md
 	@test -s docs/evidence/phase-8/anvil-demo.json
 	@echo "check-8 OK"
+
+# Phase 9: hardening and the capped mainnet beta. Everything in check-all, plus: the mainnet-fork
+# tests against the real USDC, VerifierProxy, Chainlink feeds and Safe (needs network), the three
+# invariant suites at 10,000 runs x depth 100 (about 25 minutes), the SDK ABI freshness, the mainnet
+# deployment tooling (unit tests, the rehearsal of the whole deployment on an anvil fork of mainnet,
+# the alert-delivery tests against a real Alertmanager in Docker), the monitoring configs checked
+# with promtool / amtool, the web status line and the keeper planner. The mainnet deployment itself,
+# the live Data Streams check and the 12 h canary are NOT part of this target: they need funds,
+# credentials and a person (docs/ops/launch-checklist.md, docs/phases/PHASE-9-report.md).
+check-9: check-all
+	cd contracts && forge build
+	cd contracts && forge test --match-path "test/fork/*" --rpc-url $${MONAD_MAINNET_RPC_URL:-https://rpc.monad.xyz}
+	cd contracts && FOUNDRY_INVARIANT_RUNS=10000 FOUNDRY_INVARIANT_DEPTH=100 forge test --match-path "test/invariant/*"
+	pnpm --filter @converge/sdk check:abi
+	pnpm --filter @converge/mainnet typecheck
+	pnpm --filter @converge/mainnet test
+	pnpm --filter @converge/mainnet test:fork
+	pnpm --filter @converge/mainnet test:alerts
+	pnpm --filter @converge/web test
+	pnpm --filter @converge/keeper test
+	docker run --rm -v $$PWD/ops/prometheus:/etc/prometheus:ro --entrypoint promtool prom/prometheus:v2.55.1 check config /etc/prometheus/prometheus.mainnet.yml
+	@test -f docs/security/internal-audit.md && grep -q "internally reviewed, not externally audited" docs/security/internal-audit.md
+	@test -f docs/ops/runbook.md && test -f docs/ops/launch-checklist.md && test -f docs/ops/mainnet-deploy.md
+	@test -s docs/evidence/phase-9/invariants-10000.txt && test -s docs/evidence/phase-9/mainnet-rehearsal.json
+	@echo "check-9 OK"

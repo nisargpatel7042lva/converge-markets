@@ -39,6 +39,9 @@ export interface Deployment {
   outcomeTokenImplementation?: Address;
   dataStreamsResolver?: Address;
   chainlinkRoundResolver?: Address;
+  /** OwnerTimelock: the owner of the vault, the resolvers and the registry. The Safe proposes and executes. */
+  timelock?: Address;
+  timelockDelaySec?: number;
   schedulerReceiver?: Address;
   schedulerLens?: Address;
   assets?: Record<

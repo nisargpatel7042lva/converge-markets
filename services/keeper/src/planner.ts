@@ -224,9 +224,16 @@ export function plan(p: PlanInput): Action[] {
   }
 
   // ---- registry upkeep: redeem what resolved, free empty slots
+  // The vault refuses redeemResolved while an epoch's settlement is pending (it values a market
+  // that ended after the epoch end from the mark, and realising it first would let a requester
+  // choose between mark and outcome): wait for the settlement, it takes seconds.
+  const settlementPending = s.epochs.some(
+    (e) => !e.settled && e.plan && p.nowSec >= e.end && p.nowSec <= e.end + s.settleWindow,
+  );
   for (const m of s.markets) {
     if (!m.registered) continue;
     const tokens = m.upBal + m.downBal;
+    if (isDone(m) && tokens > 0n && settlementPending) continue;
     if (isDone(m) && tokens > 0n)
       out.push({
         type: "redeemResolved",

@@ -1045,6 +1045,11 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
         Market.State s = m.state();
         if (s != Market.State.CREATED && s != Market.State.OPEN) revert WrongMarketState(uint8(s));
         if (block.timestamp + _params.noQuoteWindowSec >= m.endTime()) revert InNoQuoteWindow();
+        // Collateral owed to depositors (pending) and to claimants (settled) is not the keeper's to
+        // lock into pairs: without this bound a split could leave the vault unable to pay a claim
+        // until someone merges (found by the 10,000-run invariant campaign, audit F9-18).
+        uint256 free = _freeLiquidity();
+        if (amount > free) revert InsufficientLiquidity(amount, free);
         if (_slot[address(m)] == 0) _register(m, partner);
         Position storage p = _pos[address(m)];
         uint256 navU = quoteNavLower;
@@ -1636,10 +1641,9 @@ contract ConvergeVault is ERC20, Ownable2Step, ReentrancyGuard {
                 || p.minHalfSpread < 0.02e18 || p.minHalfSpread > p.maxHalfSpread
                 || p.maxHalfSpread > 0.5e18 || p.priceMin < 0.01e18 || p.priceMax > 0.99e18
                 || p.priceMin >= p.priceMax || p.priceMin + p.priceMax != WAD
-                || p.minRangeTicks == 0
-                || p.minRangeTicks > p.baseRangeTicks || p.liquidityNavFraction > 0.5e18
-                || p.perMarketMaxFraction == 0 || p.perMarketMaxFraction > 0.05e18
-                || p.totalAtRiskMaxFraction > 0.4e18
+                || p.minRangeTicks == 0 || p.minRangeTicks > p.baseRangeTicks
+                || p.liquidityNavFraction > 0.5e18 || p.perMarketMaxFraction == 0
+                || p.perMarketMaxFraction > 0.05e18 || p.totalAtRiskMaxFraction > 0.4e18
                 || p.totalAtRiskMaxFraction < p.perMarketMaxFraction || p.inventorySkewMax > 0.5e18
                 || p.noQuoteWindowSec < 10
         ) revert InvalidConfig();

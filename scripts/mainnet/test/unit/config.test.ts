@@ -1,11 +1,19 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { getAddress, toFunctionSelector } from "viem";
+import { decodeFunctionData, getAddress, toFunctionSelector, zeroHash } from "viem";
 import { describe, expect, it } from "vitest";
 import * as K from "../../src/constants";
 import { checkStreamFeedId, validateConfig, type DeployConfig } from "../../src/deploy";
 import { loadLaunchParams, repoRoot, wad } from "../../src/params";
-import { handoverBatch, launchBatch } from "../../src/safe";
+import {
+  HANDOVER_SALT,
+  LAUNCH_SALT,
+  handoverBatch,
+  handoverCalls,
+  launchExecuteBatch,
+  launchScheduleBatch,
+  timelockAbi,
+} from "../../src/safe";
 import type { Deployment } from "../../src/state";
 
 const external = readFileSync(resolve(repoRoot, "docs/EXTERNAL.md"), "utf8");
@@ -83,6 +91,7 @@ describe("launch parameters", () => {
 
 const A = (n: number) => `0x${n.toString(16).padStart(40, "0")}` as `0x${string}`;
 const GOOD_ID = `0x0003${"ab".repeat(30)}`;
+const OTHER_ID = `0x0003${"cd".repeat(30)}`;
 const base = (over: Partial<DeployConfig> = {}): DeployConfig => ({
   network: "rehearsal",
   chainId: 143,
@@ -94,9 +103,10 @@ const base = (over: Partial<DeployConfig> = {}): DeployConfig => ({
   tvlCap: 5_000_000_000n,
   enablePartners: false,
   leader: "fallback",
+  timelockDelaySec: 86_400,
   assets: [
     { label: "BTC/USD", symbol: "BTC", resolver: "streams", streamsFeedId: GOOD_ID },
-    { label: "ETH/USD", symbol: "ETH", resolver: "streams", streamsFeedId: GOOD_ID },
+    { label: "ETH/USD", symbol: "ETH", resolver: "streams", streamsFeedId: OTHER_ID },
     { label: "MON/USD", symbol: "MON", resolver: "round" },
   ],
   ...over,
@@ -156,6 +166,19 @@ describe("the deployer refuses an unsafe configuration before sending anything",
       ),
     ).toThrow(/no Data Streams asset/);
   });
+  it("refuses two assets on one feed id (the vault accepts one asset per feed)", () => {
+    expect(() =>
+      validateConfig(
+        base({
+          assets: [
+            { label: "BTC/USD", symbol: "BTC", resolver: "streams", streamsFeedId: GOOD_ID },
+            { label: "ETH/USD", symbol: "ETH", resolver: "streams", streamsFeedId: GOOD_ID },
+          ],
+        }),
+        deployer,
+      ),
+    ).toThrow(/share one Data Streams feed id/);
+  });
   it("refuses a Data Streams asset without a sigma band", () => {
     expect(() =>
       validateConfig(
@@ -170,11 +193,26 @@ describe("the deployer refuses an unsafe configuration before sending anything",
   });
 });
 
+describe("the owner timelock", () => {
+  const deployer = A(9);
+  it("refuses a delay that is too short for mainnet (the delay is the LPs' warning time)", () => {
+    expect(() =>
+      validateConfig(base({ network: "mainnet", timelockDelaySec: 3599 }), deployer),
+    ).toThrow(/out of range/);
+    expect(() =>
+      validateConfig(base({ network: "mainnet", timelockDelaySec: 3600 }), deployer),
+    ).not.toThrow();
+    expect(() => validateConfig(base({ timelockDelaySec: 59 }), deployer)).toThrow(/out of range/);
+    expect(() => validateConfig(base({ timelockDelaySec: 1.5 }), deployer)).toThrow(/out of range/);
+  });
+});
+
 describe("Safe batches", () => {
   const d: Deployment = {
     chainId: 143,
     network: "rehearsal",
     transactions: [],
+    timelock: A(20),
     dataStreamsResolver: A(11),
     vault: {
       vault: A(12),
@@ -195,16 +233,49 @@ describe("Safe batches", () => {
       redeemFeeBps: 50,
     },
   };
-  it("the handover batch accepts ownership of exactly the contracts that exist, with the right selector", () => {
-    const b = handoverBatch(d);
-    expect(b.chainId).toBe("143");
-    expect(b.transactions.map((t) => t.to)).toEqual([A(12), A(11), A(14)]);
-    for (const t of b.transactions) expect(t.data).toBe(toFunctionSelector("acceptOwnership()"));
+
+  it("the handover accepts ownership of exactly the contracts that exist, then raises the timelock delay", () => {
+    const calls = handoverCalls(d, 86_400);
+    expect(calls.map((c) => c.to)).toEqual([A(12), A(11), A(14), A(20)]);
+    for (const c of calls.slice(0, 3)) expect(c.data).toBe(toFunctionSelector("acceptOwnership()"));
+    const last = decodeFunctionData({ abi: timelockAbi, data: calls[3]!.data });
+    expect(last).toMatchObject({ functionName: "updateDelay", args: [86_400n] });
   });
-  it("the launch batch resumes quoting on the vault and nothing else", () => {
-    const b = launchBatch(d);
-    expect(b.transactions).toHaveLength(1);
-    expect(b.transactions[0]!.to).toBe(A(12));
-    expect(b.transactions[0]!.data).toBe(toFunctionSelector("resumeQuoting()"));
+
+  it("the handover batch is schedule then execute of the same operation, both to the timelock", () => {
+    const b = handoverBatch(d, 86_400);
+    expect(b.chainId).toBe("143");
+    expect(b.transactions.map((t) => t.to)).toEqual([A(20), A(20)]);
+    const s = decodeFunctionData({ abi: timelockAbi, data: b.transactions[0]!.data });
+    const e = decodeFunctionData({ abi: timelockAbi, data: b.transactions[1]!.data });
+    expect(s.functionName).toBe("scheduleBatch");
+    expect(e.functionName).toBe("executeBatch");
+    // same targets, payloads, predecessor and salt; the schedule carries delay 0 (boot state)
+    expect(s.args!.slice(0, 5)).toEqual(e.args!.slice(0, 5));
+    expect(s.args![3]).toBe(zeroHash);
+    expect(s.args![4]).toBe(HANDOVER_SALT);
+    expect(s.args![5]).toBe(0n);
+  });
+
+  it("the launch is a timelocked resumeQuoting on the vault and nothing else", () => {
+    const sch = launchScheduleBatch(d, 86_400);
+    const exe = launchExecuteBatch(d);
+    expect(sch.transactions).toHaveLength(1);
+    expect(exe.transactions).toHaveLength(1);
+    const s = decodeFunctionData({ abi: timelockAbi, data: sch.transactions[0]!.data });
+    const e = decodeFunctionData({ abi: timelockAbi, data: exe.transactions[0]!.data });
+    expect(s.functionName).toBe("schedule");
+    expect((s.args![0] as string).toLowerCase()).toBe(A(12));
+    expect(s.args![2]).toBe(toFunctionSelector("resumeQuoting()"));
+    expect(s.args![4]).toBe(LAUNCH_SALT);
+    expect(s.args![5]).toBe(86_400n); // the full delay
+    expect(e.args).toEqual(s.args!.slice(0, 5));
+    expect(LAUNCH_SALT).not.toBe(HANDOVER_SALT);
+  });
+
+  it("refuses to build batches without a timelock", () => {
+    const none: Deployment = { ...d, timelock: undefined };
+    expect(() => handoverCalls(none, 1)).toThrow(/no timelock/);
+    expect(() => launchScheduleBatch(none, 1)).toThrow(/no timelock/);
   });
 });

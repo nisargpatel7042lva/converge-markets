@@ -162,13 +162,48 @@ describe("pnl and the overall verdict", () => {
           side: "UP",
           placedAt: 0,
           status: "executed",
+          filledShares: "1000000",
           redeem: "ok",
         },
       ],
       10_000,
     );
-    expect(overall(12, 12, rounds, trades)).toEqual({ pass: true, reasons: [] });
-    expect(overall(11.9, 12, rounds, trades).reasons.join()).toMatch(/needs 12 h/);
+    expect(overall(12, 12, rounds, trades, 1)).toEqual({ pass: true, reasons: [] });
+    // executed with nothing filled proves nothing about quoting
+    const unfilled = judgeTrades(
+      [
+        {
+          orderId: "1",
+          market: "m",
+          series: "s",
+          side: "UP",
+          placedAt: 0,
+          status: "executed",
+          filledShares: "0",
+          redeem: "ok",
+        },
+      ],
+      10_000,
+    );
+    expect(overall(12, 12, rounds, unfilled, 1).reasons.join()).toMatch(/actually filled/);
+    // an order the trader had to expire itself is a stuck order (the keeper missed it)
+    const fb = judgeTrades(
+      [
+        {
+          orderId: "2",
+          market: "m",
+          series: "s",
+          side: "UP",
+          placedAt: 0,
+          status: "expired",
+          fallbackExpired: true,
+          redeem: "not-needed",
+        },
+      ],
+      10_000,
+    );
+    expect(fb.stuckOrders).toHaveLength(1);
+    expect(overall(11.9, 12, rounds, trades, 1).reasons.join()).toMatch(/needs 12 h/);
     expect(
       overall(12, 12, judgeRounds([], [BTC], { from: T, to: T + 900 }), trades).reasons.join(),
     ).toMatch(/missed/);

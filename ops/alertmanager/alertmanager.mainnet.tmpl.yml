@@ -2,6 +2,7 @@
 # Two independent providers, so one outage does not silence the page:
 #   discord   every alert                   (webhook URL in the file secret `alert_webhook`)
 #   telegram  severity=page only            (bot token in the file secret `telegram_token`)
+#   heartbeat the always-firing Watchdog   (URL in the file secret `heartbeat_url`; the service alerts on silence)
 # `page` alerts go to both and repeat every 15 minutes until resolved or silenced.
 route:
   receiver: discord
@@ -10,8 +11,11 @@ route:
   group_interval: 1m
   repeat_interval: 1h
   routes:
+    # the dead-man switch: Prometheus fires this alert all the time; an EXTERNAL heartbeat service
+    # (healthchecks.io or similar) pages when it stops arriving, which catches the host, the Docker
+    # daemon, Prometheus and Alertmanager dying together
     - matchers: [alertname="Watchdog"]
-      receiver: "null"
+      receiver: heartbeat
       repeat_interval: 5m
     - matchers: [severity="page"]
       receiver: page
@@ -31,4 +35,8 @@ receivers:
         chat_id: __TELEGRAM_CHAT_ID__
         send_resolved: true
         parse_mode: ""
-  - name: "null"
+  - name: heartbeat
+    webhook_configs:
+      - url_file: /run/secrets/heartbeat_url
+        send_resolved: false
+        max_alerts: 1

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   CREATE_GRACE_SEC,
-  EPOCH_GRACE_SEC,
+  EPOCH_SETTLE_GRACE_SEC,
+  NAV_MAX_AGE_SEC,
+  SIGMA_MAX_AGE_SEC,
   INDEXER_LAG_BLOCKS,
   RESOLVE_GRACE_SEC,
   computeStatus,
@@ -17,11 +19,20 @@ const slot = (over: Partial<StatusInput["rounds"][number]> = {}) => ({
   previousState: 2,
   ...over,
 });
+const vaultOk = (over: Partial<NonNullable<StatusInput["vault"]>> = {}) => ({
+  quotingPaused: false,
+  quotingHalted: false,
+  previousEpoch: { end: NOW - 100, hadRequests: true, settled: true },
+  navUpdatedAt: NOW - 60,
+  sigmaUpdatedAt: [NOW - 30],
+  ...over,
+});
 const healthy = (over: Partial<StatusInput> = {}): StatusInput => ({
   now: NOW,
   headTimestamp: NOW - 1,
-  vault: { quotingPaused: false, quotingHalted: false, epochEnd: NOW + 300 },
+  vault: vaultOk(),
   rounds: [slot(), slot({ label: "ETH" })],
+  staleOpenRounds: 0,
   indexerLagBlocks: 2,
   ...over,
 });
@@ -46,17 +57,13 @@ describe("public status line", () => {
   });
 
   it("is paused (and says exits stay open) when the team paused quoting", () => {
-    const s = computeStatus(
-      healthy({ vault: { quotingPaused: true, quotingHalted: false, epochEnd: NOW + 1 } }),
-    );
+    const s = computeStatus(healthy({ vault: vaultOk({ quotingPaused: true }) }));
     expect(s.level).toBe("paused");
     expect(s.headline).toMatch(/withdraw/);
   });
 
   it("is degraded when the keeper pulled quotes", () => {
-    const s = computeStatus(
-      healthy({ vault: { quotingPaused: false, quotingHalted: true, epochEnd: NOW + 1 } }),
-    );
+    const s = computeStatus(healthy({ vault: vaultOk({ quotingHalted: true }) }));
     expect(s.level).toBe("degraded");
     expect(s.headline).toMatch(/pulled/);
   });
@@ -83,16 +90,54 @@ describe("public status line", () => {
     expect(computeStatus(healthy({ rounds: [slot({ previousState: 4 })] })).level).toBe("ok");
   });
 
-  it("flags an overdue vault window", () => {
-    const vault = {
-      quotingPaused: false,
-      quotingHalted: false,
-      epochEnd: NOW - EPOCH_GRACE_SEC - 1,
-    };
-    expect(computeStatus(healthy({ vault })).level).toBe("degraded");
+  it("flags a vault window that ended, had requests and is still not settled", () => {
+    const pe = (secondsAgo: number, over: object = {}) =>
+      vaultOk({
+        previousEpoch: { end: NOW - secondsAgo, hadRequests: true, settled: false, ...over },
+      });
+    expect(computeStatus(healthy({ vault: pe(EPOCH_SETTLE_GRACE_SEC) })).level).toBe("ok");
+    const late = computeStatus(healthy({ vault: pe(EPOCH_SETTLE_GRACE_SEC + 1) }));
+    expect(late.level).toBe("degraded");
+    expect(late.headline).toMatch(/deposits and withdrawals are being processed late/);
+    // nothing was asked, or it was settled: nothing to be late about
+    expect(computeStatus(healthy({ vault: pe(5000, { hadRequests: false }) })).level).toBe("ok");
+    expect(computeStatus(healthy({ vault: pe(5000, { settled: true }) })).level).toBe("ok");
+    expect(computeStatus(healthy({ vault: vaultOk({ previousEpoch: null }) })).level).toBe("ok");
+  });
+
+  it("says so when the vault cannot quote: stale valuation, missing or stale volatility", () => {
     expect(
-      computeStatus(healthy({ vault: { ...vault, epochEnd: NOW - EPOCH_GRACE_SEC } })).level,
+      computeStatus(healthy({ vault: vaultOk({ navUpdatedAt: NOW - NAV_MAX_AGE_SEC }) })).level,
     ).toBe("ok");
+    const nav = computeStatus(
+      healthy({ vault: vaultOk({ navUpdatedAt: NOW - NAV_MAX_AGE_SEC - 1 }) }),
+    );
+    expect(nav.level).toBe("degraded");
+    expect(nav.headline).toMatch(/valuation is stale/);
+    expect(
+      computeStatus(healthy({ vault: vaultOk({ sigmaUpdatedAt: [NOW - SIGMA_MAX_AGE_SEC] }) }))
+        .level,
+    ).toBe("ok");
+    expect(
+      computeStatus(healthy({ vault: vaultOk({ sigmaUpdatedAt: [NOW - SIGMA_MAX_AGE_SEC - 1] }) }))
+        .level,
+    ).toBe("degraded");
+    expect(computeStatus(healthy({ vault: vaultOk({ sigmaUpdatedAt: [0] }) })).level).toBe(
+      "degraded",
+    );
+    expect(computeStatus(healthy({ vault: vaultOk({ sigmaUpdatedAt: [] }) })).level).toBe(
+      "degraded",
+    );
+  });
+
+  it("flags an older round stuck unresolved (it would block every settlement)", () => {
+    const s = computeStatus(healthy({ staleOpenRounds: 1 }));
+    expect(s.level).toBe("degraded");
+    expect(s.headline).toMatch(/earlier round is not resolved/);
+  });
+
+  it("is down, not ok, when there is nothing to check (no rounds configured or readable)", () => {
+    expect(computeStatus(healthy({ rounds: [] })).level).toBe("down");
   });
 
   it("only checks the indexer when one is configured, and treats silence as lag", () => {

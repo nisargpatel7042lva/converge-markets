@@ -3,7 +3,15 @@
  * the state file: every claim is read from the chain. Exit code 1 if anything FAILs. A WARN is
  * something that is correct but not final (a Safe acceptance that is still pending, CRE not set up).
  */
-import { parseAbi, zeroAddress, type Address, type Hex, type PublicClient } from "viem";
+import {
+  keccak256,
+  toHex,
+  parseAbi,
+  zeroAddress,
+  type Address,
+  type Hex,
+  type PublicClient,
+} from "viem";
 import {
   chainlinkRoundResolverAbi,
   convergeVaultAbi,
@@ -76,20 +84,99 @@ export async function verifyDeployment(
   };
 
   expect((await pub.getChainId()) === cfg.chainId, `chain id is ${cfg.chainId}`);
+
+  // The contracts forward no value to the verifier and call it from three contracts: both are only
+  // true while the proxy has no fee manager and no access controller (audit F9-02, F9-05).
+  const proxyAbi = [
+    {
+      type: "function",
+      name: "s_feeManager",
+      inputs: [],
+      outputs: [{ type: "address" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "s_accessController",
+      inputs: [],
+      outputs: [{ type: "address" }],
+      stateMutability: "view",
+    },
+  ] as const;
+  const ZERO = "0x0000000000000000000000000000000000000000";
+  const fm = await rd<Address>(VERIFIER_PROXY, proxyAbi, "s_feeManager").catch(() => undefined);
+  expect(
+    fm !== undefined && eq(fm, ZERO),
+    "VerifierProxy has no fee manager (the vault and venue forward no value)",
+    fm ? `fee manager ${fm}` : "unreadable",
+  );
+  const ac = await rd<Address>(VERIFIER_PROXY, proxyAbi, "s_accessController").catch(
+    () => undefined,
+  );
+  expect(
+    ac !== undefined && eq(ac, ZERO),
+    "VerifierProxy has no access controller (vault, venue and resolver may all verify)",
+    ac ? `access controller ${ac}` : "unreadable",
+  );
+  const tl = d.timelock;
   const owned = async (name: string, a: Address | undefined) => {
     if (!a) return;
+    if (!tl) return add("FAIL", `${name}: the deployment has no timelock to own it`);
     const owner = await rd<Address>(a, ownableAbi, "owner");
-    if (eq(owner, cfg.safe)) return add("PASS", `${name} is owned by the Safe`);
+    if (eq(owner, tl)) return add("PASS", `${name} is owned by the timelock`);
     const pend = await rd<Address>(a, ownableAbi, "pendingOwner");
-    if (eq(pend, cfg.safe))
+    if (eq(pend, tl))
       return add(
         "WARN",
-        `${name}: ownership is PENDING, the Safe must execute acceptOwnership()`,
+        `${name}: ownership is PENDING, the Safe must run the handover batch (acceptOwnership through the timelock)`,
         a,
       );
-    add("FAIL", `${name} is not owned by the Safe`, `owner ${owner}, pending ${pend}`);
+    add("FAIL", `${name} is not owned by the timelock`, `owner ${owner}, pending ${pend}`);
     if (deployer && eq(owner, deployer)) add("FAIL", `${name} is still owned by the deployer key`);
   };
+
+  // ---- the owner timelock
+  if (await code("OwnerTimelock", tl)) {
+    const t = tl!;
+    const timelockAbiV = parseAbi([
+      "function getMinDelay() view returns (uint256)",
+      "function hasRole(bytes32,address) view returns (bool)",
+    ]);
+    const R = (n: string) => keccak256(toHex(n));
+    const delay = Number(await rd<bigint>(t, timelockAbiV, "getMinDelay"));
+    if (delay >= cfg.timelockDelaySec)
+      add("PASS", `timelock delay is ${delay} s (configured ${cfg.timelockDelaySec} s)`);
+    else if (delay === 0 && !d.handover?.done)
+      add(
+        "WARN",
+        `timelock delay is still 0 (boot state): the handover batch raises it to ${cfg.timelockDelaySec} s`,
+      );
+    else add("FAIL", `timelock delay ${delay} s is below the configured ${cfg.timelockDelaySec} s`);
+    for (const [role, label] of [
+      ["PROPOSER_ROLE", "propose"],
+      ["EXECUTOR_ROLE", "execute"],
+      ["CANCELLER_ROLE", "cancel"],
+    ] as const)
+      expect(
+        await rd<boolean>(t, timelockAbiV, "hasRole", [R(role), cfg.safe]),
+        `the Safe can ${label} on the timelock`,
+      );
+    expect(
+      !(await rd<boolean>(t, timelockAbiV, "hasRole", [DEFAULT_ADMIN_ROLE, cfg.safe])) &&
+        (!deployer ||
+          !(await rd<boolean>(t, timelockAbiV, "hasRole", [DEFAULT_ADMIN_ROLE, deployer]))),
+      "nobody but the timelock itself administers the timelock (no admin to bypass the delay)",
+    );
+    expect(
+      await rd<boolean>(t, timelockAbiV, "hasRole", [DEFAULT_ADMIN_ROLE, t]),
+      "the timelock administers itself (its own delay can only change through a timelocked call)",
+    );
+    if (deployer)
+      expect(
+        !(await rd<boolean>(t, timelockAbiV, "hasRole", [R("PROPOSER_ROLE"), deployer])),
+        "the deployer cannot propose on the timelock",
+      );
+  }
 
   // ---- factory
   if (await code("MarketFactory", d.marketFactory)) {
@@ -99,8 +186,8 @@ export async function verifyDeployment(
       "factory collateral is the real USDC",
     );
     expect(
-      await rd<boolean>(f, accessAbi, "hasRole", [DEFAULT_ADMIN_ROLE, cfg.safe]),
-      "the Safe is admin of the factory",
+      tl !== undefined && (await rd<boolean>(f, accessAbi, "hasRole", [DEFAULT_ADMIN_ROLE, tl])),
+      "the timelock is admin of the factory",
     );
     if (deployer)
       expect(
@@ -258,7 +345,7 @@ export async function verifyDeployment(
     const paused = await rd<boolean>(v, convergeVaultAbi, "quotingPaused");
     add(
       paused ? "WARN" : "PASS",
-      paused ? "quoting is PAUSED (the Safe resumes it at launch)" : "quoting is live",
+      paused ? "quoting is PAUSED (resumed at launch through the timelock)" : "quoting is live",
     );
     const supply = await rd<bigint>(v, convergeVaultAbi, "totalSupply");
     add("PASS", `vault share supply ${supply}`);
@@ -285,8 +372,8 @@ export async function verifyDeployment(
       "receiver trusts only the real CRE forwarder",
     );
     expect(
-      await rd<boolean>(r, accessAbi, "hasRole", [DEFAULT_ADMIN_ROLE, cfg.safe]),
-      "the Safe is admin of the receiver",
+      tl !== undefined && (await rd<boolean>(r, accessAbi, "hasRole", [DEFAULT_ADMIN_ROLE, tl])),
+      "the timelock is admin of the receiver",
     );
     expect(
       await rd<boolean>(r, accessAbi, "hasRole", [OPERATOR_ROLE, cfg.safe]),
@@ -331,10 +418,10 @@ export async function verifyDeployment(
       if (!a) continue;
       const stillOwner = eq(await rd<Address>(a, ownableAbi, "owner"), deployer);
       if (!stillOwner) add("PASS", `the deployer does not own the ${name}`);
-      else if (eq(await rd<Address>(a, ownableAbi, "pendingOwner"), cfg.safe))
+      else if (tl && eq(await rd<Address>(a, ownableAbi, "pendingOwner"), tl))
         add(
           "WARN",
-          `the deployer still owns the ${name} until the Safe accepts (handover pending)`,
+          `the deployer still owns the ${name} until the handover batch runs (handover pending)`,
         );
       else add("FAIL", `the deployer does not own the ${name}`);
     }

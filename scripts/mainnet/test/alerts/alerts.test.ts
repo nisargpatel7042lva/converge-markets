@@ -104,11 +104,13 @@ describe.skipIf(!hasDocker)("alert test against a real Alertmanager (docker)", (
       let b = "";
       req.on("data", (c) => (b += c));
       req.on("end", () => {
-        const channel = req.url?.startsWith("/discord")
-          ? "discord"
-          : req.url?.includes("/sendMessage")
-            ? "telegram"
-            : "other";
+        const channel = req.url?.startsWith("/heartbeat")
+          ? "heartbeat"
+          : req.url?.startsWith("/discord")
+            ? "discord"
+            : req.url?.includes("/sendMessage")
+              ? "telegram"
+              : "other";
         hits.push({ channel, body: b });
         res.writeHead(channel === "discord" ? 204 : 200, { "content-type": "application/json" });
         res.end(
@@ -140,8 +142,9 @@ describe.skipIf(!hasDocker)("alert test against a real Alertmanager (docker)", (
     writeFileSync(resolve(dir, "alertmanager.yml"), tmpl);
     writeFileSync(resolve(dir, "alert_webhook"), `http://127.0.0.1:${MOCK_PORT}/discord`);
     writeFileSync(resolve(dir, "telegram_token"), "123456:TESTTOKEN");
+    writeFileSync(resolve(dir, "heartbeat_url"), `http://127.0.0.1:${MOCK_PORT}/heartbeat`);
     chmodSync(dir, 0o755);
-    for (const f of ["alertmanager.yml", "alert_webhook", "telegram_token"])
+    for (const f of ["alertmanager.yml", "alert_webhook", "telegram_token", "heartbeat_url"])
       chmodSync(resolve(dir, f), 0o644);
     startAlertmanager = async () => {
       spawnSync("docker", ["rm", "-f", container], { stdio: "ignore" });
@@ -159,6 +162,8 @@ describe.skipIf(!hasDocker)("alert test against a real Alertmanager (docker)", (
         `${resolve(dir, "alert_webhook")}:/run/secrets/alert_webhook:ro`,
         "-v",
         `${resolve(dir, "telegram_token")}:/run/secrets/telegram_token:ro`,
+        "-v",
+        `${resolve(dir, "heartbeat_url")}:/run/secrets/heartbeat_url:ro`,
         "prom/alertmanager:v0.28.1",
         "--config.file=/etc/alertmanager/alertmanager.yml",
         `--web.listen-address=127.0.0.1:${AM_PORT}`,
@@ -223,6 +228,27 @@ describe.skipIf(!hasDocker)("alert test against a real Alertmanager (docker)", (
       await new Promise((r) => setTimeout(r, 500));
     expect(hits.some((h) => h.channel === "discord" && h.body.includes("WarnOnlyTest"))).toBe(true);
     expect(hits.filter((h) => h.channel === "telegram").length).toBe(before);
+  }, 30_000);
+
+  it("the always-firing Watchdog goes to the external heartbeat receiver and to nobody else", async () => {
+    const chatty = hits.length;
+    await fetch(`http://127.0.0.1:${AM_PORT}/api/v2/alerts`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify([
+        {
+          labels: { alertname: "Watchdog", severity: "none" },
+          annotations: { summary: "always firing" },
+          startsAt: new Date().toISOString(),
+        },
+      ]),
+    });
+    for (let i = 0; i < 30 && !hits.slice(chatty).some((h) => h.channel === "heartbeat"); i++)
+      await new Promise((r) => setTimeout(r, 500));
+    const fresh = hits.slice(chatty);
+    expect(fresh.some((h) => h.channel === "heartbeat" && h.body.includes("Watchdog"))).toBe(true);
+    expect(fresh.some((h) => h.channel === "discord" && h.body.includes("Watchdog"))).toBe(false);
+    expect(fresh.some((h) => h.channel === "telegram")).toBe(false);
   }, 30_000);
 
   it("a channel that is down is reported as FAILED, not silently skipped", async () => {

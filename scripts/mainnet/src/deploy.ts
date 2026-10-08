@@ -39,7 +39,6 @@ import {
 import { artifact } from "./artifacts";
 import {
   CRE_FORWARDER,
-  DEFAULT_TVL_CAP,
   EPOCH_LENGTH_SEC,
   FINALIZATION_WINDOW_SEC,
   MIN_REQUEST,
@@ -66,6 +65,8 @@ export interface SeriesAsset {
 }
 
 export interface DeployConfig {
+  /** Delay of the owner timelock in seconds (the Safe proposes, anyone watching has this long to react). */
+  timelockDelaySec: number;
   network: string;
   chainId: number;
   safe: Address;
@@ -96,6 +97,8 @@ const accessAbi = parseAbi([
   "function grantRole(bytes32,address)",
   "function renounceRole(bytes32,address)",
 ]);
+const timelockAbi = parseAbi(["function getMinDelay() view returns (uint256)"]);
+
 const safeAbi = parseAbi([
   "function getOwners() view returns (address[])",
   "function getThreshold() view returns (uint256)",
@@ -140,6 +143,15 @@ export function validateConfig(c: DeployConfig, deployer: Address): void {
       );
     seen.set(k, n);
   }
+  const minDelay = c.network === "mainnet" ? 3600 : 60;
+  if (
+    !Number.isInteger(c.timelockDelaySec) ||
+    c.timelockDelaySec < minDelay ||
+    c.timelockDelaySec > 7 * 86_400
+  )
+    throw new Error(
+      `timelock delay ${c.timelockDelaySec} s is out of range: between ${minDelay} s and 7 days on ${c.network} (the default is 24 h; too short and LPs cannot react, too long and a fix or a resume takes weeks)`,
+    );
   if (c.tvlCap <= 0n || c.tvlCap > 100_000_000_000n)
     throw new Error("TVL cap must be between 0 and 100,000 USDC");
   if (c.assets.filter((a) => a.resolver === "streams").length === 0) {
@@ -149,6 +161,13 @@ export function validateConfig(c: DeployConfig, deployer: Address): void {
   }
   for (const a of c.assets)
     if (a.resolver === "streams") checkStreamFeedId(a.label, a.streamsFeedId);
+  const ids = c.assets
+    .filter((a) => a.resolver === "streams")
+    .map((a) => (a.streamsFeedId ?? "").toLowerCase());
+  if (new Set(ids).size !== ids.length)
+    throw new Error(
+      "two assets share one Data Streams feed id (the vault accepts one asset per feed)",
+    );
   for (const a of c.assets) {
     if (a.resolver === "streams" && !SIGMA_BANDS[a.label]) {
       throw new Error(`${a.label}: no sigma band in constants.ts`);
@@ -339,12 +358,33 @@ export class Deployer {
     this.save();
 
     await this.coreContracts();
+    await this.timelock();
     await this.assets();
     await this.scheduler();
     await this.vault();
     if (cfg.enablePartners) await this.partners();
     await this.handover();
     return this.state;
+  }
+
+  /**
+   * The owner of everything that has an owner: an OwnerTimelock, with the Safe as its only
+   * proposer / executor / canceller and no admin. It starts with delay 0 so that the handover
+   * batch (accept ownership of every contract, then raise the delay to the configured one) runs in
+   * one Safe session; from then on every owner action waits the configured delay.
+   */
+  private async timelock(): Promise<void> {
+    const s = this.state;
+    if (!(await this.hasCode(s.timelock))) {
+      const t = await this.create("OwnerTimelock", "OwnerTimelock", [
+        0n,
+        [this.cfg.safe],
+        [this.cfg.safe],
+      ]);
+      s.timelock = t.address;
+    }
+    s.timelockDelaySec = this.cfg.timelockDelaySec;
+    this.save();
   }
 
   private async coreContracts(): Promise<void> {
@@ -659,6 +699,8 @@ export class Deployer {
     const s = this.state;
     const { cfg } = this;
     const pending: string[] = [];
+    const owner0 = s.timelock;
+    if (!owner0) throw new Error("no timelock: cannot hand over");
     const ownable: [string, Address | undefined][] = [
       ["ConvergeVault", s.vault?.vault],
       ["DataStreamsResolver", s.dataStreamsResolver],
@@ -668,22 +710,22 @@ export class Deployer {
     for (const [name, addr] of ownable) {
       if (!addr) continue;
       const owner = await this.read<Address>(addr, ownableAbi, "owner");
-      if (owner.toLowerCase() === cfg.safe.toLowerCase()) {
-        this.log(`  ok   ${name} is owned by the Safe`);
+      if (owner.toLowerCase() === owner0.toLowerCase()) {
+        this.log(`  ok   ${name} is owned by the timelock`);
         continue;
       }
       if (owner.toLowerCase() !== this.me.toLowerCase())
-        throw new Error(`${name} is owned by ${owner}: neither the Safe nor the deployer`);
+        throw new Error(`${name} is owned by ${owner}: neither the timelock nor the deployer`);
       const p = await this.read<Address>(addr, ownableAbi, "pendingOwner");
-      if (p.toLowerCase() !== cfg.safe.toLowerCase()) {
+      if (p.toLowerCase() !== owner0.toLowerCase()) {
         const { encodeFunctionData } = await import("viem");
         await this.send(
-          `${name}.transferOwnership(safe)`,
+          `${name}.transferOwnership(timelock)`,
           addr,
           encodeFunctionData({
             abi: ownableAbi,
             functionName: "transferOwnership",
-            args: [cfg.safe],
+            args: [owner0],
           }),
         );
       }
@@ -697,17 +739,20 @@ export class Deployer {
     ];
     for (const [name, addr, others] of ac) {
       if (!addr) continue;
-      for (const role of [
-        DEFAULT_ADMIN_ROLE,
-        ...(name === "SchedulerReceiver" ? [OPERATOR_ROLE] : []),
-      ]) {
+      // the admin role goes to the timelock (slow); the leader switch (OPERATOR) goes to the Safe itself (fast)
+      const grants: [Hex, Address, string][] = [
+        [DEFAULT_ADMIN_ROLE, owner0, "ADMIN to the timelock"],
+      ];
+      if (name === "SchedulerReceiver")
+        grants.push([OPERATOR_ROLE, cfg.safe, "OPERATOR to the Safe"]);
+      for (const [role, to, what] of grants) {
         await this.ensure(
-          `${name}: ${role === DEFAULT_ADMIN_ROLE ? "ADMIN" : "OPERATOR"} to the Safe`,
-          () => this.read<boolean>(addr, accessAbi, "hasRole", [role, cfg.safe]),
+          `${name}: ${what}`,
+          () => this.read<boolean>(addr, accessAbi, "hasRole", [role, to]),
           addr,
           accessAbi as Abi,
           "grantRole",
-          [role, cfg.safe],
+          [role, to],
         );
       }
       const mine = [...others, DEFAULT_ADMIN_ROLE];
@@ -743,11 +788,14 @@ export class Deployer {
         );
       }
     }
+    const delay = Number(await this.read<bigint>(owner0, timelockAbi, "getMinDelay"));
+    if (delay < cfg.timelockDelaySec)
+      pending.push(`OwnerTimelock ${owner0} (raise the delay to ${cfg.timelockDelaySec} s)`);
     s.handover = { done: pending.length === 0, pendingSafeAcceptance: pending };
     this.save();
     if (pending.length) {
       this.log(
-        `HANDOVER PENDING: the Safe must execute acceptOwnership() on: ${pending.join(", ")} (npm script: safe-batch)`,
+        `HANDOVER PENDING: the Safe must run the handover batch through the timelock (acceptOwnership on every contract, then the delay): ${pending.join(", ")} (pnpm safe-batch)`,
       );
     }
   }

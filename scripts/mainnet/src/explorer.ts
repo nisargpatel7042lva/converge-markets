@@ -17,6 +17,12 @@ const TARGETS: {
   step: string;
 }[] = [
   {
+    name: "OwnerTimelock",
+    path: "src/governance/OwnerTimelock.sol:OwnerTimelock",
+    addr: (d) => d.timelock,
+    step: "deploy OwnerTimelock",
+  },
+  {
     name: "MarketFactory",
     path: "src/MarketFactory.sol:MarketFactory",
     addr: (d) => d.marketFactory,

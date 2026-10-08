@@ -183,3 +183,26 @@ contract VenueFeeOnTransferTest is VaultBase {
         vm.stopPrank();
     }
 }
+
+/// @notice F9-18: found by the extended invariant campaign. A keeper split may not lock collateral
+///         that is owed to depositors or claimants.
+contract SplitLiquidityTest is VaultBase {
+    function test_split_cannotUseCollateralOwedToPendingDepositsOrClaims() public {
+        _fund(alice, 1000 * U);
+        Market m = _openEth(T0, M15, 3000e18);
+        vm.warp(T0 + 300);
+        // 300 USDC of deposits are pending: they are owed back if the epoch is rejected
+        _requestDeposit(bob, 300 * U);
+        uint256 free = usdc.balanceOf(address(vault)) - 300 * U;
+        _setSigma(0.6e18);
+        vm.prank(vKeeper);
+        vm.expectRevert(
+            abi.encodeWithSelector(ConvergeVault.InsufficientLiquidity.selector, free + 1, free)
+        );
+        vault.splitForInventory(m, free + 1);
+        // exactly the free part is allowed (it is also inside the pair cap here)
+        uint256 allowed = free < 100 * U ? free : 100 * U;
+        vm.prank(vKeeper);
+        vault.splitForInventory(m, allowed);
+    }
+}

@@ -21,8 +21,19 @@ export type StatusInput = {
   now: number;
   /** Timestamp of the latest block; null when the chain could not be read. */
   headTimestamp: number | null;
-  vault: { quotingPaused: boolean; quotingHalted: boolean; epochEnd: number } | null;
+  vault: {
+    quotingPaused: boolean;
+    quotingHalted: boolean;
+    /** The epoch that ended last: when, whether anyone asked for anything in it, whether it was settled. */
+    previousEpoch: { end: number; hadRequests: boolean; settled: boolean } | null;
+    /** When the vault was last re-valued (it quotes only if this is under 30 minutes old). */
+    navUpdatedAt: number;
+    /** When the keeper last set each enabled asset's volatility (0 = never); quotes need under 15 minutes. */
+    sigmaUpdatedAt: number[];
+  } | null;
   rounds: RoundSlot[];
+  /** Rounds among the last few slots that ended long ago and are still not resolved (they block settlement). */
+  staleOpenRounds: number;
   /** Blocks the indexer is behind; undefined when no indexer is configured, null when it is silent. */
   indexerLagBlocks: number | null | undefined;
 };
@@ -40,7 +51,9 @@ export const CREATE_GRACE_SEC = 45;
 /** A resolved round is expected within this long of its end (finalization window + scheduler). */
 export const RESOLVE_GRACE_SEC = 180;
 export const HEAD_STALE_SEC = 30;
-export const EPOCH_GRACE_SEC = 120;
+export const EPOCH_SETTLE_GRACE_SEC = 300; // the settlement window is 10 minutes: a keeper normally does it in seconds
+export const NAV_MAX_AGE_SEC = 1500; // the vault refuses to quote past 1800
+export const SIGMA_MAX_AGE_SEC = 780; // the vault refuses to quote past 900
 export const INDEXER_LAG_BLOCKS = 100;
 
 const OPEN = 1;
@@ -85,6 +98,10 @@ export function computeStatus(i: StatusInput): Status {
     detail: i.vault.quotingHalted ? "quotes pulled" : "quoting",
   });
 
+  if (i.rounds.length === 0) {
+    checks.push({ id: "rounds", ok: false, detail: "no rounds configured or readable" });
+    return done("down", "We can't read the rounds right now. Your money is safe; try again soon.");
+  }
   const problems: string[] = [];
   if (i.vault.quotingHalted) problems.push("prices are temporarily pulled");
 
@@ -112,15 +129,38 @@ export function computeStatus(i: StatusInput): Status {
     if (!resolveOk) problems.push(`${r.label} ${r.duration / 60} min settlement is late`);
   }
 
-  const epochOk = i.now <= i.vault.epochEnd + EPOCH_GRACE_SEC;
+  const pe = i.vault.previousEpoch;
+  const epochOk = !pe || !pe.hadRequests || pe.settled || i.now <= pe.end + EPOCH_SETTLE_GRACE_SEC;
   checks.push({
     id: "epoch",
     ok: epochOk,
     detail: epochOk
       ? "vault window on time"
-      : `vault window overdue by ${i.now - i.vault.epochEnd}s`,
+      : `the last vault window ended ${i.now - pe!.end}s ago and is not settled`,
   });
   if (!epochOk) problems.push("vault deposits and withdrawals are being processed late");
+
+  const navAge = i.now - i.vault.navUpdatedAt;
+  const navOk = navAge <= NAV_MAX_AGE_SEC;
+  checks.push({ id: "valuation", ok: navOk, detail: `vault valued ${Math.max(0, navAge)}s ago` });
+  if (!navOk) problems.push("the vault's valuation is stale, so it may stop quoting");
+
+  const sigmaOk =
+    i.vault.sigmaUpdatedAt.length > 0 &&
+    i.vault.sigmaUpdatedAt.every((t) => t > 0 && i.now - t <= SIGMA_MAX_AGE_SEC);
+  checks.push({
+    id: "volatility",
+    ok: sigmaOk,
+    detail: sigmaOk ? "volatility inputs fresh" : "volatility inputs missing or stale",
+  });
+  if (!sigmaOk) problems.push("prices are not being refreshed, so quoting may be off");
+
+  checks.push({
+    id: "unresolved",
+    ok: i.staleOpenRounds === 0,
+    detail: `${i.staleOpenRounds} old round(s) not yet resolved`,
+  });
+  if (i.staleOpenRounds > 0) problems.push("an earlier round is not resolved yet");
 
   if (i.indexerLagBlocks !== undefined) {
     const ok = i.indexerLagBlocks !== null && i.indexerLagBlocks <= INDEXER_LAG_BLOCKS;

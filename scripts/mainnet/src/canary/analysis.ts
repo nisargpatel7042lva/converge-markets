@@ -131,6 +131,8 @@ export interface TradeRecord {
 export interface TradeVerdict {
   placed: number;
   executed: number;
+  /** Executed orders that bought something (filledShares > 0). */
+  filled: number;
   expired: number;
   stuckOrders: TradeRecord[];
   failedClaims: TradeRecord[];
@@ -144,9 +146,13 @@ export function judgeTrades(trades: TradeRecord[], now: number): TradeVerdict {
   return {
     placed: trades.length,
     executed: trades.filter((t) => t.status === "executed").length,
+    filled: trades.filter((t) => t.status === "executed" && BigInt(t.filledShares ?? "0") > 0n)
+      .length,
     expired: trades.filter((t) => t.status === "expired").length,
     stuckOrders: trades.filter(
-      (t) => t.status === "open" && now - t.placedAt > ORDER_STUCK_AFTER_SEC,
+      (t) =>
+        t.fallbackExpired === true ||
+        (t.status === "open" && now - t.placedAt > ORDER_STUCK_AFTER_SEC),
     ),
     failedClaims: trades.filter((t) => t.redeem === "failed"),
     pendingClaims: trades.filter((t) => t.status === "executed" && t.redeem === "pending"),
@@ -201,6 +207,7 @@ export function overall(
   minHours: number,
   rounds: RoundVerdict,
   trades: TradeVerdict,
+  minFilled = 5,
 ): CanaryVerdict {
   const reasons: string[] = [];
   if (hoursRun < minHours) reasons.push(`ran ${hoursRun.toFixed(1)} h, needs ${minHours} h`);
@@ -209,5 +216,9 @@ export function overall(
   if (trades.failedClaims.length) reasons.push(`${trades.failedClaims.length} failed claim(s)`);
   if (trades.stuckOrders.length) reasons.push(`${trades.stuckOrders.length} stuck order(s)`);
   if (trades.placed === 0) reasons.push("the trader placed no order");
+  if (trades.filled < minFilled)
+    reasons.push(
+      `only ${trades.filled} order(s) actually filled (need ${minFilled}): an order that is executed with nothing filled proves nothing about quoting`,
+    );
   return { pass: reasons.length === 0, reasons };
 }

@@ -195,6 +195,32 @@ describe("planner: checkpoint, registry upkeep", () => {
         .sort(),
     ).toEqual([MKT(2), MKT(4)]);
   });
+
+  it("waits for a pending epoch settlement before redeeming a resolved round (the vault refuses it meanwhile)", () => {
+    const markets = [market({ address: MKT(1), state: 2 })];
+    const epoch = (over: object = {}) => ({
+      id: 9,
+      end: NOW - 20,
+      depositAssets: USDC(10),
+      redeemShares: 0n,
+      settled: false,
+      plan: { feeds: [FEED], unresolved: [] as `0x${string}`[] } as {
+        feeds: `0x${string}`[];
+        unresolved: `0x${string}`[];
+      } | null,
+      ...over,
+    });
+    const pending = run({ state: state({ markets, epochs: [epoch()] }) });
+    expect(of(pending, "settle")).toHaveLength(1);
+    expect(of(pending, "redeemResolved")).toEqual([]);
+    // settled, or no requests in the epoch (no plan): redeem as usual
+    expect(
+      of(run({ state: state({ markets, epochs: [epoch({ settled: true })] }) }), "redeemResolved"),
+    ).toHaveLength(1);
+    expect(
+      of(run({ state: state({ markets, epochs: [epoch({ plan: null })] }) }), "redeemResolved"),
+    ).toHaveLength(1);
+  });
 });
 
 describe("planner: inventory", () => {

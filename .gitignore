@@ -51,3 +51,10 @@ ops/alertmanager/alertmanager.mainnet.yml
 ops/alertmanager/webhook_url
 ops/alertmanager/telegram_token
 ops/grafana/admin_password
+ops/alertmanager/heartbeat_url
+
+# the local demo stack (services/keeper/scripts/demo-stack.ts) writes its logs and chain info here
+.demo/*.log
+.demo/*.pid
+.demo/chain.json
+apps/web/.next-demo/

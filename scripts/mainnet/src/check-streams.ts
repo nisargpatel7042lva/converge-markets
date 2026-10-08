@@ -259,7 +259,7 @@ export const render = (checks: StreamCheck[]): string =>
 
 async function main() {
   const { createPublicClient, http, defineChain } = await import("viem");
-  const { readFileSync, mkdirSync, writeFileSync } = await import("node:fs");
+  const { readFileSync, mkdirSync, writeFileSync, existsSync } = await import("node:fs");
   const { resolve } = await import("node:path");
   const { repoRoot } = await import("./params");
   const { VERIFIER_PROXY } = await import("./constants");
@@ -274,9 +274,34 @@ async function main() {
   const secret = need("STREAMS_API_SECRET");
   const base = process.env.STREAMS_API_URL ?? "https://api.dataengine.chain.link";
   const network = process.env.NETWORK ?? "mainnet";
-  const dep = JSON.parse(
-    readFileSync(resolve(repoRoot, "deployments", `${network}.json`), "utf8"),
-  ) as import("./state").Deployment;
+  // After the deployment the record has the ids and the contracts; BEFORE it (the ids are written to
+  // an immutable resolver, so test them first) the ids come from config/series.json and the
+  // verifier is not called as the contracts.
+  const depFile = resolve(repoRoot, "deployments", `${network}.json`);
+  let dep: import("./state").Deployment;
+  if (existsSync(depFile)) {
+    dep = JSON.parse(readFileSync(depFile, "utf8")) as import("./state").Deployment;
+  } else {
+    const series = JSON.parse(readFileSync(resolve(repoRoot, "config/series.json"), "utf8")) as {
+      assets: { label: string; resolver: string; streamsFeedId?: string }[];
+    };
+    dep = {
+      chainId: 143,
+      network,
+      transactions: [],
+      assets: Object.fromEntries(
+        series.assets
+          .filter((a) => a.resolver === "streams")
+          .map((a) => [
+            a.label,
+            { assetId: "0x" as Hex, kind: "streams" as const, feedId: a.streamsFeedId as Hex },
+          ]),
+      ),
+    };
+    console.log(
+      "no deployment record: checking the ids in config/series.json (pre-deployment mode)",
+    );
+  }
   const pub = createPublicClient({
     chain: defineChain({
       id: dep.chainId,
@@ -322,6 +347,13 @@ async function main() {
       callers.venue = dep.vault.forwardVenue;
     }
     if (dep.dataStreamsResolver) callers.resolver = dep.dataStreamsResolver;
+    if (!dep.vault && !dep.dataStreamsResolver) {
+      record[label] = {
+        feedId: a.feedId,
+        firstWindow: first && { validFrom: first.validFrom, observations: first.observations },
+      };
+      continue;
+    }
     const pp = dep.dataStreamsResolver
       ? ((await pub.readContract({
           address: dep.dataStreamsResolver,
