@@ -136,7 +136,7 @@ export default function Vault() {
               />
             </div>
             {d.quotingPaused || d.quotingHalted ? (
-              <p role="status" className="mt-3 rounded-xl bg-[#2e2410] px-3 py-2 text-xs text-warn">
+              <p role="status" className="mt-3 rounded-xl bg-warn-soft px-3 py-2 text-xs text-warn">
                 {d.quotingPaused
                   ? "Betting is paused by a safety switch."
                   : "Betting is briefly paused while the price settles."}{" "}
@@ -223,7 +223,7 @@ export default function Vault() {
                 action={
                   <Link
                     href="/start"
-                    className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#0b0820]"
+                    className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#15112e]"
                   >
                     Start with Face ID
                   </Link>

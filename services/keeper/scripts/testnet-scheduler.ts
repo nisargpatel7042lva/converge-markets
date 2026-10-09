@@ -41,12 +41,13 @@ const dep = JSON.parse(readFileSync(`${root}deployments/testnet.json`, "utf8")) 
   testFeedId: Hex;
   finalizationWindow: number;
 };
-const rpc = env("MONAD_TESTNET_RPC_URL");
+const rpc = process.env.RPC_URL ?? "https://rpc-testnet.monadinfra.com";
 const chain = defineChain({
   id: 10143,
   name: "Monad testnet",
   nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
   rpcUrls: { default: { http: [rpc] } },
+  contracts: { multicall3: { address: "0xcA11bde05977b3631167028862bE2a173976CA11" } },
 });
 const pub = createPublicClient({ chain, transport: http(rpc) });
 const wallet = createWalletClient({
@@ -117,17 +118,37 @@ const due = (key: string) => !done.has(`${key}:retry@${Math.floor(Date.now() / 2
 async function tick() {
   const t = Number((await pub.getBlock()).timestamp);
   const cur = Math.floor(t / DURATION) * DURATION;
-  for (let k = -3; k <= 2; k++) {
-    const start = cur + k * DURATION;
-    const end = start + DURATION;
-    let market = (await pub.readContract({
+  const starts = [-3, -2, -1, 0, 1, 2].map((k) => cur + k * DURATION);
+  // two multicalls for the whole picture (the public RPC takes about a second a call: one call per
+  // market and per field made a tick take 20 s and the rounds open minutes late)
+  const addrs = (await pub.multicall({
+    allowFailure: false,
+    contracts: starts.map((s) => ({
       address: dep.marketFactory,
       abi: marketFactoryAbi,
-      functionName: "getMarket",
-      args: [dep.assetTEST, BigInt(DURATION), BigInt(start)],
-    })) as Address;
-    if (market === ZERO) {
-      if (k < 1 || !due(`create:${start}`)) continue; // a round can only be created before its start
+      functionName: "getMarket" as const,
+      args: [dep.assetTEST, BigInt(DURATION), BigInt(s)] as const,
+    })),
+  })) as Address[];
+  const live = addrs.map((a, i) => ({ a, start: starts[i]! })).filter((x) => x.a !== ZERO);
+  const states = live.length
+    ? ((await pub.multicall({
+        allowFailure: false,
+        contracts: live.map((x) => ({
+          address: x.a,
+          abi: marketAbi,
+          functionName: "state" as const,
+        })),
+      })) as number[])
+    : [];
+  const stateOf = new Map(live.map((x, i) => [x.start, { market: x.a, state: Number(states[i]) }]));
+
+  for (const start of starts) {
+    const end = start + DURATION;
+    const label = new Date(start * 1000).toISOString().slice(11, 16);
+    const m = stateOf.get(start);
+    if (!m) {
+      if (start <= t || !due(`create:${start}`)) continue; // a round can only be created before its start
       await once(`create:${start}`, async () => {
         await send({
           address: dep.marketFactory,
@@ -135,15 +156,11 @@ async function tick() {
           functionName: "createMarket",
           args: [dep.assetTEST, BigInt(DURATION), BigInt(start)],
         });
-        log(`created round ${new Date(start * 1000).toISOString().slice(11, 16)}`);
+        log(`created round ${label}`);
       });
       continue;
     }
-    const state = Number(
-      await pub.readContract({ address: market, abi: marketAbi, functionName: "state" }),
-    );
-    const label = new Date(start * 1000).toISOString().slice(11, 16);
-    if (state === 0 && t >= start) {
+    if (m.state === 0 && t >= start) {
       if (due(`propose-open:${start}`))
         await once(`propose-open:${start}`, async () =>
           send({
@@ -155,15 +172,15 @@ async function tick() {
         );
       if (
         done.has(`propose-open:${start}`) &&
-        t >= start + dep.finalizationWindow + 3 &&
+        t >= start + dep.finalizationWindow + 2 &&
         due(`open:${start}`)
       )
         await once(`open:${start}`, async () => {
-          await send({ address: market, abi: marketAbi, functionName: "open", args: ["0x"] });
+          await send({ address: m.market, abi: marketAbi, functionName: "open", args: ["0x"] });
           log(`round ${label} opened`);
         });
     }
-    if (state === 1 && t >= end) {
+    if (m.state === 1 && t >= end) {
       if (due(`propose-end:${start}`))
         await once(`propose-end:${start}`, async () =>
           send({
@@ -175,11 +192,11 @@ async function tick() {
         );
       if (
         done.has(`propose-end:${start}`) &&
-        t >= end + dep.finalizationWindow + 3 &&
+        t >= end + dep.finalizationWindow + 2 &&
         due(`resolve:${start}`)
       )
         await once(`resolve:${start}`, async () => {
-          await send({ address: market, abi: marketAbi, functionName: "resolve", args: ["0x"] });
+          await send({ address: m.market, abi: marketAbi, functionName: "resolve", args: ["0x"] });
           log(`round ${label} resolved`);
         });
     }
@@ -193,5 +210,5 @@ for (;;) {
   } catch (e) {
     log(`tick: ${String(e instanceof Error ? e.message : e).split("\n")[0]}`);
   }
-  await new Promise((r) => setTimeout(r, 3000));
+  await new Promise((r) => setTimeout(r, 1500));
 }

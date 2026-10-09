@@ -1,5 +1,5 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { epochsOf } from "./activity";
 import { nowSec as clockNow, syncClock } from "./clock";
 import type { Address } from "viem";
@@ -11,11 +11,12 @@ import {
   readHoldings,
   readLadder,
   readRound,
+  readSigma,
   type Round,
 } from "./data";
 
 /** One clock for countdowns, ticking every second. */
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 /** The time the server rendered with: the first client render uses it too, so hydration matches. */
 export const NowSeed = createContext<number | undefined>(undefined);
 
@@ -62,15 +63,39 @@ export function useRound(address: Address | undefined) {
   });
 }
 
+/**
+ * The vault's ladder for a round. The spot is read at fetch time from a ref, not put in the query key:
+ * a key that changed with every dollar of movement threw the data away each time, so the buttons
+ * flickered to "…" while the next read was on its way. The previous ladder stays on screen until the
+ * next one lands, and `useLiveMarket` keeps it moving between reads.
+ */
 export function useLadder(round: Round | null | undefined, spot: number | null) {
   const live = round?.state === 1 && spot !== null;
+  const spotRef = useRef(spot);
+  spotRef.current = spot;
   return useQuery({
-    queryKey: ["ladder", round?.address, spot === null ? null : Math.round(spot)],
-    queryFn: () => readLadder(round!.address, spot!, clockNow()),
+    queryKey: ["ladder", round?.address],
+    queryFn: async () => {
+      const at = spotRef.current as number;
+      const ladder = await readLadder(round!.address, at, clockNow());
+      return { ...ladder, spotAt: at };
+    },
     enabled: Boolean(live),
-    refetchInterval: 2500,
-    staleTime: 1000,
+    refetchInterval: 2000,
+    staleTime: 800,
     retry: 1,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** The keeper's volatility input, refreshed every 30 s: the local odds need it between ladder reads. */
+export function useSigma(assetId: `0x${string}` | undefined) {
+  return useQuery({
+    queryKey: ["sigma", assetId],
+    queryFn: () => readSigma(assetId as `0x${string}`),
+    enabled: Boolean(assetId),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
   });
 }
 

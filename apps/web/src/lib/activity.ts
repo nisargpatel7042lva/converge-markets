@@ -5,10 +5,20 @@
  * the indexer remain the source of truth, this only remembers where to look.
  */
 export type OrderRecord = { id: string; market: string; side: "UP" | "DOWN"; at: number };
-type Store = { orders: OrderRecord[]; markets: string[]; epochs: string[] };
+export type Attempt = {
+  id: string;
+  market: string;
+  side: "UP" | "DOWN";
+  at: number;
+  /** What became of the bet: bought (filled) or sent back (the price moved, the market paused, or it was too big). */
+  status: "filled" | "refunded";
+  /** Collateral base units: what the bet cost (filled) or what came back (refunded). */
+  amount: string;
+};
+type Store = { orders: OrderRecord[]; markets: string[]; epochs: string[]; history: Attempt[] };
 
 const key = (address: string) => `converge.activity.v1.${address.toLowerCase()}`;
-const EMPTY: Store = { orders: [], markets: [], epochs: [] };
+const EMPTY: Store = { orders: [], markets: [], epochs: [], history: [] };
 
 function load(address: string): Store {
   try {
@@ -29,6 +39,7 @@ function save(address: string, s: Store) {
 
 export const ordersOf = (address: string) => load(address).orders;
 export const marketsOf = (address: string) => load(address).markets;
+export const historyOf = (address: string) => load(address).history;
 export const epochsOf = (address: string) => load(address).epochs.map((e) => BigInt(e));
 
 export function recordOrder(address: string, o: OrderRecord) {
@@ -48,5 +59,12 @@ export function forgetOrder(address: string, id: string) {
 export function recordEpoch(address: string, epoch: bigint) {
   const s = load(address);
   if (!s.epochs.includes(epoch.toString())) s.epochs = [epoch.toString(), ...s.epochs].slice(0, 50);
+  save(address, s);
+}
+
+/** Remembers how a bet ended, so My bets can say "refunded: the price moved" instead of the bet just vanishing. */
+export function recordAttempt(address: string, a: Attempt) {
+  const s = load(address);
+  s.history = [a, ...s.history.filter((x) => x.id !== a.id)].slice(0, 20);
   save(address, s);
 }

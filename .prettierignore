@@ -24,6 +24,8 @@ indexer/src/lib/deployment-defaults.ts
 apps/web/public/
 apps/web/.next-e2e/
 apps/web/.next-demo/
+apps/web/.next-testnet/
+.testnet/
 .demo/
 apps/web/e2e-results/
 docs/evidence/phase-7/*.json

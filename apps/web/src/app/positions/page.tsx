@@ -8,7 +8,8 @@ import { AppShell } from "@/components/shell";
 import { toast } from "@/components/toast";
 import { Button, Card, EmptyState, ErrorState, Pill, Skeleton } from "@/components/ui";
 import { deployment } from "@/config/deployment";
-import { forgetOrder, marketsOf, ordersOf } from "@/lib/activity";
+import { forgetOrder, historyOf, marketsOf, ordersOf } from "@/lib/activity";
+import { Confetti, Mascot, haptic } from "@/components/delight";
 import { explainAccountError, withSigner } from "@/lib/account";
 import {
   indexerClient,
@@ -35,6 +36,7 @@ export default function Positions() {
   const now = useNow();
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
   const user = profile?.address;
 
   // Markets to look at: the live window, plus every market this device traded and every market the
@@ -96,7 +98,7 @@ export default function Positions() {
           action={
             <Link
               href="/start"
-              className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#0b0820]"
+              className="rounded-2xl bg-brand px-5 py-3 text-sm font-bold text-[#15112e]"
             >
               Start with Face ID
             </Link>
@@ -129,6 +131,10 @@ export default function Positions() {
     try {
       await withSigner(profile, fn);
       toast(done, "ok");
+      if (label === "collect") {
+        setCelebrate(true);
+        haptic([18, 40, 18]);
+      }
       await qc.invalidateQueries();
     } catch (e) {
       toast(
@@ -161,22 +167,31 @@ export default function Positions() {
       "Cancelled. Your money is back in your account.",
     );
 
+  const recent = user ? historyOf(user).slice(0, 4) : [];
   const nothing = !holdings.isLoading && items.length === 0 && (open.data ?? []).length === 0;
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold tracking-tight">My bets</h1>
+      <h1 className="text-[28px] font-extrabold leading-tight tracking-tight">My bets</h1>
 
+      {celebrate ? <Confetti onDone={() => setCelebrate(false)} /> : null}
       {claimable.length > 0 ? (
-        <Card className={`mt-4 ${winners.length > 0 ? "border-up-deep bg-[#0d2a20]" : ""}`}>
-          <p className={`text-sm ${winners.length > 0 ? "text-up" : "text-muted"}`}>
-            {winners.length > 0
-              ? "A round you won has finished"
-              : "A round was cancelled: your money is refundable"}
-          </p>
-          <p data-testid="claim-total" className="tabular mt-1 text-2xl font-bold">
-            {usd(claimTotal)} ready to collect
-          </p>
+        <Card className={`mt-4 ${winners.length > 0 ? "!border-up-deep !bg-up-soft" : ""}`}>
+          <div className="flex items-center gap-3">
+            <Mascot mood={winners.length > 0 ? "happy" : "calm"} size={56} />
+            <div className="min-w-0">
+              <p
+                className={`text-sm font-semibold ${winners.length > 0 ? "text-up" : "text-muted"}`}
+              >
+                {winners.length > 0
+                  ? "You called it! A round you won has finished"
+                  : "A round was cancelled: your money is refundable"}
+              </p>
+              <p data-testid="claim-total" className="tabular mt-0.5 text-2xl font-extrabold">
+                {usd(claimTotal)} ready to collect
+              </p>
+            </div>
+          </div>
           <Button
             data-testid="collect-all"
             tone="up"
@@ -191,7 +206,7 @@ export default function Positions() {
 
       {(open.data ?? []).length > 0 ? (
         <section aria-label="Waiting to be filled" className="mt-4">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-faint">
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-faint">
             Waiting to be filled
           </h2>
           <ul className="grid gap-3">
@@ -199,7 +214,7 @@ export default function Positions() {
               <li
                 key={String(o.id)}
                 data-testid="open-order"
-                className="rounded-2xl border border-line bg-surface p-4"
+                className="rounded-[22px] border border-line/80 bg-surface p-4"
               >
                 <p className="font-semibold">
                   {o.kind === 0 || o.kind === 1 ? "Up" : "Down"} · {usd(o.shares)} if right
@@ -232,6 +247,40 @@ export default function Positions() {
         </section>
       ) : null}
 
+      {recent.length > 0 ? (
+        <section aria-label="Recent bets" className="mt-4">
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-faint">Recent</h2>
+          <ul className="grid gap-2">
+            {recent.map((a) => (
+              <li
+                key={a.id}
+                data-testid="attempt"
+                className="flex items-start gap-3 rounded-[20px] border border-line/80 bg-surface p-3.5"
+              >
+                <span
+                  aria-hidden
+                  className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm ${a.status === "filled" ? "bg-up-soft text-up" : "bg-warn-soft text-warn"}`}
+                >
+                  {a.status === "filled" ? "✓" : "↩"}
+                </span>
+                <div className="min-w-0 text-sm">
+                  <p className="font-semibold">
+                    {a.status === "filled"
+                      ? `Bet ${a.side === "UP" ? "Up" : "Down"} · ${usd(BigInt(a.amount))}`
+                      : `Refunded ${usd(BigInt(a.amount))}`}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {a.status === "filled"
+                      ? "You're in. It shows under In play."
+                      : "The price moved before it could be priced, so it was cancelled and your money came back."}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {pnl.data && pnl.data.length > 0 ? (
         <p className="tabular mt-3 text-sm text-muted">
           Profit and loss so far:{" "}
@@ -251,12 +300,13 @@ export default function Positions() {
       ) : nothing ? (
         <div className="mt-5">
           <EmptyState
+            mood="happy"
             title="No bets yet"
             body="When you bet Up or Down it shows up here, with a one-tap collect when you win."
             action={
               <Link
                 href="/markets"
-                className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#0b0820]"
+                className="rounded-2xl bg-brand px-5 py-3 text-sm font-bold text-[#15112e]"
               >
                 Find a market
               </Link>
@@ -283,7 +333,7 @@ function Section({
   if (items.length === 0) return null;
   return (
     <section aria-label={title}>
-      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-faint">{title}</h2>
+      <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-faint">{title}</h2>
       <ul className="grid gap-3">
         {items.map(({ h, phase }) => {
           const won = phase.phase === "SETTLED" ? payoutOf(h, phase.outcome) : 0n;
@@ -291,7 +341,7 @@ function Section({
             <li key={h.round.address}>
               <Link
                 href={`/market/${h.round.address}`}
-                className="block rounded-2xl border border-line bg-surface p-4"
+                className="block rounded-[22px] border border-line/80 bg-surface p-4 transition-colors hover:bg-raised/50"
                 data-testid="position"
               >
                 <div className="flex items-center justify-between">

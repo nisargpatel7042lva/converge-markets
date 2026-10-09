@@ -16,7 +16,8 @@ export const chain = defineChain({
 
 export const publicClient = createPublicClient({
   chain,
-  transport: http(deployment.rpcUrl, { batch: { wait: 12 }, retryCount: 2, retryDelay: 200 }),
+  // No JSON-RPC array batching: the public Monad endpoints allow a batch of one. Reads are grouped by Multicall3 instead.
+  transport: http(deployment.rpcUrl, { retryCount: 2, retryDelay: 200 }),
   pollingInterval: 300,
   ...(deployment.multicall3 ? { batch: { multicall: { wait: 12 } } } : {}),
 });

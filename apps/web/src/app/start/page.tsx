@@ -102,7 +102,7 @@ export default function Start() {
             {!supported ? (
               <div
                 role="alert"
-                className="rounded-2xl border border-down-deep bg-[#1e0d14] p-4 text-sm text-muted"
+                className="rounded-2xl border border-down-deep bg-down-soft p-4 text-sm text-muted"
               >
                 This browser can&apos;t create a passkey account. Open Converge in Safari (iPhone,
                 iOS 18 or newer), Chrome on Android, or use a password manager passkey such as
@@ -127,7 +127,7 @@ export default function Start() {
             {error ? (
               <p
                 role="alert"
-                className="rounded-xl border border-down-deep bg-[#1e0d14] px-4 py-3 text-sm text-[#ffd6de]"
+                className="rounded-xl border border-down-deep bg-down-soft px-4 py-3 text-sm text-[#ffd6de]"
               >
                 {error}
               </p>

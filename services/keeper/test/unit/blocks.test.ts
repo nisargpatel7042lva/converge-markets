@@ -40,3 +40,30 @@ describe("block source over HTTP polling", () => {
     expect(src.byNumber.get(101n)?.timestamp).toBe(202n);
   });
 });
+
+describe("block source with a socket that refuses connections", () => {
+  it("re-opens it a few times with a growing delay, logs once, and keeps the keeper fed by polling", async () => {
+    let n = 1n;
+    const pub = {
+      getBlock: async () => ({ number: n++, timestamp: n }),
+    } as unknown as PublicClient;
+    const warnings: string[] = [];
+    const rec = pino({ level: "warn" }, { write: (m: string) => warnings.push(m) });
+    const heads: Head[] = [];
+    // port 1 refuses at once: viem reports an error for every failed attempt
+    const src = new BlockSource(pub, (h) => heads.push(h), rec, {
+      wsUrl: "ws://127.0.0.1:1",
+      pollMs: 20,
+      stallMs: 1000,
+      reopenMs: 25,
+    });
+    src.start();
+    await wait(900);
+    src.stop();
+    // 25, 50, 100, 200, 400 ms: a handful of opens, not one per error (it was 280,000 lines and an OOM)
+    expect(src.wsOpens).toBeGreaterThan(1);
+    expect(src.wsOpens).toBeLessThan(9);
+    expect(warnings.filter((w) => w.includes("block socket error")).length).toBeLessThanOrEqual(1);
+    expect(heads.length).toBeGreaterThan(10); // polling kept the heads coming
+  });
+});

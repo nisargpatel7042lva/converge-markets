@@ -22,7 +22,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  `connect-src ${["'self'", origin(rpcUrl), "https://api.binance.com", "wss://stream.binance.com:9443", "wss://ws-feed.exchange.coinbase.com", origin(process.env.NEXT_PUBLIC_INDEXER_URL), origin(process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com")].filter(Boolean).join(" ")}`,
+  `connect-src ${["'self'", origin(rpcUrl), "https://api.binance.com", "https://api.exchange.coinbase.com", "wss://stream.binance.com:9443", "wss://ws-feed.exchange.coinbase.com", origin(process.env.NEXT_PUBLIC_INDEXER_URL), origin(process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com")].filter(Boolean).join(" ")}`,
   "worker-src 'self'",
   "manifest-src 'self'",
   "frame-ancestors 'none'",

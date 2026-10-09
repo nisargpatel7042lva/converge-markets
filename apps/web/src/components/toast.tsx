@@ -32,11 +32,11 @@ export function ToastHost() {
         <div
           key={t.id}
           role="status"
-          className={`pop pointer-events-auto rounded-xl border px-4 py-3 text-sm shadow-lg ${
+          className={`pop pointer-events-auto rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)] backdrop-blur ${
             t.tone === "error"
-              ? "border-down-deep bg-[#2a1018] text-[#ffd6de]"
+              ? "border-down-deep bg-down-soft text-[#ffd6de]"
               : t.tone === "ok"
-                ? "border-up-deep bg-[#0d2a20] text-[#c9ffe9]"
+                ? "border-up-deep bg-up-soft text-[#c9ffe9]"
                 : "border-line bg-raised text-text"
           }`}
         >

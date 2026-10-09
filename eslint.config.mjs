@@ -10,6 +10,7 @@ export default tseslint.config(
       "**/.next/**",
       "**/.next-e2e/**",
       "**/.next-demo/**",
+      "**/.next-testnet/**",
       "**/.next-lh/**",
       "apps/web/public/**",
       "apps/web/e2e-results/**",

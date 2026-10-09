@@ -33,7 +33,7 @@ export default function Account() {
           action={
             <Link
               href="/start"
-              className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#0b0820]"
+              className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#15112e]"
             >
               Get started
             </Link>
@@ -117,7 +117,7 @@ export default function Account() {
           .
         </p>
         {phrase ? (
-          <div className="mt-3 rounded-xl border border-warn/40 bg-[#2e2410] p-3">
+          <div className="mt-3 rounded-xl border border-warn/40 bg-warn-soft p-3">
             <p data-testid="phrase" className="font-mono text-sm leading-relaxed">
               {phrase}
             </p>

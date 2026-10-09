@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { Mascot } from "./delight";
 
 export function Button({
   tone = "primary",
@@ -10,9 +11,10 @@ export function Button({
   size?: "lg" | "md" | "sm";
 }) {
   const tones = {
-    primary: "bg-brand text-[#0b0820] hover:bg-[#9d8fff] active:bg-[#7a69f0]",
-    up: "bg-up text-[#04251a] hover:bg-[#52ecb2] active:bg-[#2bc98f]",
-    down: "bg-down text-[#2c0610] hover:bg-[#ff849a] active:bg-[#ec5572]",
+    primary:
+      "bg-brand text-[#15112e] hover:bg-[#bdb3f6] active:bg-[#9a8de6] shadow-[0_8px_24px_-10px_rgba(171,159,242,0.7)]",
+    up: "bg-up text-[#04251a] hover:bg-[#5be8b3] active:bg-[#2bc48c] shadow-[0_8px_24px_-12px_rgba(52,217,156,0.8)]",
+    down: "bg-down text-[#2c0610] hover:bg-[#ff8a99] active:bg-[#ec5a6e] shadow-[0_8px_24px_-12px_rgba(255,111,130,0.8)]",
     ghost: "border border-line bg-transparent text-text hover:bg-raised",
     quiet: "bg-raised text-text hover:bg-line",
   } as const;
@@ -24,14 +26,16 @@ export function Button({
   return (
     <button
       {...p}
-      className={`inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${tones[tone]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-[18px] font-semibold tracking-tight disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none ${tones[tone]} ${sizes[size]} ${className}`}
     />
   );
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-2xl border border-line bg-surface p-4 ${className}`}>
+    <section
+      className={`rounded-[22px] border border-line/80 bg-surface p-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] ${className}`}
+    >
       {children}
     </section>
   );
@@ -45,15 +49,18 @@ export function EmptyState({
   title,
   body,
   action,
+  mood = "calm",
 }: {
   title: string;
   body?: string;
   action?: ReactNode;
+  mood?: "happy" | "calm" | "oops" | "think";
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line px-6 py-10 text-center">
-      <p className="text-base font-semibold">{title}</p>
-      {body ? <p className="max-w-xs text-sm text-muted">{body}</p> : null}
+    <div className="flex flex-col items-center gap-2 rounded-[22px] border border-dashed border-line px-6 py-9 text-center">
+      <Mascot mood={mood} size={72} />
+      <p className="mt-1 text-base font-semibold">{title}</p>
+      {body ? <p className="max-w-xs text-sm leading-relaxed text-muted">{body}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );
@@ -71,11 +78,12 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="flex flex-col items-center gap-2 rounded-2xl border border-down-deep bg-[#1e0d14] px-6 py-8 text-center"
+      className="flex flex-col items-center gap-2 rounded-[22px] border border-down-deep/70 bg-down-soft px-6 py-8 text-center"
     >
+      <Mascot mood="oops" size={64} />
       <p className="text-base font-semibold">{title}</p>
       <p className="max-w-xs text-sm text-muted">
-        {body ?? "Check your connection and try again."}
+        {body ?? "That one's on us, not you. Check your connection and try again."}
       </p>
       {retry ? (
         <Button tone="ghost" size="sm" onClick={retry} className="mt-2">
@@ -95,14 +103,14 @@ export function Pill({
 }) {
   const t = {
     neutral: "bg-raised text-muted",
-    up: "bg-[#0d2a20] text-up",
-    down: "bg-[#2a1018] text-down",
-    warn: "bg-[#2e2410] text-warn",
-    brand: "bg-[#1d1a40] text-[#b9afff]",
+    up: "bg-up-soft text-up",
+    down: "bg-down-soft text-down",
+    warn: "bg-warn-soft text-warn",
+    brand: "bg-brand-soft text-brand",
   } as const;
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${t[tone]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${t[tone]}`}
     >
       {children}
     </span>

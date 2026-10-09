@@ -11,7 +11,7 @@ const out = {
   name: "Monad testnet",
   network: "testnet",
   chainId: dep.chainId,
-  rpcUrl: "https://testnet-rpc.monad.xyz",
+  rpcUrl: "https://rpc-testnet.monadinfra.com",
   explorerUrl: "https://testnet.monadvision.com",
   multicall3: "0xcA11bde05977b3631167028862bE2a173976CA11",
   nativeSymbol: "MON",

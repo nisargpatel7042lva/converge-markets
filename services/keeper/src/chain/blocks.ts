@@ -21,6 +21,11 @@ export class BlockSource {
   private stopped = false;
   private wsClient: PublicClient | null = null;
   private stallTimer: NodeJS.Timeout | null = null;
+  private reopenTimer: NodeJS.Timeout | null = null;
+  private reopenDelayMs: number;
+  /** How many times the socket was opened: a refused connection must not multiply this. */
+  wsOpens = 0;
+  private lastErrLogMs = 0;
   mode: "ws" | "poll" = "poll";
   readonly byNumber = new Map<bigint, Head>();
 
@@ -33,8 +38,12 @@ export class BlockSource {
       pollMs: number;
       stallMs: number;
       now?: () => number;
+      /** First delay before re-opening a failed socket (default 3 s; it doubles up to 20x that). */
+      reopenMs?: number;
     },
-  ) {}
+  ) {
+    this.reopenDelayMs = o.reopenMs ?? 3_000;
+  }
 
   get latest(): Head | null {
     return this.last;
@@ -53,6 +62,8 @@ export class BlockSource {
     this.unwatch?.();
     if (this.polling) clearInterval(this.polling);
     if (this.stallTimer) clearInterval(this.stallTimer);
+    if (this.reopenTimer) clearTimeout(this.reopenTimer);
+    this.reopenTimer = null;
   }
 
   private emit(number: bigint, timestamp: bigint, via: "ws" | "poll"): void {
@@ -71,6 +82,7 @@ export class BlockSource {
 
   private openWs(): void {
     if (this.stopped || !this.o.wsUrl) return;
+    this.wsOpens += 1;
     try {
       this.wsClient = createPublicClient({
         transport: webSocket(this.o.wsUrl, { retryCount: 0 }),
@@ -79,10 +91,17 @@ export class BlockSource {
         onBlock: (b) => {
           // a socket error can deliver an empty block: ignore it, the polling fallback covers
           if (b?.number === null || b?.number === undefined) return;
+          this.reopenDelayMs = this.o.reopenMs ?? 3_000; // a socket that delivers blocks is healthy again
           this.emit(b.number, b.timestamp, "ws");
         },
         onError: (e) => {
-          this.log.warn({ err: errText(e, 100) }, "block socket error");
+          // viem calls this once per failed attempt, many times a second when the endpoint refuses
+          // the connection: log it at most every 30 s (it once wrote 280,000 lines and ate the heap)
+          const t = (this.o.now ?? Date.now)();
+          if (t - this.lastErrLogMs > 30_000) {
+            this.lastErrLogMs = t;
+            this.log.warn({ err: errText(e, 100) }, "block socket error");
+          }
           this.reopenWsLater();
         },
         emitMissed: false,
@@ -93,10 +112,23 @@ export class BlockSource {
     }
   }
 
+  /**
+   * Re-opens the socket once, later, with a growing delay (3 s, 6 s, ... 60 s). It must be idempotent:
+   * every error used to schedule its own re-open, each re-open created another watcher, and a
+   * refused connection multiplied them until the process ran out of memory. HTTP polling carries
+   * the keeper meanwhile.
+   */
   private reopenWsLater(): void {
     this.unwatch?.();
     this.unwatch = null;
-    setTimeout(() => this.openWs(), 3_000).unref();
+    if (this.stopped || this.reopenTimer) return;
+    const delay = this.reopenDelayMs;
+    this.reopenDelayMs = Math.min((this.o.reopenMs ?? 3_000) * 20, delay * 2);
+    this.reopenTimer = setTimeout(() => {
+      this.reopenTimer = null;
+      this.openWs();
+    }, delay);
+    this.reopenTimer.unref();
   }
 
   private startPolling(): void {

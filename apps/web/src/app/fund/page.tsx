@@ -82,7 +82,7 @@ export default function Fund() {
           action={
             <Link
               href="/start"
-              className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#0b0820]"
+              className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-[#15112e]"
             >
               Create account
             </Link>
@@ -134,7 +134,7 @@ export default function Fund() {
           <p
             role="status"
             data-testid="needs-gas"
-            className="mt-3 rounded-xl bg-[#2e2410] px-3 py-2 text-xs leading-relaxed text-warn"
+            className="mt-3 rounded-xl bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn"
           >
             Almost ready: your account needs about {nativeAmount(GAS_RESERVE_WEI, 2)}{" "}
             {deployment.nativeSymbol} for network fees.{" "}

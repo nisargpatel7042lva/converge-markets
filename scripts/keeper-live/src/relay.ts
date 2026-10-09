@@ -70,7 +70,18 @@ for (const src of SOURCES) {
   });
   const connect = () => {
     const up = new WebSocket(upstream[src]);
+    // A feed can stall without ever closing (the Coinbase one did, for hours, and the keeper then
+    // halted on "few sources"): if nothing arrives for 8 s the connection is dropped and reopened.
+    let heard = Date.now();
+    const dog = setInterval(() => {
+      if (Date.now() - heard > 8000) {
+        log({ ev: "upstream silent, reconnecting", src });
+        up.terminate();
+      }
+    }, 2000);
+    up.on("close", () => clearInterval(dog));
     up.on("open", () => {
+      heard = Date.now();
       log({ ev: "upstream open", src });
       if (src === "coinbase")
         up.send(
@@ -78,6 +89,7 @@ for (const src of SOURCES) {
         );
     });
     up.on("message", (d) => {
+      heard = Date.now();
       const out = distort(src, String(d));
       if (out === null) return;
       lastMsg[src] = { at: Date.now(), raw: out };

@@ -8,7 +8,7 @@ export function StartButton() {
   const { profile, ready } = useAccount();
   useEffect(() => track("landing_view"), []);
   const cls =
-    "flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand px-6 text-base font-semibold text-[#0b0820] transition-colors hover:bg-[#9d8fff] active:bg-[#7a69f0]";
+    "flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] bg-brand px-6 text-base font-bold text-[#15112e] shadow-[0_10px_30px_-10px_rgba(171,159,242,0.8)] transition-colors hover:bg-[#bdb3f6] active:bg-[#9a8de6]";
   if (ready && profile)
     return (
       <Link href="/markets" className={cls}>

@@ -1,4 +1,5 @@
 import {
+  convergeVaultAbi,
   createIndexerClient,
   forwardVenueAbi,
   marketAbi,
@@ -166,6 +167,18 @@ export async function readLadder(market: Address, spot: number, at: number): Pro
   };
 }
 
+/** The keeper's volatility input for an asset, as a plain number (annualised); null if never set. */
+export async function readSigma(assetId: `0x${string}`): Promise<number | null> {
+  const cfg = (await publicClient.readContract({
+    address: deployment.vault,
+    abi: convergeVaultAbi,
+    functionName: "assetCfg",
+    args: [assetId],
+  })) as readonly unknown[];
+  const sigma = cfg[2] as bigint;
+  return sigma === 0n ? null : Number(sigma) / 1e18;
+}
+
 export async function readBalances(user: Address) {
   const [usdc, native] = await Promise.all([
     publicClient.readContract({
@@ -211,6 +224,10 @@ export type OrderResult = {
   premium?: bigint;
 };
 
+/** Public RPCs cap `eth_getLogs` ranges (Monad testnet: 100 blocks): ask in windows below that. */
+const LOG_WINDOW = 90n;
+const MAX_WINDOWS = 14; // about 8 minutes of 0.4 s blocks: an order is decided long before
+
 /** Where an order stands: open, executed (and what it filled) or expired. */
 export async function readOrderResult(id: bigint, fromBlock: bigint): Promise<OrderResult> {
   const o = await publicClient.readContract({
@@ -220,18 +237,30 @@ export async function readOrderResult(id: bigint, fromBlock: bigint): Promise<Or
     args: [id],
   });
   if (Number(o[2]) !== 2) return { status: "open" };
-  const logs = await publicClient.getContractEvents({
-    address: deployment.venue,
-    abi: forwardVenueAbi,
-    fromBlock,
-    args: { id },
-  });
-  for (const l of logs) {
-    if (l.eventName === "OrderExecuted") {
-      const filled = l.args.filled ?? 0n;
-      return { status: filled > 0n ? "filled" : "unfilled", filled, premium: l.args.premium ?? 0n };
+  const head = await publicClient.getBlockNumber();
+  // A single query from the placement block to now fails as soon as it spans more than the node's
+  // limit (a slow passkey prompt is enough): that is how a decided bet used to look stuck. Windows
+  // instead, oldest first (the decision is near the placement block).
+  for (let w = 0, from = fromBlock; from <= head && w < MAX_WINDOWS; w++, from += LOG_WINDOW) {
+    const to = from + LOG_WINDOW - 1n > head ? head : from + LOG_WINDOW - 1n;
+    const logs = await publicClient.getContractEvents({
+      address: deployment.venue,
+      abi: forwardVenueAbi,
+      fromBlock: from,
+      toBlock: to,
+      args: { id },
+    });
+    for (const l of logs) {
+      if (l.eventName === "OrderExecuted") {
+        const filled = l.args.filled ?? 0n;
+        return {
+          status: filled > 0n ? "filled" : "unfilled",
+          filled,
+          premium: l.args.premium ?? 0n,
+        };
+      }
+      if (l.eventName === "OrderExpired") return { status: "expired" };
     }
-    if (l.eventName === "OrderExpired") return { status: "expired" };
   }
   return { status: "unfilled", filled: 0n, premium: 0n };
 }
