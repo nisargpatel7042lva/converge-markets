@@ -1,0 +1,34 @@
+{
+  "schedule": "5,35 * * * * *",
+  "gasLimit": "9000000",
+  "maxActionsPerReport": 12,
+  "series": {
+    "lookaheadRounds": 3,
+    "recentLookbackSeconds": 7200,
+    "deepLookbackSeconds": 93600,
+    "lateAfterSeconds": 60,
+    "durations": [
+      900
+    ],
+    "assets": [
+      {
+        "label": "TEST/USD",
+        "symbol": "ETH",
+        "resolver": "streams",
+        "streamsFeedId": "0x0003000000000000000000000000000000000000000000000000000000000001"
+      }
+    ],
+    "kuru": {
+      "enabled": true,
+      "reason": "Kuru testnet markets for each round's UP token are listed by services/kuru (docs/kuru/INTEGRATION.md), outside this workflow."
+    },
+    "maxCreatesPerReport": 4
+  },
+  "chainSelectorName": "monad-testnet",
+  "chainId": 10143,
+  "factory": "0x6d3C829CbE58c53625b714d19E49cE1D41e66639",
+  "receiver": "0x92e749013cd31a43EBd41FfEe96Ce95E58008322",
+  "dataStreamsApiUrl": "http://127.0.0.1:9311",
+  "lens": "0xB7f4F599eC109d16a9a0D7D1500037b466fCE18d",
+  "epoch": 1791500000
+}
