@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - services/keeper
+  - services/kuru
   - services/scheduler/fallback
   - scripts/*
   - indexer

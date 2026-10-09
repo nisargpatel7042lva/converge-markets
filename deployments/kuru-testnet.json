@@ -1,0 +1,203 @@
+{
+  "chainId": 10143,
+  "router": "0x7EFbE105Ca7415dE98F96622173458ac1c054630",
+  "marginAccount": "0xd029C2D98ff85D8F64799017fE00a59B1159CE02",
+  "maker": "0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1",
+  "rounds": {
+    "0x24b13b1a5799c58c8b778991b63ccc9f0784b6cc": {
+      "converge": "0x24B13b1a5799C58C8B778991B63ccc9f0784B6cc",
+      "up": "0x23450bfa695557Bd112568f3fB816c8c050Cb7dF",
+      "down": "0xf005AF66e91C93Bd1D6C0995D8086731B70D23Ff",
+      "kuru": "0x75525B25c504F7a2D78F2847F7A06Bed1631eE33",
+      "start": 1791553500,
+      "end": 1791554400,
+      "strike": 2482.965,
+      "status": "redeemed",
+      "seeded": true,
+      "orderIds": [],
+      "lastQuote": {
+        "fair": 0.6090811064408517,
+        "bid": 0.569,
+        "ask": 0.65,
+        "at": 1791554296
+      },
+      "quotes": 18,
+      "txs": [
+        {
+          "step": "kuru deployProxy (UP/tUSDC)",
+          "hash": "0x15a054219d00ed2e81c5b6b2032b7004026323d7edf925e3a3f2c56bc3b0303f",
+          "gasLimit": "1464965",
+          "at": 1791553760
+        },
+        {
+          "step": "approve collateral to the round",
+          "hash": "0x99e53006eb0f7aa4700338146f7b6e078e2d29c2cb9d8cd9ec5618cfa14917a7",
+          "gasLimit": "61244",
+          "at": 1791553763
+        },
+        {
+          "step": "split collateral into UP + DOWN",
+          "hash": "0x4545715a7dcc4f11697e4df5ec456ccff50417489d09382542534a5c17790953",
+          "gasLimit": "324740",
+          "at": 1791553763
+        },
+        {
+          "step": "approve UP to Kuru margin",
+          "hash": "0xcb46949b850547a620a2eeb0753425eb0cbc1094ed3d097a7b4df8a4904671b0",
+          "gasLimit": "72972",
+          "at": 1791553766
+        },
+        {
+          "step": "approve collateral to Kuru margin",
+          "hash": "0x1d922770d0cee7aa8cf43e46b2944c161216adbf33cf863323db682cf173396b",
+          "gasLimit": "61230",
+          "at": 1791553768
+        },
+        {
+          "step": "margin deposit UP",
+          "hash": "0x304a8f635e388096ea42e3bba02864fabf07433f9a6aea70b50a6be0ade36b24",
+          "gasLimit": "175064",
+          "at": 1791553771
+        },
+        {
+          "step": "margin deposit collateral",
+          "hash": "0xa8e60386a6a75b733914601981a46d721db4db29ff62b9128b30ad40f02e8048",
+          "gasLimit": "163257",
+          "at": 1791553773
+        },
+        {
+          "step": "quote 0.672 / 0.753 (fair 0.712)",
+          "hash": "0x944fd6551add77b25b72c00944eda4e17c8df3782d3356147ec153814a5ce2eb",
+          "gasLimit": "619787",
+          "at": 1791553776
+        },
+        {
+          "step": "quote 0.584 / 0.665 (fair 0.625)",
+          "hash": "0xe1d04459521c2c5eba9a88bbaab0a193262d8edbbc3fba9eb6f118c34ac49f73",
+          "gasLimit": "604196",
+          "at": 1791553784
+        },
+        {
+          "step": "quote 0.649 / 0.730 (fair 0.690)",
+          "hash": "0x7db604ea4fe1a0c754d27547748452fd4cdbb9a9dbf3fd15c38e113a8c1df94d",
+          "gasLimit": "604215",
+          "at": 1791553792
+        },
+        {
+          "step": "quote 0.697 / 0.778 (fair 0.737)",
+          "hash": "0x75c00df1982209524f64ec2c082500ff8894c1e3d39b7a1361257dd764cd53d2",
+          "gasLimit": "604250",
+          "at": 1791553798
+        },
+        {
+          "step": "quote 0.759 / 0.840 (fair 0.799)",
+          "hash": "0x077fcd68f701553a633f45ee96335e891a3c413abc6df0652752fbd1ea4a2e90",
+          "gasLimit": "604245",
+          "at": 1791553806
+        },
+        {
+          "step": "quote 0.837 / 0.918 (fair 0.877)",
+          "hash": "0x86dac0cf4613a0855c7946c546b9650bbcec8d39841e42a369c002142ae57e80",
+          "gasLimit": "604160",
+          "at": 1791553814
+        },
+        {
+          "step": "quote 0.872 / 0.953 (fair 0.913)",
+          "hash": "0x8df88cb1d15755d818a81947c86b5c984cb39d5f3b79260fa89ae71345809215",
+          "gasLimit": "604095",
+          "at": 1791553821
+        },
+        {
+          "step": "quote 0.828 / 0.909 (fair 0.869)",
+          "hash": "0x27eb441acf59625c037c8643bec5f0de239bfcc942e715597c2e8bea8d2ea5a5",
+          "gasLimit": "604130",
+          "at": 1791553827
+        },
+        {
+          "step": "quote 0.738 / 0.819 (fair 0.778)",
+          "hash": "0xc2101c409b5e1ba401b92d44005cf0d02e74b3426c2c349183b90d71f0746b10",
+          "gasLimit": "604230",
+          "at": 1791553840
+        },
+        {
+          "step": "quote 0.783 / 0.864 (fair 0.823)",
+          "hash": "0xa6f15639fbb819b84b8a58613d444c82df0adc0972f43a29d4d6e2be82fb74cc",
+          "gasLimit": "604266",
+          "at": 1791553856
+        },
+        {
+          "step": "quote 0.849 / 0.930 (fair 0.890)",
+          "hash": "0x4c3804aae90a467e6e4be018e4e24e5c8764a6a85e683f5ecb3151ff5c459889",
+          "gasLimit": "604145",
+          "at": 1791553890
+        },
+        {
+          "step": "pull quotes (round nearly decided)",
+          "hash": "0x351eddf4ef2555ec745cad92f01cce871f48075a2feb871ca480ddfea9823b75",
+          "gasLimit": "292376",
+          "at": 1791553938
+        },
+        {
+          "step": "quote 0.789 / 0.870 (fair 0.829)",
+          "hash": "0xed524472c885cf666c3f83b250e84ad45313999d606fe2f9195f814174f75045",
+          "gasLimit": "619922",
+          "at": 1791554019
+        },
+        {
+          "step": "quote 0.861 / 0.942 (fair 0.902)",
+          "hash": "0xfa9759ef808e8065781afa53f282708cafadd103deaf95b895effeddbe84e8c8",
+          "gasLimit": "604141",
+          "at": 1791554057
+        },
+        {
+          "step": "quote 0.787 / 0.868 (fair 0.827)",
+          "hash": "0xdaa24a32673912fbf4b5a3939bda3df96ad2ea1ed43cd93886c73d320c2b2752",
+          "gasLimit": "604336",
+          "at": 1791554141
+        },
+        {
+          "step": "quote 0.871 / 0.952 (fair 0.912)",
+          "hash": "0x59029c09c9688ba69a2a9e0ebdb6d5f13ec9bd94ebc2bf252420663901480fd3",
+          "gasLimit": "604130",
+          "at": 1791554185
+        },
+        {
+          "step": "quote 0.708 / 0.789 (fair 0.749)",
+          "hash": "0xa64fa6df19129f50776c3ad1d4211aa9bee291e81355f36ea7cf0bfd9fe4f8f6",
+          "gasLimit": "604211",
+          "at": 1791554237
+        },
+        {
+          "step": "quote 0.897 / 0.978 (fair 0.937)",
+          "hash": "0xf9f73a32e2922369d1cac94130227574315a8f4d37f4f18f6c7de1c6a604131c",
+          "gasLimit": "604145",
+          "at": 1791554252
+        },
+        {
+          "step": "quote 0.569 / 0.650 (fair 0.609)",
+          "hash": "0x16dfa71e553b3f60e3b8fbf8f81df755f7d5d5f02ba1a8e9f5be5da8e97fd37e",
+          "gasLimit": "604235",
+          "at": 1791554391
+        },
+        {
+          "step": "cancel quotes",
+          "hash": "0x79c5d87fe48bda3f261514c6d63c8b891013360ba84375c74508427d12030a71",
+          "gasLimit": "292376",
+          "at": 1791554423
+        },
+        {
+          "step": "withdraw margin",
+          "hash": "0x63940548404db20da8f63d23f5c68d972c785f348a0f781743de416e969f5032",
+          "gasLimit": "204943",
+          "at": 1791554428
+        },
+        {
+          "step": "redeem the round's tokens",
+          "hash": "0xc63ea197fac9970cc5808d8b8bcba613cc239f20d34cbb2361f62506ee2656d2",
+          "gasLimit": "195212",
+          "at": 1791554447
+        }
+      ]
+    }
+  }
+}

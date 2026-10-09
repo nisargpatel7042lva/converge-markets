@@ -16,5 +16,5 @@ export const VAULT_DEFAULTS: Record<number, VaultDefaults> = {
  * so without this list their takers would inherit the old vault's split cost.
  */
 export const SYSTEM_ADDRESSES: Record<number, string[]> = {
-  10143: ["0xbeaf85d2682bad7ca09fd869037065350cf4a3b5", "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c", "0xbe417d5d53725e60a937f2b2894972a7344a92cc", "0x68153506da3ab7d767c7462ed678d3804008c042", "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748", "0xdf5958c9d759a97b7c3a9e49f8fb0924406698aa"],
+  10143: ["0x5dd05ffd80f8959abd25c82a57f5bd106c27b082", "0xb23836fce92ef669ebef742f685ec960ff7630d9", "0xbe417d5d53725e60a937f2b2894972a7344a92cc", "0x68153506da3ab7d767c7462ed678d3804008c042", "0xcd2072443d37397dbea4e8eadbccfb8cb1f10748", "0xdf5958c9d759a97b7c3a9e49f8fb0924406698aa", "0xbeaf85d2682bad7ca09fd869037065350cf4a3b5", "0x28dbcf1631f51c9021d999b46e5d9439b4ed913c"],
 };

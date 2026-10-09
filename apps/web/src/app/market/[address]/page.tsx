@@ -15,6 +15,7 @@ import {
 } from "@/components/delight";
 import { AppShell } from "@/components/shell";
 import { toast } from "@/components/toast";
+import { KuruPanel } from "@/components/kuru-panel";
 import { TradeSheet } from "@/components/trade-sheet";
 import { Button, Card, ErrorState, Pill, Skeleton } from "@/components/ui";
 import { deployment } from "@/config/deployment";
@@ -381,6 +382,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
           ) : null}
         </Card>
       ) : null}
+      <KuruPanel round={r} vaultUpAsk={live.upAsk} />
       <p className="mt-6 text-center text-xs text-faint">Network: {deployment.name}</p>
 
       {isLive ? (

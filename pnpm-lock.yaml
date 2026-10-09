@@ -311,6 +311,28 @@ importers:
         specifier: ^8.5.12
         version: 8.18.2
 
+  services/kuru:
+    dependencies:
+      '@converge/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      '@converge/strategy':
+        specifier: workspace:*
+        version: link:../../packages/strategy
+      '@kuru-labs/kuru-sdk':
+        specifier: 0.0.95
+        version: 0.0.95
+      viem:
+        specifier: ^2.54.2
+        version: 2.57.2(typescript@5.9.3)(zod@3.25.76)
+    devDependencies:
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.15
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.20.5)(lightningcss@1.32.0)
+
   services/scheduler/fallback:
     dependencies:
       '@converge/sdk':

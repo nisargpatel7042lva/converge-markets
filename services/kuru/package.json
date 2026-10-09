@@ -1,0 +1,24 @@
+{
+  "name": "@converge/kuru",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Lists every Converge round as a market on Kuru's order book (testnet: permissionless) and quotes it from the same fair-value model the vault uses.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run test",
+    "lister": "tsx src/main.ts",
+    "taker": "tsx src/taker.ts",
+    "report": "tsx src/report.ts"
+  },
+  "dependencies": {
+    "@converge/sdk": "workspace:*",
+    "@converge/strategy": "workspace:*",
+    "@kuru-labs/kuru-sdk": "0.0.95",
+    "viem": "^2.54.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "vitest": "^2.1.9"
+  }
+}

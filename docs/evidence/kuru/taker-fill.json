@@ -1,0 +1,26 @@
+{
+  "market": "0x75525B25c504F7a2D78F2847F7A06Bed1631eE33",
+  "round": "0x24B13b1a5799C58C8B778991B63ccc9f0784B6cc",
+  "taker": "0x4569B1b73b37eA1948335767A4243142D7015118",
+  "bestBid": 0.872,
+  "bestAsk": 0.953,
+  "steps": [
+    {
+      "step": "taker mints + approves test collateral",
+      "hash": "0x15315368c5f99f977527f565af98d2dc0355bdee9e11c9fe4e9b7eb9b60eaa5b",
+      "detail": "approve 0xb27242176d430b81b4babb41e1168cd8165ef6ec32802d7e3490cc9b58b792f7, approve UP 0x5ff80a67fb6b0527f75c028aa0531e73f9cc965ffda103bfcfaf0933da8c3014"
+    },
+    {
+      "step": "market buy of the UP token on Kuru",
+      "hash": "0x3e414205f412a52dff08f9afc0d9ba4b84f5e897a1b9c295811f428c74ff9621",
+      "detail": "2.2002 UP for $2, avg 0.9090"
+    },
+    {
+      "step": "market sell back to the book",
+      "hash": "0xc31bb2c4f4d262f51b3ffdb2b0ff9443126728b3c703849fd1779dbb7786e280",
+      "detail": "received $1.8217"
+    }
+  ],
+  "balanceMon": "0.111629852",
+  "note": "bestBid/bestAsk were read at the moment of the buy; the maker re-quoted to 0.828 / 0.909 a moment later, which is the price the buy and sell filled at."
+}
