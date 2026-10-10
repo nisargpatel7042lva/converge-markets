@@ -1,7 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { Figtree, Fraunces } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree", display: "swap" });
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  axes: ["SOFT", "opsz"],
+});
 
 export const metadata: Metadata = {
   title: { default: "Converge: bet UP or DOWN in 15 minutes", template: "%s · Converge" },
@@ -25,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0e14",
+  themeColor: "#0f1218",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -33,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${figtree.variable} ${fraunces.variable}`}>
       <body>
         <a
           href="#main"

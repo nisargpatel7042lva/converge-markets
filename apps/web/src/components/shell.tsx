@@ -28,13 +28,23 @@ const TABS = [
   },
 ] as const;
 
+/** The mark: Up (mint) above, Down (coral) below, and the lilac lens where they converge. */
+export function LogoMark({ size = 24 }: { size?: number }) {
+  return (
+    <svg aria-hidden width={size} height={size} viewBox="0 0 24 24">
+      <circle cx="12" cy="8.4" r="7.2" fill="#5fd7ae" />
+      <circle cx="12" cy="15.6" r="7.2" fill="#f48b98" />
+      <path d="M5.765 12A7.2 7.2 0 0 0 18.235 12A7.2 7.2 0 0 0 5.765 12Z" fill="#b6aaf6" />
+    </svg>
+  );
+}
+
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 font-bold tracking-tight ${className}`}>
-      <svg aria-hidden width="24" height="24" viewBox="0 0 24 24">
-        <path d="M3 5l9 7-9 7V5z" fill="#34d99c" />
-        <path d="M21 5l-9 7 9 7V5z" fill="#ff6f82" opacity=".94" />
-      </svg>
+    <span
+      className={`font-display inline-flex items-center gap-2.5 font-semibold tracking-tight ${className}`}
+    >
+      <LogoMark size={26} />
       Converge
     </span>
   );
@@ -51,48 +61,90 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const path = usePathname();
   const { handle, ready } = useAccount();
+  const width = wide ? "md:max-w-6xl" : "md:max-w-3xl";
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 backdrop-blur-xl [background:linear-gradient(to_bottom,rgba(18,18,21,0.92),rgba(18,18,21,0.6))]">
-        <Link href="/markets" aria-label="Converge home">
-          <Logo />
-        </Link>
-        <div className="flex items-center gap-2">
-          {deployment.testnet ? (
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-warn-soft px-2.5 py-1 text-xs font-semibold text-warn">
-              <span className="h-1.5 w-1.5 rounded-full bg-warn" />
-              Test money
-            </span>
-          ) : null}
-          {ready && handle ? (
+    <div className="flex min-h-dvh w-full flex-col">
+      <header className="sticky top-0 z-30 backdrop-blur-xl [background:linear-gradient(to_bottom,rgba(15,18,24,0.94),rgba(15,18,24,0.66))]">
+        <div className="mx-auto flex w-full max-w-md items-center justify-between px-4 py-3 md:max-w-6xl md:px-8 md:py-4">
+          <Link href="/markets" aria-label="Converge home">
+            <Logo className="md:text-lg" />
+          </Link>
+          <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+            {TABS.filter((t) => t.href !== "/account").map((t) => {
+              const active = path === t.href || path.startsWith(`${t.href}/`);
+              return (
+                <Link
+                  key={t.href}
+                  href={t.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${active ? "bg-brand-soft text-brand" : "text-muted hover:text-text"}`}
+                >
+                  {t.label}
+                </Link>
+              );
+            })}
             <Link
-              href="/account"
-              className="inline-flex min-h-11 max-w-[9.5rem] items-center gap-2 rounded-full bg-raised py-1 pl-1.5 pr-3 text-xs font-semibold text-text"
+              href="/stats"
+              aria-current={path === "/stats" ? "page" : undefined}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${path === "/stats" ? "bg-brand-soft text-brand" : "text-muted hover:text-text"}`}
             >
-              <Avatar name={handle} />
-              <span className="truncate">{handle}</span>
+              Stats
             </Link>
-          ) : ready ? (
-            <Link
-              href="/start"
-              className="inline-flex min-h-11 items-center rounded-full bg-brand px-4 text-xs font-bold text-[#15112e]"
-            >
-              Sign in
-            </Link>
-          ) : (
-            <span aria-hidden className="inline-block h-11 w-24" />
-          )}
+          </nav>
+          <div className="flex items-center gap-2">
+            {deployment.testnet ? (
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-warn-soft px-2.5 py-1 text-xs font-semibold text-warn">
+                <span className="h-1.5 w-1.5 rounded-full bg-warn" />
+                Test money
+              </span>
+            ) : null}
+            {ready && handle ? (
+              <Link
+                href="/account"
+                className="inline-flex min-h-11 max-w-[9.5rem] items-center gap-2 rounded-full bg-raised py-1 pl-1.5 pr-3 text-xs font-semibold text-text md:max-w-[12rem] md:text-sm"
+              >
+                <Avatar name={handle} />
+                <span className="truncate">{handle}</span>
+              </Link>
+            ) : ready ? (
+              <Link
+                href="/start"
+                className="inline-flex min-h-11 items-center rounded-full bg-brand px-4 text-xs font-bold text-[#15112e] md:text-sm"
+              >
+                Sign in
+              </Link>
+            ) : (
+              <span aria-hidden className="inline-block h-11 w-24" />
+            )}
+          </div>
         </div>
       </header>
-      <main id="main" className="flex-1 px-4 pb-32 pt-2">
+      <main
+        id="main"
+        className={`mx-auto w-full max-w-md flex-1 px-4 pb-32 pt-2 md:px-8 md:pb-20 md:pt-6 ${width}`}
+      >
         {children}
       </main>
+      <footer className="mx-auto hidden w-full max-w-6xl flex-wrap items-center justify-between gap-3 border-t border-line/70 px-8 py-6 text-xs text-faint md:flex">
+        <span>Converge · bet Up or Down on 15-minute rounds. Trading involves risk of loss.</span>
+        <span className="flex gap-5">
+          <Link href="/legal/terms" className="hover:text-muted">
+            Terms
+          </Link>
+          <Link href="/legal/risk" className="hover:text-muted">
+            Risk disclosure
+          </Link>
+          <Link href="/legal/privacy" className="hover:text-muted">
+            Privacy
+          </Link>
+        </span>
+      </footer>
       <nav
         aria-label="Main"
-        className="safe-bottom pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-4"
+        className="safe-bottom pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-4 md:hidden"
       >
         <div className="pointer-events-auto grid grid-cols-4 rounded-[26px] border border-line/80 bg-surface/90 p-1.5 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl">
           {TABS.map((t) => {

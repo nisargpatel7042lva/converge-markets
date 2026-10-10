@@ -52,11 +52,13 @@ function Inner({ initial }: { initial: WireRound[] | null }) {
   ];
 
   return (
-    <AppShell>
+    <AppShell wide>
       <p className="text-sm font-medium text-muted" suppressHydrationWarning>
         {greeting()}
       </p>
-      <h1 className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-tight">Markets</h1>
+      <h1 className="font-display mt-0.5 text-[30px] font-semibold leading-tight md:text-[44px]">
+        Markets
+      </h1>
       <p className="mt-1 text-sm text-muted">
         {live.length > 0
           ? `${live.length} round${live.length > 1 ? "s" : ""} live right now. Up or Down, one tap.`
@@ -85,7 +87,7 @@ function Inner({ initial }: { initial: WireRound[] | null }) {
       </div>
 
       {q.isLoading ? (
-        <div className="mt-5 grid gap-3" aria-busy>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3" aria-busy>
           <Skeleton className="h-52" />
           <Skeleton className="h-52" />
         </div>
@@ -120,7 +122,7 @@ function Inner({ initial }: { initial: WireRound[] | null }) {
           />
         </div>
       ) : (
-        <div className="mt-4 grid gap-3.5">
+        <div className="mt-4 grid gap-3.5 md:mt-6 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
           {shown.map((r) => (
             <RoundCard key={r.address} round={r} />
           ))}

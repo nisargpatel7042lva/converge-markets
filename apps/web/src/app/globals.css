@@ -6,28 +6,29 @@
  * "Down"), with motion that explains what is happening (a countdown ring that warms up, numbers that
  * glide instead of jump, a bet that visibly "locks in", a win that celebrates, a loss that comforts).
  */
-@theme {
-  --color-ink: #121215;
-  --color-surface: #1a1a1f;
-  --color-raised: #24242b;
-  --color-line: #2e2e37;
-  --color-text: #f5f4f8;
-  --color-muted: #a19fae;
-  --color-faint: #7b7989;
-  --color-up: #34d99c;
-  --color-up-deep: #145c43;
-  --color-up-soft: #11291f;
-  --color-down: #ff6f82;
-  --color-down-deep: #7a2234;
-  --color-down-soft: #2c151b;
-  --color-brand: #ab9ff2;
-  --color-brand-deep: #6e5fd9;
-  --color-brand-soft: #25213f;
-  --color-warn: #ffc65a;
+@theme inline {
+  --color-ink: #0f1218;
+  --color-surface: #161a23;
+  --color-raised: #202533;
+  --color-line: #2a3040;
+  --color-text: #eef0f6;
+  --color-muted: #a4abbc;
+  --color-faint: #7f879b;
+  --color-up: #5fd7ae;
+  --color-up-deep: #1b5a47;
+  --color-up-soft: #13291f;
+  --color-down: #f48b98;
+  --color-down-deep: #7a2f3d;
+  --color-down-soft: #2a171d;
+  --color-brand: #b6aaf6;
+  --color-brand-deep: #7566dc;
+  --color-brand-soft: #262443;
+  --color-warn: #f3c874;
   --color-warn-soft: #2e2510;
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue",
+    var(--font-figtree), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --radius-card: 22px;
 }
@@ -51,7 +52,8 @@ body {
   min-height: 100dvh;
   overscroll-behavior-y: none;
   background:
-    radial-gradient(120% 60% at 50% -10%, rgba(171, 159, 242, 0.1), transparent 60%),
+    radial-gradient(90% 50% at 12% -8%, rgba(182, 170, 246, 0.11), transparent 62%),
+    radial-gradient(70% 45% at 92% 0%, rgba(95, 215, 174, 0.06), transparent 60%),
     var(--color-ink);
   background-attachment: fixed;
 }
@@ -64,6 +66,14 @@ body {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* the soft serif for headlines on the website pages; numbers and controls stay in the sans */
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 100;
+  letter-spacing: -0.02em;
 }
 
 .safe-bottom {
@@ -141,7 +151,7 @@ body {
   height: 8px;
   border-radius: 999px;
   background: var(--color-up);
-  animation: live-dot 1.6s ease-out infinite;
+  animation: live-dot 2.4s ease-out infinite;
 }
 
 @keyframes breathe {
@@ -156,7 +166,7 @@ body {
   }
 }
 .breathe {
-  animation: breathe 2.4s ease-in-out infinite;
+  animation: breathe 4s ease-in-out infinite;
 }
 
 @keyframes urgent {

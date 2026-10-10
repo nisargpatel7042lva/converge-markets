@@ -287,7 +287,7 @@ export function TradeSheet({
   // rendered outside #main so that the page behind can be made inert without the sheet going with it
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 backdrop-blur-[2px] md:items-center md:p-6"
       onClick={() => !locked && onClose()}
     >
       <div
@@ -297,7 +297,7 @@ export function TradeSheet({
         aria-modal="true"
         aria-label={`Bet ${sideName}`}
         onClick={(e) => e.stopPropagation()}
-        className="sheet-in safe-bottom w-full max-w-md rounded-t-[32px] border border-line/80 bg-surface px-5 pt-3 outline-none"
+        className="sheet-in safe-bottom w-full max-w-md rounded-t-[32px] border border-line/80 bg-surface px-5 pt-3 outline-none md:rounded-[32px] md:pb-6 md:pt-5"
       >
         <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
         <div className="flex items-center justify-between">

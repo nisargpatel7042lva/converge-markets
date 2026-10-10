@@ -209,12 +209,12 @@ export function Mascot({
 }) {
   const mouth =
     mood === "happy"
-      ? "M34 55 Q42 65 50 55"
+      ? "M35 46 Q42 53 49 46"
       : mood === "oops"
-        ? "M35 60 Q42 54 49 60"
+        ? "M36 51 Q42 46 48 51"
         : mood === "think"
-          ? "M36 58 L48 58"
-          : "M35 57 Q42 61 49 57";
+          ? "M37 49 L47 49"
+          : "M36 48 Q42 51 48 48";
   return (
     <svg
       aria-hidden
@@ -223,27 +223,18 @@ export function Mascot({
       viewBox="0 0 84 84"
       className={`${mood === "happy" ? "float" : "breathe"} ${className}`}
     >
-      <defs>
-        <linearGradient id="mg-a" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stopColor="#34d99c" />
-          <stop offset="1" stopColor="#1a9c6e" />
-        </linearGradient>
-        <linearGradient id="mg-b" x1="1" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#ff6f82" />
-          <stop offset="1" stopColor="#d6405a" />
-        </linearGradient>
-      </defs>
-      <path d="M6 14 L44 42 L6 70 Z" fill="url(#mg-a)" />
-      <path d="M78 14 L40 42 L78 70 Z" fill="url(#mg-b)" opacity=".94" />
-      <circle cx="33" cy="42" r="4.2" fill="#121215" />
-      <circle cx="51" cy="42" r="4.2" fill="#121215" />
-      <circle cx="34.4" cy="40.6" r="1.4" fill="#fff" />
-      <circle cx="52.4" cy="40.6" r="1.4" fill="#fff" />
-      <path d={mouth} stroke="#121215" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+      <circle cx="42" cy="29.4" r="25.2" fill="#5fd7ae" />
+      <circle cx="42" cy="54.6" r="25.2" fill="#f48b98" />
+      <path d="M20.2 42A25.2 25.2 0 0 0 63.8 42A25.2 25.2 0 0 0 20.2 42Z" fill="#b6aaf6" />
+      <circle cx="34" cy="40" r="3.2" fill="#0f1218" />
+      <circle cx="50" cy="40" r="3.2" fill="#0f1218" />
+      <circle cx="35" cy="39" r="1" fill="#fff" />
+      <circle cx="51" cy="39" r="1" fill="#fff" />
+      <path d={mouth} stroke="#0f1218" strokeWidth="2.4" strokeLinecap="round" fill="none" />
       {mood === "happy" ? (
         <>
-          <circle cx="28" cy="52" r="3" fill="#ffffff" opacity=".28" />
-          <circle cx="56" cy="52" r="3" fill="#ffffff" opacity=".28" />
+          <circle cx="29.5" cy="45.5" r="2.4" fill="#f48b98" opacity=".55" />
+          <circle cx="54.5" cy="45.5" r="2.4" fill="#f48b98" opacity=".55" />
         </>
       ) : null}
     </svg>

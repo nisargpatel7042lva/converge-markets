@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="220" height="48" role="img" aria-label="Converge">
+  <g transform="translate(2 4) scale(1.7)"><circle cx="12" cy="8.4" r="7.2" fill="#1fae83"/>
+  <circle cx="12" cy="15.6" r="7.2" fill="#e5657a"/>
+  <path d="M5.765 12A7.2 7.2 0 0 0 18.235 12A7.2 7.2 0 0 0 5.765 12Z" fill="#7a69e8"/></g>
+  <text x="56" y="33" font-family="Fraunces, 'Iowan Old Style', Georgia, serif" font-size="29" font-weight="600" letter-spacing="-0.6" fill="#17151f">Converge</text>
+</svg>
