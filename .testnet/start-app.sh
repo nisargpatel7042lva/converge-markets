@@ -3,6 +3,7 @@
 cd "$(dirname "$0")/../apps/web" || exit 1
 export PATH="$HOME/.foundry/bin:$PATH"
 export NODE_ENV=production NEXT_DIST_DIR=.next-testnet NEXT_PUBLIC_APP_ENV=production
+export NEXT_PUBLIC_REF_PRICE=1 REF_PRICE_URL=http://127.0.0.1:9203/price
 export NEXT_PUBLIC_FAUCET_ENABLED=1 FAUCET_ENABLED=1
 export DRIP_PRIVATE_KEY=$(grep "^DEPLOYER_PRIVATE_KEY=" ../../.env | cut -d= -f2)
 export DRIP_RPC_URL=$(grep "^MONAD_TESTNET_RPC_URL=" ../../.env | cut -d= -f2)

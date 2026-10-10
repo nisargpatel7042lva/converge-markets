@@ -54,6 +54,8 @@ export const env = {
   appEnv: process.env.NEXT_PUBLIC_APP_ENV || "development",
   /** Test builds only (refused by next.config.ts when appEnv is production). */
   mockPrices: process.env.NEXT_PUBLIC_MOCK_PRICES === "1",
+  /** Testnet: pin the live price to the oracle reference price (see /api/ref-price). */
+  refPrice: process.env.NEXT_PUBLIC_REF_PRICE === "1",
   faucetEnabled: process.env.NEXT_PUBLIC_FAUCET_ENABLED === "1",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "",
 };

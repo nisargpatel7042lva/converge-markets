@@ -62,10 +62,22 @@ const market = (await pub.readContract({
   functionName: "getMarket",
   args: [dep.assetTEST, 900n, BigInt(start)],
 })) as Address;
-const tick = (await (
-  await fetch("https://api.exchange.coinbase.com/products/ETH-USD/ticker")
-).json()) as { bid: string; ask: string };
-const spot = (Number(tick.bid) + Number(tick.ask)) / 2;
+// the keeper's own reference price (the mean of Binance and Coinbase, from the local relay): the oracle's basis.
+// Coinbase alone sits about a dollar under it, which at the end of a round is worth 10+ cents of odds.
+const spot = await (async () => {
+  try {
+    const j = (await (
+      await fetch("http://127.0.0.1:9203/price", { signal: AbortSignal.timeout(2000) })
+    ).json()) as { price: number };
+    if (j.price > 0) return j.price;
+  } catch {
+    // fall through to Coinbase
+  }
+  const tick = (await (
+    await fetch("https://api.exchange.coinbase.com/products/ETH-USD/ticker")
+  ).json()) as { bid: string; ask: string };
+  return (Number(tick.bid) + Number(tick.ask)) / 2;
+})();
 console.log(
   `round ${new Date(start * 1000).toISOString().slice(11, 16)} ${market}, ${start + 900 - t}s left, ETH ${spot}`,
 );

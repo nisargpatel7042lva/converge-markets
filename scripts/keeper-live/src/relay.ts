@@ -85,11 +85,35 @@ for (const src of SOURCES) {
       log({ ev: "upstream open", src });
       if (src === "coinbase")
         up.send(
-          JSON.stringify({ type: "subscribe", product_ids: [product], channels: ["ticker"] }),
+          JSON.stringify({
+            type: "subscribe",
+            product_ids: [product],
+            channels: ["ticker", "heartbeat"],
+          }),
         );
     });
+    let lastTrade = 0;
     up.on("message", (d) => {
       heard = Date.now();
+      if (src === "coinbase") {
+        // The ticker channel only speaks when a trade happens, and a quiet ETH-USD market can go
+        // 10 s or more without one. The heartbeat channel (about 1/s) proves the connection is alive:
+        // while it keeps arriving, re-send the last price (it has not changed) for up to a minute, so
+        // a quiet market is not mistaken for a dead feed. A truly dead one goes silent and still halts.
+        let type: string | undefined;
+        try {
+          type = (JSON.parse(String(d)) as { type?: string }).type;
+        } catch {
+          type = undefined;
+        }
+        if (type === "heartbeat") {
+          const m = lastMsg[src];
+          if (m && Date.now() - m.at > 3000 && Date.now() - lastTrade < 60_000)
+            for (const c of wss.clients) if (c.readyState === WebSocket.OPEN) c.send(m.raw);
+          return;
+        }
+        if (type === "ticker") lastTrade = Date.now();
+      }
       const out = distort(src, String(d));
       if (out === null) return;
       lastMsg[src] = { at: Date.now(), raw: out };

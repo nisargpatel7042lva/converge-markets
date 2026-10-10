@@ -40,6 +40,9 @@ class Feed {
   private lastEmit = 0;
   private stopped = false;
   private backfilled = false;
+  /** Testnet: the gap between the oracle's reference price and the browser's own exchange mean. */
+  private basis = 0;
+  private refTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private readonly series: Series) {}
 
@@ -76,12 +79,18 @@ class Feed {
     const c = this.composite(now);
     if (!c) return;
     const history = this.state.history;
+    const px = c.p + this.basis;
     let next = history;
     if (now - this.lastPush >= 1000 || history.length === 0) {
       this.lastPush = now;
-      next = [...history, { t: now, p: c.p }].slice(-MAX_POINTS);
+      next = [...history, { t: now, p: px }].slice(-MAX_POINTS);
     }
-    this.state = { price: c.p, history: next, live: true, source: c.names.join(" + ") };
+    this.state = {
+      price: px,
+      history: next,
+      live: true,
+      source: this.basis !== 0 ? `${c.names.join(" + ")} · oracle basis` : c.names.join(" + "),
+    };
     if (now - this.lastEmit >= EMIT_MS || next !== history) this.emit();
   }
 
@@ -100,6 +109,7 @@ class Feed {
       this.connect("Binance");
       this.connect("Coinbase");
     }, 800);
+    this.startRef();
     this.timer = setInterval(() => {
       const c = this.composite(Date.now());
       if (!c && this.state.live) {
@@ -109,8 +119,39 @@ class Feed {
     }, 1000);
   }
 
+  /** Pin the level to the oracle's reference price (testnet builds with NEXT_PUBLIC_REF_PRICE=1). */
+  private startRef() {
+    if (!env.refPrice || env.mockPrices) return;
+    const pull = async () => {
+      try {
+        const c = this.composite(Date.now());
+        if (!c) return;
+        const r = await fetch("/api/ref-price", { cache: "no-store" });
+        if (!r.ok) return;
+        const ref = ((await r.json()) as { price?: number }).price;
+        if (typeof ref !== "number" || !(ref > 0)) return;
+        const next = ref - c.p;
+        const delta = next - this.basis;
+        if (Math.abs(delta) < 0.05) return;
+        this.basis = next;
+        // keep the chart continuous: move what is already drawn by the same step
+        this.state = {
+          ...this.state,
+          history: this.state.history.map((x) => ({ t: x.t, p: x.p + delta })),
+        };
+        this.update();
+      } catch {
+        // keep the last basis
+      }
+    };
+    void pull();
+    this.refTimer = setInterval(pull, 2000);
+  }
+
   private stop() {
     this.stopped = true;
+    if (this.refTimer) clearInterval(this.refTimer);
+    this.refTimer = null;
     for (const w of Object.values(this.sockets)) w?.close();
     this.sockets = {};
     if (this.timer) clearInterval(this.timer);
