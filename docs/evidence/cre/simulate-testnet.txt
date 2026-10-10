@@ -1,0 +1,34 @@
+Initializing...
+Loading settings...
+! Using default private key for chain write simulation. To use your own key, set CRE_ETH_PRIVATE_KEY in your .env file or system environment.
+Checking RPC connectivity...
+Compiling workflow...
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: ee076fc1c9996350f3e71ff2fef92852a1cecfb31e66aab1582f667775373317
+  Config hash: 86ee3dbe26a57089fea4aa64989296843035039990058e619f5c4ac46d00b369
+! Secret "DATA_STREAMS_API_KEY" uses itself as the env var name — this is fragile and may cause confusion. Consider using a distinct env var name (e.g. "CRE_DATA_STREAMS_API_KEY").
+! Secret "DATA_STREAMS_API_SECRET" uses itself as the env var name — this is fragile and may cause confusion. Consider using a distinct env var name (e.g. "CRE_DATA_STREAMS_API_SECRET").
+2026-10-10T09:41:30Z [SIMULATION] Simulator Initialized
+
+2026-10-10T09:41:30Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-10-10T09:41:31Z [USER LOG] LATE: CREATE TEST/USD 900s @1791614700
+2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791557100
+2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791556200
+2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791522900
+2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791522000
+2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791521100
+2026-10-10T09:41:31Z [USER LOG] sent 8 actions in 0x0000000000000000000000000000000000000000000000000000000000000000 (2 EVM reads): INVALIDATE@1791521100,INVALIDATE@1791522000,INVALIDATE@1791522900,INVALIDATE@1791556200,INVALIDATE@1791557100,CREATE@1791614700,CREATE@1791615600,CREATE@1791616500
+
+✓ Workflow Simulation Result:
+"0x0000000000000000000000000000000000000000000000000000000000000000"
+
+2026-10-10T09:41:31Z [SIMULATION] Execution finished signal received
+2026-10-10T09:41:31Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯
