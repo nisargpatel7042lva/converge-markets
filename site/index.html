@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Converge Markets</title>
+<meta name="description" content="Converge Markets: onchain liquidity for 15-minute prediction markets on Monad.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one thesis hero with a draggable round card, then proof by sponsor track, numbers, and the limits. */
+:root{
+  --bg:#121215; --surface:#1a1a1f; --raised:#24242b; --line:#2e2e37;
+  --fg:#f5f4f8; --muted:#a9a7b6; --faint:#8a8898;
+  --brand:#ab9ff2; --brand-soft:#25213f; --up:#34d99c; --up-soft:#11291f; --down:#ff6f82; --down-soft:#2c151b; --warn:#ffc65a; --warn-soft:#2e2510;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif; --body:"Figtree","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f6f5fa; --surface:#ffffff; --raised:#edebf5; --line:#dcd9e8; --fg:#17151f; --muted:#555268; --faint:#6b6880;
+  --brand:#5a49d6; --brand-soft:#e9e6fb; --up:#0a8a5f; --up-soft:#dcf5ec; --down:#c8304a; --down-soft:#fbe3e7; --warn:#946200; --warn-soft:#fbefd2; color-scheme:light;}}
+:root[data-theme="light"]{
+  --bg:#f6f5fa; --surface:#ffffff; --raised:#edebf5; --line:#dcd9e8; --fg:#17151f; --muted:#555268; --faint:#6b6880;
+  --brand:#5a49d6; --brand-soft:#e9e6fb; --up:#0a8a5f; --up-soft:#dcf5ec; --down:#c8304a; --down-soft:#fbe3e7; --warn:#946200; --warn-soft:#fbefd2; color-scheme:light;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body);padding-inline:20px;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1080px;margin-inline:auto}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:20px}
+.logo{font:800 20px/1 var(--display);letter-spacing:-.02em;text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo i{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,var(--brand),var(--up));display:block}
+nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;font-size:14px;color:var(--muted)}
+nav ul a{text-decoration:none}nav ul a:hover{color:var(--fg)}
+@media(max-width:640px){nav ul{display:none}}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brand)}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.03em;text-wrap:balance;margin:0}
+h1{font-size:clamp(38px,6.4vw,70px);line-height:1.02;font-weight:800}
+h2{font-size:clamp(28px,4vw,42px);line-height:1.08;font-weight:800}
+h3{font-size:20px;line-height:1.2;font-weight:700}
+p{margin:0}
+.lede{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:56ch}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center;padding-block:48px 72px}
+@media(max-width:860px){.hero{grid-template-columns:minmax(0,1fr);gap:36px;padding-block:24px 56px}}
+.hero .lede{margin-top:20px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:14px;font:600 15px/1 var(--body);text-decoration:none;border:1px solid var(--line);background:var(--surface)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#14122b}
+.btn:hover{filter:brightness(1.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.chip{font:500 12px/1 var(--mono);padding:7px 10px;border-radius:999px;background:var(--raised);color:var(--muted)}
+
+/* round card */
+.round{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:22px;box-shadow:0 30px 60px -30px rgba(0,0,0,.55)}
+.round-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pair{font:700 15px/1 var(--display)}
+.live{display:inline-flex;align-items:center;gap:8px;font:500 12px/1 var(--mono);color:var(--up)}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--up);animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--up) 55%,transparent)}100%{box-shadow:0 0 0 9px transparent}}
+.big{font:800 clamp(54px,9vw,84px)/1 var(--display);letter-spacing:-.04em;margin-top:18px;font-variant-numeric:tabular-nums}
+.big small{font-size:.4em;color:var(--faint);font-weight:700;letter-spacing:0;margin-left:6px}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.bar{display:flex;height:14px;border-radius:99px;overflow:hidden;margin-top:18px;background:var(--raised)}
+.bar b{display:block;transition:width .25s ease}
+.bar .u{background:var(--up)}.bar .d{background:var(--down)}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.side{border-radius:16px;padding:12px 14px;font-variant-numeric:tabular-nums}
+.side.u{background:var(--up-soft);color:var(--up)}.side.d{background:var(--down-soft);color:var(--down)}
+.side span{display:block;font-size:12px;opacity:.85}.side strong{font:800 24px/1.2 var(--display)}
+.ctl{margin-top:20px;display:grid;gap:14px}
+.ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);gap:8px}
+.ctl output{font:500 13px/1 var(--mono);color:var(--fg)}
+input[type=range]{width:100%;accent-color:var(--brand);min-height:28px}
+.note{font-size:12px;color:var(--faint);margin-top:14px}
+
+section{padding-block:56px;border-top:1px solid var(--line)}
+.head{display:grid;gap:14px;margin-bottom:32px}
+.head p{color:var(--muted);max-width:62ch}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:960px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.g4,.g2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;min-width:0}
+.card p{color:var(--muted);font-size:15px;margin-top:10px}
+.step{font:500 12px/1 var(--mono);color:var(--brand);margin-bottom:14px;display:block}
+.status{display:inline-block;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border-radius:99px;margin-bottom:14px}
+.s-live{background:var(--up-soft);color:var(--up)}.s-run{background:var(--brand-soft);color:var(--brand)}.s-warn{background:var(--warn-soft);color:var(--warn)}
+.track h3{margin-bottom:2px}
+.track ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px;color:var(--muted)}
+.track li{padding-left:16px;position:relative}
+.track li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:2px;background:var(--brand)}
+.links{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:16px;font-size:14px}
+.links a{color:var(--brand);text-underline-offset:3px}
+.stat{padding:4px 0}
+.stat strong{display:block;font:800 clamp(30px,4vw,44px)/1.05 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat span{display:block;color:var(--muted);font-size:14px;margin-top:6px}
+.stat em{display:block;font:400 12px/1.4 var(--mono);color:var(--faint);margin-top:8px;font-style:normal}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:18px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);background:var(--surface)}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;counter-reset:s}
+@media(max-width:960px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.flow{grid-template-columns:minmax(0,1fr)}}
+.limits{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:20px;padding:24px}
+.limits h3{color:var(--warn)}
+.limits ul{margin:14px 0 0;padding-left:20px;display:grid;gap:8px;color:var(--fg);font-size:15px}
+code,.mono{font-family:var(--mono);font-size:.9em}
+footer{border-top:1px solid var(--line);padding-block:36px 56px;color:var(--faint);font-size:14px;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+footer a{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <a class="logo" href="#top"><i></i>Converge</a>
+    <ul>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#proof">Proof</a></li>
+      <li><a href="#numbers">Numbers</a></li>
+      <li><a href="#limits">Limits</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero" id="top">
+    <div>
+      <span class="eyebrow">Onchain liquidity on Monad</span>
+      <h1 style="margin-top:16px">Every 15-minute market gets a price. From the first second.</h1>
+      <p class="lede">Converge is a vault that makes two-sided markets in short UP/DOWN rounds, so a new market never opens to an empty book. Liquidity providers deposit once. Traders bet with a passkey: no seed phrase, no extension.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/nisargpatel7042lva/converge-markets" target="_blank" rel="noreferrer">Read the code</a>
+        <a class="btn" href="#proof">See the proof</a>
+      </div>
+      <div class="chips"><span class="chip">Monad testnet</span><span class="chip">412 contract tests</span><span class="chip">Passkey accounts</span><span class="chip">Chainlink CRE workflow</span></div>
+    </div>
+
+    <div class="round" aria-label="Interactive example of a round">
+      <div class="round-top"><span class="pair">ETH finishes above its open?</span><span class="live">Example round</span></div>
+      <div class="big" id="pct" aria-live="polite">50<small>% Up</small></div>
+      <div class="sub" id="why">At the strike with 15:00 left</div>
+      <div class="bar" aria-hidden="true"><b class="u" id="bu" style="width:50%"></b><b class="d" id="bd" style="width:50%"></b></div>
+      <div class="sides">
+        <div class="side u"><span>Up pays $1 if right</span><strong id="pu">50.0¢</strong></div>
+        <div class="side d"><span>Down pays $1 if right</span><strong id="pd">50.0¢</strong></div>
+      </div>
+      <div class="ctl">
+        <label for="off">Price vs strike <output id="offo">+$0.00</output></label>
+        <input id="off" type="range" min="-12" max="12" step="0.5" value="0">
+        <label for="min">Time left <output id="mino">15:00</output></label>
+        <input id="min" type="range" min="0.5" max="15" step="0.5" value="15">
+      </div>
+      <p class="note">Drag the sliders. The price is the digital-option formula the vault quotes from, <code>N(d2)</code>, with an example 60% annual volatility and a $2,480 strike. Illustration, not a live feed.</p>
+    </div>
+  </header>
+
+  <section id="why-now">
+    <div class="head">
+      <span class="eyebrow">The problem</span>
+      <h2>Short markets die when the pool is empty.</h2>
+      <p>Earlier betting apps on Monad faded because nobody wanted to be the first liquidity in a market that lasts fifteen minutes. A market maker has to quote every block, narrow as expiry nears, and pull quotes when the price jumps. On most chains that costs more than it earns. On Monad a full re-quote costs about a fifth of a cent.</p>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="head">
+      <span class="eyebrow">How it works</span>
+      <h2>Four parts, each one checkable.</h2>
+    </div>
+    <div class="flow">
+      <div class="card"><span class="step">1 · Account</span><h3>A passkey is the wallet</h3><p>Mera turns a Face ID or fingerprint passkey into the account. The key exists only for one confirmation, then it is wiped.</p></div>
+      <div class="card"><span class="step">2 · Bet</span><h3>Priced one second ahead</h3><p>An order fills two seconds after it is placed, at the oracle price for that second. Nobody trades against a price they could already see move.</p></div>
+      <div class="card"><span class="step">3 · Liquidity</span><h3>One vault quotes every round</h3><p>Depositors share the spread. Loss limits are 1% per market and 8% in total, and a circuit breaker stops quoting without ever blocking an exit.</p></div>
+      <div class="card"><span class="step">4 · Settlement</span><h3>Chainlink decides</h3><p>A CRE workflow creates, opens and resolves each round from a signed price report. A fallback keeper does the same if the network is down.</p></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>We backtested our first design and it lost.</h3>
+      <p>Keeper-posted quotes were beaten by faster traders, so the backtest verdict was "unprofitable as specified". That is why orders are forward-priced. The vault and the venue were rebuilt around the result (decision record ADR-004).</p>
+    </div>
+  </section>
+
+  <section id="proof">
+    <div class="head">
+      <span class="eyebrow">Proof by track</span>
+      <h2>What ran, where, and what it left behind.</h2>
+      <p>Every item links to a file in the repository. Status labels say exactly how far each one got.</p>
+    </div>
+    <div class="grid g2">
+      <article class="card track">
+        <span class="status s-live">Live on testnet</span>
+        <h3>Kuru: a new asset class on the book</h3>
+        <p>Each round's UP token is a collateralised binary outcome that converges to 0 or 1. We list it as its own Kuru market, seed it and quote both sides around the vault's fair value.</p>
+        <ul>
+          <li>One full round: market created, 18 two-sided quotes, torn down and redeemed.</li>
+          <li>A separate wallet bought 2.2 UP for $2.00 and sold it back for $1.82: the cost is the quoted spread.</li>
+          <li>The market page shows Kuru's bid and ask next to the vault's price.</li>
+        </ul>
+        <div class="links"><a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/docs/kuru/INTEGRATION.md" target="_blank" rel="noreferrer">Integration doc</a><a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/docs/evidence/kuru/rounds.md" target="_blank" rel="noreferrer">Transactions</a><a href="https://testnet.monadvision.com/address/0x75525B25c504F7a2D78F2847F7A06Bed1631eE33" target="_blank" rel="noreferrer">Kuru market</a></div>
+      </article>
+      <article class="card track">
+        <span class="status s-run">Deploying</span>
+        <h3>Envio: the read side of the product</h3>
+        <p>HyperIndex serves positions and realised PnL, vault value and APY history, and protocol stats. The chain stays the fallback and is the source for exits.</p>
+        <ul>
+          <li>Handlers for markets, trades, positions, vault NAV and partners, with 100 passing tests.</li>
+          <li>Reconcile tool compares indexed rows with the chain at the indexer's own block.</li>
+          <li>Hosted build on Envio Cloud is in progress; a local run indexed the live testnet deployment.</li>
+        </ul>
+        <div class="links"><a href="https://github.com/nisargpatel7042lva/converge-markets/tree/main/indexer" target="_blank" rel="noreferrer">Indexer</a><a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/indexer/QUERIES.md" target="_blank" rel="noreferrer">Queries</a></div>
+      </article>
+      <article class="card track">
+        <span class="status s-live">Built and tested</span>
+        <h3>Mera: the whole account layer</h3>
+        <p>No seed phrase, no extension, no custody backend. Sign in with a passkey, get test money, bet in one tap and one confirmation, collect in one tap.</p>
+        <ul>
+          <li>The exported recovery phrase gives the same address in MetaMask or Rabby.</li>
+          <li>The build fails if any other wallet SDK is added.</li>
+          <li>End-to-end tests run the real passkey flow in a browser with a virtual authenticator.</li>
+        </ul>
+        <div class="links"><a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/apps/web/src/lib/account.ts" target="_blank" rel="noreferrer">Account code</a><a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/docs/sponsors/README.md" target="_blank" rel="noreferrer">Track notes</a></div>
+      </article>
+      <article class="card track">
+        <span class="status s-warn">Simulated, not deployed</span>
+        <h3>Chainlink CRE: orchestration</h3>
+        <p>The scheduler workflow reads the live factory, plans create, open and resolve actions, fetches Data Streams evidence and writes one report to the receiver contract.</p>
+        <ul>
+          <li>Ran in the official CRE simulator against live Monad testnet: 2 chain reads, 8 planned actions.</li>
+          <li>That run was a dry run, so it sent no transaction. Deployment needs CRE Early Access.</li>
+          <li>Testnet uses a signed test report; Data Streams has not run on mainnet yet.</li>
+        </ul>
+        <div class="links"><a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/services/scheduler/cre/scheduler/main.ts" target="_blank" rel="noreferrer">Workflow</a><a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/docs/evidence/cre/simulate-testnet.txt" target="_blank" rel="noreferrer">Simulation output</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="numbers">
+    <div class="head">
+      <span class="eyebrow">Numbers</span>
+      <h2>Measured, with the source beside each one.</h2>
+    </div>
+    <div class="grid g4">
+      <div class="stat"><strong>$0.0019</strong><span>One full two-sided re-quote on Monad (cancel 2, post 2)</span><em>Kuru gas spike, MON at $0.0343</em></div>
+      <div class="stat"><strong>412</strong><span>Contract tests, plus three invariant suites at 10,000 runs of 100 calls</span><em>make check-9</em></div>
+      <div class="stat"><strong>4.9 s</strong><span>From tap to first fill in the end-to-end test</span><em>Phase 7 report, local chain</em></div>
+      <div class="stat"><strong>18</strong><span>Two-sided quotes posted on one Kuru round</span><em>docs/evidence/kuru/rounds.md</em></div>
+    </div>
+    <div class="tbl" style="margin-top:28px" role="region" aria-label="Kuru cost per action" tabindex="0">
+      <table>
+        <thead><tr><th>Action on Kuru (Monad testnet)</th><th>Gas limit billed</th><th>About, in MON</th></tr></thead>
+        <tbody>
+          <tr><td>Create the UP token's market</td><td class="num">1,464,965</td><td class="num">0.15</td></tr>
+          <tr><td>Split collateral, approvals, two margin deposits</td><td class="num">~858,000</td><td class="num">0.09</td></tr>
+          <tr><td>One cancel-and-replace two-sided quote</td><td class="num">~604,000</td><td class="num">0.062</td></tr>
+          <tr><td>Teardown: cancel, withdraw, redeem</td><td class="num">~690,000</td><td class="num">0.07</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:12px">Monad bills the gas limit, at about 102 gwei on testnet. Source: <code>services/kuru</code> evidence report.</p>
+  </section>
+
+  <section id="limits">
+    <div class="limits">
+      <h3>What this is not yet</h3>
+      <ul>
+        <li>It runs on <strong>testnet</strong>. The Kuru maker is our own wallet, so the book proves the pipeline, not organic demand.</li>
+        <li>The code is <strong>reviewed internally and by an adversarial pass, not externally audited</strong>. The mainnet cap is set at 5,000 USDC.</li>
+        <li>Chainlink Data Streams has never run on a real report, and its lead over exchange prices is unmeasured. That is the one high-severity item still open.</li>
+        <li>Mainnet needs a multisig, Data Streams credentials and an audit decision. The deploy tooling, runbook and canary were rehearsed on a mainnet fork.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>Converge Markets · built for the Monad hackathon</span>
+    <span><a href="https://github.com/nisargpatel7042lva/converge-markets" target="_blank" rel="noreferrer">GitHub</a> · <a href="https://github.com/nisargpatel7042lva/converge-markets/blob/main/docs/STATUS.md" target="_blank" rel="noreferrer">Project status</a></span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var K=2480, SIGMA=0.6, YEAR=525600;
+  function erf(x){var s=x<0?-1:1;x=Math.abs(x);var t=1/(1+0.3275911*x);var y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return s*y}
+  function cdf(x){return 0.5*(1+erf(x/Math.SQRT2))}
+  var off=document.getElementById('off'),mn=document.getElementById('min');
+  function fmt(m){var s=Math.round(m*60);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+  function render(){
+    var o=parseFloat(off.value),m=parseFloat(mn.value),S=K+o,tau=m/YEAR;
+    var d2=(Math.log(S/K)-0.5*SIGMA*SIGMA*tau)/(SIGMA*Math.sqrt(tau));
+    var p=Math.min(0.98,Math.max(0.02,cdf(d2)));
+    var up=Math.round(p*1000)/10, dn=Math.round((100-up)*10)/10;
+    document.getElementById('pct').innerHTML=Math.round(p*100)+'<small>% Up</small>';
+    document.getElementById('bu').style.width=up+'%';document.getElementById('bd').style.width=dn+'%';
+    document.getElementById('pu').textContent=up.toFixed(1)+'¢';document.getElementById('pd').textContent=dn.toFixed(1)+'¢';
+    document.getElementById('offo').textContent=(o>=0?'+$':'-$')+Math.abs(o).toFixed(2);
+    document.getElementById('mino').textContent=fmt(m);
+    var rel=o===0?'At the strike':(o>0?'$'+o.toFixed(2)+' above the strike':'$'+Math.abs(o).toFixed(2)+' below the strike');
+    document.getElementById('why').textContent=rel+' with '+fmt(m)+' left';
+  }
+  off.addEventListener('input',render);mn.addEventListener('input',render);render();
+})();
+</script>
+
+</body>
+</html>
