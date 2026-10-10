@@ -56,7 +56,7 @@ function Inner({ initial }: { initial: WireRound[] | null }) {
       <p className="text-sm font-medium text-muted" suppressHydrationWarning>
         {greeting()}
       </p>
-      <h1 className="font-display mt-0.5 text-[30px] font-semibold leading-tight md:text-[44px]">
+      <h1 className="font-display mt-0.5 text-[30px] font-extrabold leading-tight md:text-[44px]">
         Markets
       </h1>
       <p className="mt-1 text-sm text-muted">

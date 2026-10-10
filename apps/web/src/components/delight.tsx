@@ -154,21 +154,21 @@ export function OddsBar({ up, height = 10 }: { up: number | null; height?: numbe
 const COLORS = ["#34d99c", "#ab9ff2", "#ffc65a", "#ff6f82", "#7fd0ff"];
 
 /** A burst of confetti over the whole screen; removes itself. Respects reduced motion. */
-export function Confetti({ pieces = 46, onDone }: { pieces?: number; onDone?: () => void }) {
+export function Confetti({ pieces = 22, onDone }: { pieces?: number; onDone?: () => void }) {
   const items = useMemo(
     () =>
       Array.from({ length: pieces }, (_, i) => ({
         left: Math.random() * 100,
         dx: Math.round((Math.random() - 0.5) * 220),
         rot: Math.round(360 + Math.random() * 540),
-        dur: 1.8 + Math.random() * 1.4,
+        dur: 2.8 + Math.random() * 1.6,
         delay: Math.random() * 0.35,
         color: COLORS[i % COLORS.length],
       })),
     [pieces],
   );
   useEffect(() => {
-    const t = setTimeout(() => onDone?.(), 3600);
+    const t = setTimeout(() => onDone?.(), 4800);
     return () => clearTimeout(t);
   }, [onDone]);
   return (
@@ -209,12 +209,12 @@ export function Mascot({
 }) {
   const mouth =
     mood === "happy"
-      ? "M35 46 Q42 53 49 46"
+      ? "M35 47 Q42 54 49 47"
       : mood === "oops"
-        ? "M36 51 Q42 46 48 51"
+        ? "M36 52 Q42 47 48 52"
         : mood === "think"
-          ? "M37 49 L47 49"
-          : "M36 48 Q42 51 48 48";
+          ? "M37 50 L47 50"
+          : "M36 49 Q42 52 48 49";
   return (
     <svg
       aria-hidden
@@ -223,20 +223,24 @@ export function Mascot({
       viewBox="0 0 84 84"
       className={`${mood === "happy" ? "float" : "breathe"} ${className}`}
     >
-      <circle cx="42" cy="29.4" r="25.2" fill="#5fd7ae" />
-      <circle cx="42" cy="54.6" r="25.2" fill="#f48b98" />
-      <path d="M20.2 42A25.2 25.2 0 0 0 63.8 42A25.2 25.2 0 0 0 20.2 42Z" fill="#b6aaf6" />
-      <circle cx="34" cy="40" r="3.2" fill="#0f1218" />
-      <circle cx="50" cy="40" r="3.2" fill="#0f1218" />
-      <circle cx="35" cy="39" r="1" fill="#fff" />
-      <circle cx="51" cy="39" r="1" fill="#fff" />
-      <path d={mouth} stroke="#0f1218" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-      {mood === "happy" ? (
-        <>
-          <circle cx="29.5" cy="45.5" r="2.4" fill="#f48b98" opacity=".55" />
-          <circle cx="54.5" cy="45.5" r="2.4" fill="#f48b98" opacity=".55" />
-        </>
-      ) : null}
+      <defs>
+        <linearGradient id="mg" gradientUnits="userSpaceOnUse" x1="0" y1="10" x2="0" y2="74">
+          <stop offset="0" stopColor="#5fe0b4" />
+          <stop offset=".5" stopColor="#b6aaf6" />
+          <stop offset="1" stopColor="#f58a9a" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M63.4 26.5A25.9 25.9 0 1 0 63.4 57.5"
+        fill="none"
+        stroke="url(#mg)"
+        strokeWidth="14.7"
+        strokeLinecap="round"
+      />
+      <circle cx="65" cy="42" r="5.8" fill="#eef0f6" />
+      <circle cx="35" cy="38" r="3" fill="#b6aaf6" />
+      <circle cx="49" cy="38" r="3" fill="#b6aaf6" />
+      <path d={mouth} stroke="#b6aaf6" strokeWidth="2.6" strokeLinecap="round" fill="none" />
     </svg>
   );
 }

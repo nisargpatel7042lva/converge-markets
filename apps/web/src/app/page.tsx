@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LiveTicker } from "@/components/live-ticker";
+import { OddsDemo } from "@/components/odds-demo";
 import { StartButton } from "@/components/start-button";
 import { Logo } from "@/components/shell";
 import { Mascot } from "@/components/delight";
@@ -91,7 +92,7 @@ export default function Landing() {
           />
           <div className="relative">
             <Mascot mood="happy" size={72} />
-            <h1 className="font-display mt-5 text-[2.5rem] font-semibold leading-[1.06] md:text-[4.1rem]">
+            <h1 className="font-display mt-5 text-[2.5rem] font-extrabold leading-[1.06] md:text-[4.1rem]">
               Call the next 15 minutes.
               <br />
               <span className="text-up">Up</span> or <span className="text-down">Down</span>.
@@ -108,22 +109,22 @@ export default function Landing() {
             </div>
           </div>
 
-          <section
-            aria-labelledby="live"
-            className="relative rounded-[28px] border border-line/80 bg-surface/70 p-5 backdrop-blur md:p-6"
-          >
-            <h2 id="live" className="mb-3 flex items-center gap-2 text-sm font-bold text-muted">
-              <span className="live-dot" aria-hidden /> Live right now
-            </h2>
-            <LiveTicker />
-            <p className="mt-4 text-xs leading-relaxed text-faint">
-              Rounds run all day. Open one to see the live price, the odds and the chart.
-            </p>
-          </section>
+          <div className="relative grid gap-4">
+            <OddsDemo />
+            <section
+              aria-labelledby="live"
+              className="rounded-[24px] border border-line/70 bg-surface/60 p-4"
+            >
+              <h2 id="live" className="mb-2.5 flex items-center gap-2 text-sm font-bold text-muted">
+                <span className="live-dot" aria-hidden /> Live right now
+              </h2>
+              <LiveTicker />
+            </section>
+          </div>
         </section>
 
         <section id="how" className="mt-14 scroll-mt-8 md:mt-24">
-          <h2 className="font-display text-2xl font-semibold md:text-4xl">How it works</h2>
+          <h2 className="font-display text-2xl font-extrabold md:text-4xl">How it works</h2>
           <ol className="mt-5 grid gap-3 md:mt-8 md:grid-cols-3 md:gap-5">
             {STEPS.map(([n, t, b]) => (
               <li
@@ -145,7 +146,7 @@ export default function Landing() {
         </section>
 
         <section className="mt-12 md:mt-20">
-          <h2 className="font-display text-2xl font-semibold md:text-4xl">
+          <h2 className="font-display text-2xl font-extrabold md:text-4xl">
             Calm by design, careful underneath
           </h2>
           <div className="mt-5 grid gap-3 md:mt-8 md:grid-cols-2 md:gap-5">

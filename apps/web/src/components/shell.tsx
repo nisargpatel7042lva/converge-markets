@@ -28,13 +28,25 @@ const TABS = [
   },
 ] as const;
 
-/** The mark: Up (mint) above, Down (coral) below, and the lilac lens where they converge. */
+/** The mark: a "C" whose gradient runs Up (mint) to Down (coral), closing on one dot: the converged price. */
 export function LogoMark({ size = 24 }: { size?: number }) {
   return (
     <svg aria-hidden width={size} height={size} viewBox="0 0 24 24">
-      <circle cx="12" cy="8.4" r="7.2" fill="#5fd7ae" />
-      <circle cx="12" cy="15.6" r="7.2" fill="#f48b98" />
-      <path d="M5.765 12A7.2 7.2 0 0 0 18.235 12A7.2 7.2 0 0 0 5.765 12Z" fill="#b6aaf6" />
+      <defs>
+        <linearGradient id="cg" gradientUnits="userSpaceOnUse" x1="0" y1="4" x2="0" y2="20">
+          <stop offset="0" stopColor="#5fe0b4" />
+          <stop offset=".5" stopColor="#b6aaf6" />
+          <stop offset="1" stopColor="#f58a9a" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M18.1 7.6A7.4 7.4 0 1 0 18.1 16.4"
+        fill="none"
+        stroke="url(#cg)"
+        strokeWidth="4.2"
+        strokeLinecap="round"
+      />
+      <circle cx="18.6" cy="12" r="1.7" fill="#eef0f6" />
     </svg>
   );
 }
@@ -42,10 +54,10 @@ export function LogoMark({ size = 24 }: { size?: number }) {
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`font-display inline-flex items-center gap-2.5 font-semibold tracking-tight ${className}`}
+      className={`font-display inline-flex items-center gap-2 font-extrabold tracking-tight ${className}`}
     >
-      <LogoMark size={26} />
-      Converge
+      <LogoMark size={28} />
+      converge
     </span>
   );
 }
@@ -68,7 +80,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <header className="sticky top-0 z-30 backdrop-blur-xl [background:linear-gradient(to_bottom,rgba(15,18,24,0.94),rgba(15,18,24,0.66))]">
-        <div className="mx-auto flex w-full max-w-md items-center justify-between px-4 py-3 md:max-w-6xl md:px-8 md:py-4">
+        <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2 px-4 py-3 md:max-w-6xl md:px-8 md:py-4">
           <Link href="/markets" aria-label="Converge home">
             <Logo className="md:text-lg" />
           </Link>
@@ -98,13 +110,14 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
             {deployment.testnet ? (
               <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-warn-soft px-2.5 py-1 text-xs font-semibold text-warn">
                 <span className="h-1.5 w-1.5 rounded-full bg-warn" />
-                Test money
+                <span className="sm:hidden">Test</span>
+                <span className="hidden sm:inline">Test money</span>
               </span>
             ) : null}
             {ready && handle ? (
               <Link
                 href="/account"
-                className="inline-flex min-h-11 max-w-[9.5rem] items-center gap-2 rounded-full bg-raised py-1 pl-1.5 pr-3 text-xs font-semibold text-text md:max-w-[12rem] md:text-sm"
+                className="inline-flex min-h-11 max-w-[7.5rem] min-w-0 items-center gap-2 rounded-full bg-raised py-1 pl-1.5 pr-3 text-xs font-semibold text-text sm:max-w-[9.5rem] md:max-w-[12rem] md:text-sm"
               >
                 <Avatar name={handle} />
                 <span className="truncate">{handle}</span>

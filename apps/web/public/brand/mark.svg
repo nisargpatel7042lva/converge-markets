@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96" role="img" aria-label="Converge">
-  <circle cx="12" cy="8.4" r="7.2" fill="#5fd7ae"/>
-  <circle cx="12" cy="15.6" r="7.2" fill="#f48b98"/>
-  <path d="M5.765 12A7.2 7.2 0 0 0 18.235 12A7.2 7.2 0 0 0 5.765 12Z" fill="#b6aaf6"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96" role="img" aria-label="Converge"><defs><linearGradient id="cg" gradientUnits="userSpaceOnUse" x1="0" y1="4" x2="0" y2="20"><stop offset="0" stop-color="#5fe0b4"/><stop offset=".5" stop-color="#b6aaf6"/><stop offset="1" stop-color="#f58a9a"/></linearGradient></defs><path d="M18.1 7.6A7.4 7.4 0 1 0 18.1 16.4" fill="none" stroke="url(#cg)" stroke-width="4.2" stroke-linecap="round"/><circle cx="18.6" cy="12" r="1.7" fill="#eef0f6"/></svg>

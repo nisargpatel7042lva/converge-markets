@@ -1,6 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="220" height="48" role="img" aria-label="Converge">
-  <g transform="translate(2 4) scale(1.7)"><circle cx="12" cy="8.4" r="7.2" fill="#1fae83"/>
-  <circle cx="12" cy="15.6" r="7.2" fill="#e5657a"/>
-  <path d="M5.765 12A7.2 7.2 0 0 0 18.235 12A7.2 7.2 0 0 0 5.765 12Z" fill="#7a69e8"/></g>
-  <text x="56" y="33" font-family="Fraunces, 'Iowan Old Style', Georgia, serif" font-size="29" font-weight="600" letter-spacing="-0.6" fill="#17151f">Converge</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 48" width="230" height="48" role="img" aria-label="Converge"><g transform="translate(2 4) scale(1.7)"><defs><linearGradient id="cg" gradientUnits="userSpaceOnUse" x1="0" y1="4" x2="0" y2="20"><stop offset="0" stop-color="#17a97d"/><stop offset=".5" stop-color="#7a69e8"/><stop offset="1" stop-color="#e5546c"/></linearGradient></defs><path d="M18.1 7.6A7.4 7.4 0 1 0 18.1 16.4" fill="none" stroke="url(#cg)" stroke-width="4.2" stroke-linecap="round"/><circle cx="18.6" cy="12" r="1.7" fill="#17151f"/></g><text x="54" y="33" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="30" font-weight="800" letter-spacing="-1.2" fill="#17151f">converge</text></svg>

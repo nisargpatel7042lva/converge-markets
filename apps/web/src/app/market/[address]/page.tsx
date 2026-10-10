@@ -168,7 +168,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
           <div className="mt-3 flex items-center gap-3">
             <AssetBadge name={r.series.name} size={44} />
             <div className="min-w-0 flex-1">
-              <h1 className="font-display text-[24px] font-semibold leading-tight md:text-[30px]">
+              <h1 className="font-display text-[24px] font-extrabold leading-tight md:text-[30px]">
                 {r.series.name} · {r.duration / 60} min
               </h1>
               <p className="tabular mt-0.5 text-sm text-muted" data-testid="phase">
@@ -251,7 +251,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
             </div>
             <p className="mt-2 text-[11px] text-faint">
               {px.live
-                ? `Live price · ${px.source}`
+                ? `Live price · ${px.source} · updated ${Math.max(0, Math.round(now - (px.history[px.history.length - 1]?.t ?? now * 1000) / 1000))}s ago`
                 : px.price !== null
                   ? "Price feed reconnecting…"
                   : ""}
@@ -341,6 +341,36 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
               </div>
             </div>
           ) : null}
+
+          <section
+            data-testid="how-settles"
+            className="mt-3.5 rounded-[22px] border border-line/80 bg-surface p-4"
+          >
+            <p className="text-sm font-bold">How this round settles</p>
+            <ul className="mt-2.5 grid gap-2 text-sm leading-relaxed text-muted">
+              <li>
+                <span className="font-semibold text-text">Up wins</span> if {r.series.name} is at or
+                above {strike ? `$${price(strike)}` : "the start price"} when the round ends at{" "}
+                <span className="tabular text-text">
+                  {new Date(r.end * 1000).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                . A tie counts as Up.
+              </li>
+              <li>
+                The final price comes from a signed Chainlink price report that the contract checks.
+                Nobody picks the winner by hand.
+              </li>
+              <li>
+                If a round can&apos;t be confirmed it is cancelled and every share pays 50¢.
+                {r.redeemFeeBps > 0
+                  ? ` A ${(r.redeemFeeBps / 100).toFixed(r.redeemFeeBps % 100 ? 1 : 0)}% fee comes off winnings.`
+                  : ""}
+              </li>
+            </ul>
+          </section>
 
           {holding ? (
             <Card
