@@ -203,10 +203,52 @@ async function tick() {
   }
 }
 
+/**
+ * Rounds older than the tick's window that never settled (the scheduler was down, the machine slept) would
+ * stay open forever and hold people's bets. Every minute, look back 24 h and `invalidate()` any round whose
+ * price boundary can never be determined: it pays 50 cents a share, so nobody is stuck. Anything the
+ * contract refuses (still resolvable) is left alone and retried only every 10 minutes.
+ */
+let lastSweep = 0;
+const skipUntil = new Map<string, number>();
+async function sweep() {
+  if (Date.now() - lastSweep < 60_000) return;
+  lastSweep = Date.now();
+  const t = Number((await pub.getBlock()).timestamp);
+  const cur = Math.floor(t / DURATION) * DURATION;
+  const starts = Array.from({ length: 92 }, (_, i) => cur - (i + 4) * DURATION);
+  const addrs = (await pub.multicall({
+    allowFailure: false,
+    contracts: starts.map((st) => ({
+      address: dep.marketFactory,
+      abi: marketFactoryAbi,
+      functionName: "getMarket" as const,
+      args: [dep.assetTEST, BigInt(DURATION), BigInt(st)] as const,
+    })),
+  })) as Address[];
+  const live = addrs.map((a, i) => ({ a, start: starts[i]! })).filter((x) => x.a !== ZERO);
+  if (!live.length) return;
+  const states = (await pub.multicall({
+    allowFailure: false,
+    contracts: live.map((x) => ({ address: x.a, abi: marketAbi, functionName: "state" as const })),
+  })) as number[];
+  for (const [i, x] of live.entries()) {
+    const stt = Number(states[i]);
+    if (stt > 1 || (skipUntil.get(x.a) ?? 0) > Date.now()) continue;
+    try {
+      await send({ address: x.a, abi: marketAbi, functionName: "invalidate", args: [] });
+      log(`closed out stuck round ${new Date(x.start * 1000).toISOString().slice(5, 16)}Z (invalidated, pays 50c a share)`);
+    } catch {
+      skipUntil.set(x.a, Date.now() + 600_000);
+    }
+  }
+}
+
 log(`scheduler for TEST/USD on testnet; factory ${dep.marketFactory}`);
 for (;;) {
   try {
     await tick();
+    await sweep();
   } catch (e) {
     log(`tick: ${String(e instanceof Error ? e.message : e).split("\n")[0]}`);
   }
