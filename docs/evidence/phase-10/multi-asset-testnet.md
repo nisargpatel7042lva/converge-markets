@@ -32,3 +32,7 @@ The testnet ran one series (ETH, the `TEST/USD` asset). BTC and MON now run besi
 - MON's second source is Gate's USDT pair, not a USD pair; the keeper's source labels for MON ("binance", "coinbase") name the message shape, not the exchange. This is a testnet relay; mainnet reads Chainlink Data Streams.
 - Only the ETH series is listed on Kuru (the lister is unchanged).
 - The stats page's round counts still read the ETH series only.
+
+## Why the deployed link looked empty from India
+
+The app blocks the countries in `apps/web/config/regions.json`, and **India is on the default list** ("per the brief"). From India the deployed link shows "Converge isn't available in your region" (HTTP 451), not a market list, however many markets are running. The reviewer bypass that the middleware already supported was off. On 2026-10-11 Nisarg chose to turn it on: `REGION_BYPASS_TOKEN` is set on the Vercel production environment (type sensitive), so `…/markets?region_bypass=<token>` sets a week-long cookie. The public block is unchanged. To turn it off, delete that variable. The link is kept in `.testnet/region-bypass-link.txt` (local, excluded from git). The in-app faucet is also off on Vercel (no drip key is set there), so a visitor there can read markets but not get test money.

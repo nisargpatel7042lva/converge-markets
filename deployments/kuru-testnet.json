@@ -300,19 +300,16 @@
       "start": 1791705600,
       "end": 1791706500,
       "strike": 2499.835,
-      "status": "quoting",
+      "status": "redeemed",
       "seeded": true,
-      "orderIds": [
-        "5",
-        "6"
-      ],
+      "orderIds": [],
       "lastQuote": {
-        "fair": 0.516612246459403,
-        "bid": 0.476,
-        "ask": 0.557,
-        "at": 1791705940
+        "fair": 0.6418258454647707,
+        "bid": 0.601,
+        "ask": 0.682,
+        "at": 1791706471
       },
-      "quotes": 3,
+      "quotes": 6,
       "txs": [
         {
           "step": "kuru deployProxy (UP/tUSDC)",
@@ -367,6 +364,42 @@
           "hash": "0x28897b39372a6af6769e4bf81cba295e7717e9edbdad75deb1aaa12766a316cf",
           "gasLimit": "604160",
           "at": 1791705944
+        },
+        {
+          "step": "quote 0.474 / 0.555 (fair 0.514)",
+          "hash": "0x5669440ceb59afc45e64cbaa83624a5b32b5d0bcd621bb9ffc1a77611051a449",
+          "gasLimit": "539170",
+          "at": 1791706187
+        },
+        {
+          "step": "quote 0.541 / 0.622 (fair 0.582)",
+          "hash": "0x5b37baa0ccd6045c247444ca8008db007e3edbd87e4c0def2fef740b984208d5",
+          "gasLimit": "604145",
+          "at": 1791706234
+        },
+        {
+          "step": "quote 0.601 / 0.682 (fair 0.642)",
+          "hash": "0x01dc13ae88d59177ae0b555edcb2f208252f06906cdfb15fb791776bdc41d03a",
+          "gasLimit": "604285",
+          "at": 1791706475
+        },
+        {
+          "step": "cancel quotes",
+          "hash": "0x4ea2ba5b9c74f6f15e483c18064d35c120e6d7decb327cfc0105f07f5c6a2759",
+          "gasLimit": "292376",
+          "at": 1791706488
+        },
+        {
+          "step": "withdraw margin",
+          "hash": "0x3765d772c494bab688fa80d4014944ce91ad848068dfede85693df6c2ed1acb5",
+          "gasLimit": "204943",
+          "at": 1791706490
+        },
+        {
+          "step": "redeem the round's tokens",
+          "hash": "0xf2610e036fc5de0b70c54c01139457df33b08bed12bdb733dfdf8be70c415d4a",
+          "gasLimit": "195212",
+          "at": 1791706551
         }
       ]
     }
