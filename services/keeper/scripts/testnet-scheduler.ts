@@ -160,7 +160,10 @@ async function tick() {
       });
       continue;
     }
-    if (m.state === 0 && t >= start) {
+    // A round more than 3 minutes past its boundary is beyond the oracle's window: retrying cannot save it, and the
+    // sweep below invalidates it (50 cents a share) instead.
+    const LATE_GIVE_UP = 180;
+    if (m.state === 0 && t >= start && t < start + LATE_GIVE_UP) {
       if (due(`propose-open:${start}`))
         await once(`propose-open:${start}`, async () =>
           send({
@@ -180,7 +183,7 @@ async function tick() {
           log(`round ${label} opened`);
         });
     }
-    if (m.state === 1 && t >= end) {
+    if (m.state === 1 && t >= end && t < end + LATE_GIVE_UP) {
       if (due(`propose-end:${start}`))
         await once(`propose-end:${start}`, async () =>
           send({

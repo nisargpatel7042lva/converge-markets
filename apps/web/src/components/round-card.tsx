@@ -14,23 +14,39 @@ export function phaseOf(r: Round, now: number) {
   return roundPhase({ state: r.state, start: r.start, end: r.end, now });
 }
 
-const GLYPH: Record<string, string> = { ETH: "Ξ", BTC: "₿", MON: "M" };
+/** The coin artwork we ship (public/assets/coins): ETH and BTC from the CC0 `cryptocurrency-icons` set, MON redrawn from Monad's mark. */
+const COIN_ART: Record<string, string> = {
+  ETH: "/assets/coins/eth.svg",
+  BTC: "/assets/coins/btc.svg",
+  MON: "/assets/coins/mon.svg",
+};
 
-/** The asset's round badge: a coin-like circle, tinted by the asset. */
+/**
+ * The asset's badge: its real logo for the assets we have artwork for (ETH, BTC, MON), and a tinted letter coin for any
+ * other asset, so a new series still gets a badge before anyone draws its logo.
+ */
 export function AssetBadge({ name, size = 40 }: { name: string; size?: number }) {
-  const hue =
-    name === "BTC"
-      ? "from-[#ffb74d] to-[#f57c00]"
-      : name === "MON"
-        ? "from-[#a78bfa] to-[#6d28d9]"
-        : "from-[#8da2ff] to-[#4f5bd5]";
+  const art = COIN_ART[name.toUpperCase()];
+  if (art)
+    return (
+      <img
+        src={art}
+        alt=""
+        aria-hidden
+        width={size}
+        height={size}
+        draggable={false}
+        className="shrink-0 rounded-full shadow-[0_1px_0_rgba(255,255,255,0.12)_inset]"
+        style={{ width: size, height: size }}
+      />
+    );
   return (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center rounded-full bg-gradient-to-br ${hue} font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]`}
+      className="grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#8da2ff] to-[#4f5bd5] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
       style={{ width: size, height: size, fontSize: size * 0.48 }}
     >
-      {GLYPH[name] ?? name.slice(0, 1)}
+      {name.slice(0, 1).toUpperCase()}
     </span>
   );
 }

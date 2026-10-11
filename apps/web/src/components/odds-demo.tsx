@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { AssetBadge } from "./round-card";
 
 /**
  * A hands-on example for the landing page: drag the price and the clock and watch the odds move. It uses
@@ -47,7 +48,10 @@ export function OddsDemo() {
   return (
     <div className="rounded-[28px] border border-line/80 bg-surface/80 p-5 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.7)] backdrop-blur md:p-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-bold">ETH · 15 min</p>
+        <p className="flex items-center gap-2 text-sm font-bold">
+          <AssetBadge name="ETH" size={24} />
+          ETH · 15 min
+        </p>
         <span className="rounded-full bg-raised px-3 py-1 text-xs font-semibold text-muted">
           Example
         </span>
