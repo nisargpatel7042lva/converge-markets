@@ -98,6 +98,17 @@ async function tick(): Promise<void> {
       }
     }
   }
+  // A position the lister left open (it was stopped, or the machine slept) is outside the window of rounds read above and
+  // would stay on Kuru forever: close anything past its end, wherever it is.
+  for (const kr of Object.values(state.rounds)) {
+    if ((kr.status === "quoting" || kr.status === "listed") && now >= kr.end - 20) {
+      await closeRound(ctx, dep, kr);
+      save();
+      log(
+        `closed ${kr.converge.slice(0, 8)} (it was left open past its end): quotes pulled, margin withdrawn`,
+      );
+    }
+  }
   for (const kr of Object.values(state.rounds)) {
     if (kr.status === "closed" && (await redeemRound(ctx, kr))) {
       save();
