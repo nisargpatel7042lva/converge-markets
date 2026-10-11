@@ -95,6 +95,54 @@ export function limitedFetch(
   };
 }
 
+/**
+ * Some public endpoints refuse JSON-RPC batches outright: rpc-testnet.monadinfra.com answers every batch, even a batch of
+ * one, with "Restricted JSON RPC method". The keeper batches its reads, so when its first endpoint failed (a 429 under
+ * load) and it fell over to such an endpoint, EVERY call failed: setSigma could not be sent, sigma went stale, and the
+ * vault stopped quoting. This wraps a fetch so that an endpoint that refuses a batch is remembered and from then on gets
+ * the same calls one at a time, with the results put back in order.
+ */
+export function unbatchOnRestricted(base: typeof fetch = fetch): typeof fetch {
+  const refuses = new Set<string>();
+  const asSingles = async (url: string, init: RequestInit | undefined, calls: unknown[]) => {
+    const parts = await Promise.all(
+      calls.map(async (c) => {
+        const r = await base(url, { ...init, body: JSON.stringify(c) });
+        return (await r.json()) as unknown;
+      }),
+    );
+    return new Response(JSON.stringify(parts), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  return async (input, init) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    let calls: unknown[] | null = null;
+    try {
+      const body = JSON.parse(String(init?.body ?? "null")) as unknown;
+      if (Array.isArray(body)) calls = body;
+    } catch {
+      calls = null;
+    }
+    if (!calls) return base(input, init);
+    const origin = new URL(url).origin;
+    if (refuses.has(origin)) return asSingles(url, init, calls);
+    const res = await base(input, init);
+    if (res.ok && !(res.headers.get("content-type") ?? "").includes("json")) {
+      // a 200 with a plain-text body is the refusal; real answers are JSON
+      if (/Restricted JSON RPC method/i.test(await res.clone().text())) {
+        refuses.add(origin);
+        return asSingles(url, init, calls);
+      }
+    } else if (!res.ok && /Restricted JSON RPC method/i.test(await res.clone().text())) {
+      refuses.add(origin);
+      return asSingles(url, init, calls);
+    }
+    return res;
+  };
+}
+
 export function makeClients(opts: {
   rpcUrls: string[];
   keeperKey: Hex;
@@ -116,7 +164,13 @@ export function makeClients(opts: {
   const errors = { consecutive: 0, total: 0, lastOkMs: null as number | null };
   // JSON-RPC batching turns the many reads of one tick into one HTTP request per endpoint.
   const rpcCalls = new Map<string, number>();
-  const fetchFn = limitedFetch(opts.maxRps ?? 0, rpcCalls);
+  const fetchFn = limitedFetch(
+    opts.maxRps ?? 0,
+    rpcCalls,
+    Date.now,
+    undefined,
+    unbatchOnRestricted(),
+  );
   const transports = opts.rpcUrls.map((u) =>
     http(u, { timeout, batch: true, retryCount: 2, retryDelay: 60, fetchFn }),
   );
