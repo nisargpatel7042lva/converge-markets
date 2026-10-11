@@ -1,4 +1,4 @@
-.PHONY: install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 check-7 check-8 check-9 lighthouse-7 ts-check sol-check sol-static
+.PHONY: check-docs-10 check-10 install check-all check-0 check-1 check-2 check-3 check-4 check-5 check-6 check-7 check-8 check-9 lighthouse-7 ts-check sol-check sol-static
 
 install:
 	pnpm install --frozen-lockfile
@@ -172,3 +172,15 @@ check-9: check-all
 	@test -f docs/ops/runbook.md && test -f docs/ops/launch-checklist.md && test -f docs/ops/mainnet-deploy.md
 	@test -s docs/evidence/phase-9/invariants-10000.txt && test -s docs/evidence/phase-9/mainnet-rehearsal.json
 	@echo "check-9 OK"
+
+# Phase 10: README, submission, demo script, pitch, launch thread and the numbers ledger.
+# check-docs-10 is the fast part (a minute); check-10 adds the whole suite.
+check-docs-10:
+	node scripts/docs/check-demo-script.mjs
+	node scripts/docs/check-thread.mjs
+	node scripts/docs/check-numbers.mjs
+	node scripts/docs/check-links.mjs
+
+check-10: check-all check-docs-10
+	@for f in README.md docs/numbers.md docs/submission.md docs/demo-script.md docs/pitch-outline.md docs/launch/x-thread.md docs/launch/outreach.md docs/phases/PHASE-10-report.md; do test -f $$f || { echo "missing $$f"; exit 1; }; done
+	@echo "check-10 OK"

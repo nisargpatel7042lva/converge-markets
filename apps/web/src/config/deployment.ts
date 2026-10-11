@@ -31,6 +31,8 @@ export type Deployment = {
   venue: Address;
   minRewardWei: string;
   deployBlock?: number;
+  /** The market factory's deploy block: the start of "all-time" round counts. */
+  factoryDeployBlock?: number;
   testnet: boolean;
   series: Series[];
 };

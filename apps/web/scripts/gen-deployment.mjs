@@ -21,6 +21,7 @@ const out = {
   venue: dep.vault.forwardVenue,
   minRewardWei: "1000000000000000",
   deployBlock: dep.vault.deployBlock,
+  factoryDeployBlock: dep.deployBlock,
   testnet: true,
   series: [
     {

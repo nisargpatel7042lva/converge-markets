@@ -1,0 +1,19 @@
+$ envio codegen && vitest run
+
+ RUN  v2.1.9 /home/mysterioxplorer/converge/indexer
+
+ ✓ src/index.test.ts (1 test) 2ms
+ ✓ test/handlers-cover-config.test.ts (2 tests) 4ms
+ ✓ test/sdk-parity.test.ts (4 tests) 8ms
+ ✓ test/lp-apy.test.ts (8 tests) 8ms
+ ✓ test/position.test.ts (11 tests) 357ms
+   ✓ conservation property > costBasis == totalIn - totalOut + realizedPnl after any sequence of ops (no rounding leak) 348ms
+ ✓ test/abi-parity.test.ts (50 tests) 50ms
+ ✓ test/partner.test.ts (4 tests) 203ms
+ ✓ test/lifecycle.test.ts (20 tests) 342ms
+
+ Test Files  8 passed (8)
+      Tests  100 passed (100)
+   Start at  07:05:54
+   Duration  1.75s (transform 1.39s, setup 0ms, collect 3.29s, tests 972ms, environment 2ms, prepare 1.97s)
+

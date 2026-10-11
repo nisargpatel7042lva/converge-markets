@@ -12,6 +12,7 @@
   "venue": "0xb23836FCE92EF669eBEF742f685eC960FF7630D9",
   "minRewardWei": "1000000000000000",
   "deployBlock": 69265595,
+  "factoryDeployBlock": 68426048,
   "testnet": true,
   "series": [
     {

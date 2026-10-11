@@ -1,0 +1,10 @@
+{
+  "chainId": 10143,
+  "venue": "0xb23836FCE92EF669eBEF742f685eC960FF7630D9",
+  "fromBlock": 69265595,
+  "toBlock": 70012727,
+  "executed": 19,
+  "trades": 11,
+  "volumeUsd6": "135410497",
+  "generatedAt": "2026-10-11T04:21:39.826Z"
+}

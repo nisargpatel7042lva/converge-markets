@@ -1,0 +1,121 @@
+{
+  "generatedAt": "2026-10-10T09:53:07.078Z",
+  "inputs": {
+    "monadGasPriceGwei": 102,
+    "ethereumGasPriceGwei": 0.066907876,
+    "ethUsd": 2493.5,
+    "monUsd": 0.02503172,
+    "monUsdFeedUpdatedAt": "2026-10-10T09:52:44.000Z",
+    "limitOverUsed": 1.15,
+    "measuredGasLimits": {
+      "setSigma": 53076,
+      "executeOrder": 664935,
+      "splitForInventory": 466858,
+      "mergeInventory": 247549,
+      "settleEpoch": 300484,
+      "kuruRequote": 554734
+    }
+  },
+  "rows": [
+    {
+      "name": "One volatility refresh (setSigma): what keeps the ladder current",
+      "gasLimit": 53076,
+      "monad": {
+        "mon": 0.005413752,
+        "usd": 0.00013551552421344
+      },
+      "ethLive": {
+        "used": 46153,
+        "usd": 0.007699933261449788
+      },
+      "eth1gwei": {
+        "used": 46153,
+        "usd": 0.1150826139130435
+      },
+      "eth10gwei": {
+        "used": 46153,
+        "usd": 1.1508261391304349
+      }
+    },
+    {
+      "name": "Serve one trade (executeOrder)",
+      "gasLimit": 664935,
+      "monad": {
+        "mon": 0.06782337,
+        "usd": 0.0016977356072964
+      },
+      "ethLive": {
+        "used": 578204,
+        "usd": 0.0964646002562762
+      },
+      "eth1gwei": {
+        "used": 578204,
+        "usd": 1.441752541304348
+      },
+      "eth10gwei": {
+        "used": 578204,
+        "usd": 14.41752541304348
+      }
+    },
+    {
+      "name": "One Kuru cancel-and-replace two-sided quote (batchUpdate)",
+      "gasLimit": 554734,
+      "monad": {
+        "mon": 0.056582868,
+        "usd": 0.00141636650857296
+      },
+      "ethLive": {
+        "used": 482377,
+        "usd": 0.0804773302030501
+      },
+      "eth1gwei": {
+        "used": 482377,
+        "usd": 1.2028080252173912
+      },
+      "eth10gwei": {
+        "used": 482377,
+        "usd": 12.028080252173911
+      }
+    },
+    {
+      "name": "One 15-minute round of maintenance (split + merge + settleEpoch + 1.5 refreshes)",
+      "gasLimit": 1094505,
+      "monad": {
+        "mon": 0.11163951,
+        "usd": 0.0027945289552572
+      },
+      "ethLive": {
+        "used": 951743,
+        "usd": 0.15878392219314005
+      },
+      "eth1gwei": {
+        "used": 951743,
+        "usd": 2.3731723630434782
+      },
+      "eth10gwei": {
+        "used": 951743,
+        "usd": 23.731723630434786
+      }
+    },
+    {
+      "name": "One series-day (96 rounds)",
+      "gasLimit": 105072480,
+      "monad": {
+        "mon": 10.71739296,
+        "usd": 0.2682747797046912
+      },
+      "ethLive": {
+        "used": 91367374,
+        "usd": 15.243256530541442
+      },
+      "eth1gwei": {
+        "used": 91367374,
+        "usd": 227.82454685217394
+      },
+      "eth10gwei": {
+        "used": 91367374,
+        "usd": 2278.245468521739
+      }
+    }
+  ]
+}

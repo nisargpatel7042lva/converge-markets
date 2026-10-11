@@ -1,4 +1,4 @@
-/* global process, console */
+/* global process, console, Buffer, fetch, AbortSignal */
 // Read-only front for the LOCAL Envio dev Hasura (which is gated by an admin secret and has no CORS):
 // forwards GraphQL queries to it with the secret added, refuses mutations and subscriptions, and answers
 // the browser's CORS preflight. For the local testnet demo only; Envio Cloud serves a public endpoint itself.

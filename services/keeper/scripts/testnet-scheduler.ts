@@ -237,7 +237,9 @@ async function sweep() {
     if (stt > 1 || (skipUntil.get(x.a) ?? 0) > Date.now()) continue;
     try {
       await send({ address: x.a, abi: marketAbi, functionName: "invalidate", args: [] });
-      log(`closed out stuck round ${new Date(x.start * 1000).toISOString().slice(5, 16)}Z (invalidated, pays 50c a share)`);
+      log(
+        `closed out stuck round ${new Date(x.start * 1000).toISOString().slice(5, 16)}Z (invalidated, pays 50c a share)`,
+      );
     } catch {
       skipUntil.set(x.a, Date.now() + 600_000);
     }

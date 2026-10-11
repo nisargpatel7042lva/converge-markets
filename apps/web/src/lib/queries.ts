@@ -193,3 +193,52 @@ export function useStatus() {
     retry: 1,
   });
 }
+
+export type JudgeStats = {
+  asOf: string;
+  block: number;
+  vault: {
+    navUsd: number;
+    capUsd: number;
+    sharePrice: number;
+    launchedAt: string;
+    days: number;
+    returnSinceLaunch: number;
+    annualisedReturn: number | null;
+  };
+  rounds: {
+    total: number;
+    slots: number;
+    neverCreated: number;
+    resolved: number;
+    invalid: number;
+    stuck: number;
+    open: number;
+    since: string;
+  };
+  uptime: number | null;
+  reliability: number | null;
+  volume: {
+    usd: number;
+    trades: number;
+    executedOrders: number;
+    scannedToBlock: number;
+    behindBlocks: number;
+    since: number;
+    scope: string;
+  };
+};
+
+/** The judge-facing numbers, derived from the chain by /api/stats (no indexer needed). */
+export function useJudgeStats() {
+  return useQuery({
+    queryKey: ["judge-stats"],
+    queryFn: async (): Promise<JudgeStats> => {
+      const r = await fetch("/api/stats", { cache: "no-store" });
+      if (!r.ok) throw new Error("stats unavailable");
+      return (await r.json()) as JudgeStats;
+    },
+    refetchInterval: 60_000,
+    retry: 1,
+  });
+}

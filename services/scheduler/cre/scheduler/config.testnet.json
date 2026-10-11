@@ -7,9 +7,7 @@
     "recentLookbackSeconds": 7200,
     "deepLookbackSeconds": 93600,
     "lateAfterSeconds": 60,
-    "durations": [
-      900
-    ],
+    "durations": [900],
     "assets": [
       {
         "label": "TEST/USD",

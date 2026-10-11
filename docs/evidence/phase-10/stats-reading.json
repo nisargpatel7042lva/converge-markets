@@ -1,0 +1,34 @@
+{
+  "asOf": "2026-10-11T04:30:59.282Z",
+  "block": 70016491,
+  "vault": {
+    "navUsd": 4029.305035,
+    "capUsd": 5000,
+    "sharePrice": 1.0119373755458032,
+    "launchedAt": "2026-10-08T13:22:08.000Z",
+    "days": 2.6310416666666665,
+    "returnSinceLaunch": 0.011937375545803208,
+    "annualisedReturn": 4.187467426479115
+  },
+  "rounds": {
+    "total": 41,
+    "slots": 535,
+    "neverCreated": 494,
+    "resolved": 19,
+    "invalid": 6,
+    "stuck": 16,
+    "open": 0,
+    "since": "2026-10-05T14:45:00.000Z"
+  },
+  "uptime": 0.03551401869158879,
+  "reliability": 0.4634146341463415,
+  "volume": {
+    "usd": 135.410497,
+    "trades": 11,
+    "executedOrders": 19,
+    "scannedToBlock": 70013327,
+    "behindBlocks": 3164,
+    "since": 69265595,
+    "scope": "the current venue only (testnet, play money)"
+  }
+}
