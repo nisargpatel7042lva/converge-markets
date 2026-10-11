@@ -12,6 +12,13 @@ export async function POST(req: Request) {
   } catch (e) {
     if (e instanceof RelayerError)
       return NextResponse.json({ error: e.message }, { status: e.status });
+    // the person gets a plain sentence; the operator gets the real reason in the server log (never in the response)
+    console.error(
+      "faucet failed:",
+      String(e instanceof Error ? e.message : e)
+        .replace(/\s+/g, " ")
+        .slice(0, 900),
+    );
     return NextResponse.json(
       { error: "Something went wrong. Try again in a minute." },
       { status: 500 },

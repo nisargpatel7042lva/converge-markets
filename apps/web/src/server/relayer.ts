@@ -121,9 +121,21 @@ export async function drip(addressRaw: unknown, ip: string, opts: { faucet: bool
     const needsGas = native < GAS_TOPUP_BELOW_WEI;
     if (needsGas && (opts.faucet || usdc >= MIN_STABLE_FOR_DRIP)) {
       budget(DRIP_WEI, opts.faucet);
-      out.gas = await serial(() =>
-        wallet.sendTransaction({ account, chain, to: address, value: DRIP_WEI, gas: 21_000n }),
-      );
+      // Wait until the gas drip is mined before the next transaction from this key: on the public Monad testnet RPC a
+      // second transaction sent straight after it is rejected with "Missing or invalid parameters" (reproduced with
+      // a script: back to back fails at any gas limit, after the receipt it succeeds). Without this a new account
+      // got neither the mint nor a clear error, only a 500.
+      out.gas = await serial(async () => {
+        const h = await wallet.sendTransaction({
+          account,
+          chain,
+          to: address,
+          value: DRIP_WEI,
+          gas: 21_000n,
+        });
+        await pub.waitForTransactionReceipt({ hash: h, pollingInterval: 300, timeout: 30_000 });
+        return h;
+      });
     }
     if (opts.faucet && usdc < FAUCET_USDC) {
       out.usdc = await serial(() =>
