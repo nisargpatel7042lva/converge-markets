@@ -1,0 +1,17 @@
+{
+  "note": "Wall-clock milliseconds from page.goto('/') on a 375x812 mobile profile, against the live Monad testnet app, the live keeper and a live 15-minute round. Includes creating the passkey account (Chromium virtual authenticator with PRF), the in-app faucet, the approval and the order, and the keeper's fill.",
+  "handle": "eager-badger-35",
+  "address": "0xF0FF1381868B7cF52af77A267D21f9857a191275",
+  "filled": true,
+  "resultText": "You're in on Up$4.59 for $8.49 of Up. If you're right when the round ends, you collect $8.49. Good luck!View on the explorerDoneMy bets",
+  "steps": {
+    "landing": 231,
+    "accountCreated": 436,
+    "funded": 4318,
+    "marketReady": 9387,
+    "confirmed": 9771,
+    "resultShown": 18727
+  },
+  "totalMs": 18727,
+  "at": "2026-10-11T08:05:17.494Z"
+}

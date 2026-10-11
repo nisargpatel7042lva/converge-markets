@@ -1,6 +1,6 @@
 {
   "schedule": "5,35 * * * * *",
-  "gasLimit": "9000000",
+  "gasLimit": "2500000",
   "maxActionsPerReport": 12,
   "series": {
     "lookaheadRounds": 3,

@@ -1,26 +1,25 @@
 {
-  "market": "0x75525B25c504F7a2D78F2847F7A06Bed1631eE33",
-  "round": "0x24B13b1a5799C58C8B778991B63ccc9f0784B6cc",
+  "market": "0x0f1B763e316293C349C78Ca5B4a74eB689a3Fb31",
+  "round": "0x8CD37BA5A83C38A4bcA387a048643F0e3f8Ece92",
   "taker": "0x4569B1b73b37eA1948335767A4243142D7015118",
-  "bestBid": 0.872,
-  "bestAsk": 0.953,
+  "bestBid": 0.476,
+  "bestAsk": 0.557,
   "steps": [
     {
       "step": "taker mints + approves test collateral",
-      "hash": "0x15315368c5f99f977527f565af98d2dc0355bdee9e11c9fe4e9b7eb9b60eaa5b",
-      "detail": "approve 0xb27242176d430b81b4babb41e1168cd8165ef6ec32802d7e3490cc9b58b792f7, approve UP 0x5ff80a67fb6b0527f75c028aa0531e73f9cc965ffda103bfcfaf0933da8c3014"
+      "hash": "0x7717873bd9b27c048a0226c16a804a0e50e1bcfd8d13bb4abecf144bbe037fed",
+      "detail": "approve 0x7db98889afaeea77dfbc4d7d4abb5c6d58d01b133f5c32aaffd721bd20cab9bc, approve UP 0x7519778c5e7f4e860d86347c5a4920bce8b0ac7db4b4663d4e8ae93023780a58"
     },
     {
       "step": "market buy of the UP token on Kuru",
-      "hash": "0x3e414205f412a52dff08f9afc0d9ba4b84f5e897a1b9c295811f428c74ff9621",
-      "detail": "2.2002 UP for $2, avg 0.9090"
+      "hash": "0x9a855a36ab0473372ff9d03f35f3a3b58c88338889e5a19cf4e57d0941fc4e44",
+      "detail": "3.5906 UP for $2, avg 0.5570"
     },
     {
       "step": "market sell back to the book",
-      "hash": "0xc31bb2c4f4d262f51b3ffdb2b0ff9443126728b3c703849fd1779dbb7786e280",
-      "detail": "received $1.8217"
+      "hash": "0x2d7e42983b78234ab909f3481e1324ae85a140edc917ec87b37881471217bef0",
+      "detail": "received $1.7091"
     }
   ],
-  "balanceMon": "0.111629852",
-  "note": "bestBid/bestAsk were read at the moment of the buy; the maker re-quoted to 0.828 / 0.909 a moment later, which is the price the buy and sell filled at."
+  "balanceMon": "0.025307966"
 }
