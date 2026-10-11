@@ -1,0 +1,17 @@
+# Fly.io config for the testnet backend (not tested: no Fly account was available when this was written).
+#   fly launch --no-deploy --copy-config -c ops/testnet-backend/fly.toml     (from the repo root)
+#   fly secrets set -c ops/testnet-backend/fly.toml KEEPER_PRIVATE_KEY=... STREAMS_TEST_SIGNER_KEY=... SCHEDULER_PRIVATE_KEY=...
+#   fly deploy -c ops/testnet-backend/fly.toml
+app = "converge-testnet-backend"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  MODE = "live"
+
+# one machine, always on, restarted if the entrypoint exits
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

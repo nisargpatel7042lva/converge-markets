@@ -28,12 +28,24 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
+/** A secret from the process environment (a container host's secrets), else from the repo's .env. */
 const env = (k: string): string => {
+  const fromProcess = process.env[k];
+  if (fromProcess) return fromProcess.trim();
   const line = readFileSync(`${root}.env`, "utf8")
     .split("\n")
     .find((l) => l.startsWith(`${k}=`));
-  if (!line) throw new Error(`${k} missing in .env`);
+  if (!line) throw new Error(`${k} missing in the environment and in .env`);
   return line.slice(k.length + 1).trim();
+};
+/** The key that creates rounds: a dedicated SCHEDULER_PRIVATE_KEY (it needs only the factory's CREATOR_ROLE and
+ *  gas) when set, otherwise the deployer's. */
+const schedulerKey = (): string => {
+  try {
+    return env("SCHEDULER_PRIVATE_KEY");
+  } catch {
+    return env("DEPLOYER_PRIVATE_KEY");
+  }
 };
 const dep = JSON.parse(readFileSync(`${root}deployments/testnet.json`, "utf8")) as {
   marketFactory: Address;
@@ -80,7 +92,7 @@ const chain = defineChain({
 });
 const pub = createPublicClient({ chain, transport: http(rpc) });
 const wallet = createWalletClient({
-  account: privateKeyToAccount(env("DEPLOYER_PRIVATE_KEY") as Hex),
+  account: privateKeyToAccount(schedulerKey() as Hex),
   chain,
   transport: http(rpc),
 });
