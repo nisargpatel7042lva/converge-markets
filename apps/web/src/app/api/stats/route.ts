@@ -3,7 +3,8 @@ import { parseAbiItem, type Address } from "viem";
 import { convergeVaultAbi, marketAbi, marketFactoryAbi } from "@converge/sdk";
 import { deployment } from "@/config/deployment";
 import snapshot from "@/config/stats-snapshot.json";
-import { multicall, publicClient } from "@/lib/chain";
+import { createPublicClient, http } from "viem";
+import { chain } from "@/lib/chain";
 
 /**
  * The numbers a judge asks for, derived from the chain with no indexer: money in the vault, share value and the
@@ -13,6 +14,33 @@ import { multicall, publicClient } from "@/lib/chain";
 export const dynamic = "force-dynamic";
 const TTL_MS = 60_000;
 let cache: { at: number; body: unknown } | null = null;
+
+/**
+ * This route's own client: the public testnet RPC allows about 15 requests a second per address and the keeper and the
+ * app share that, so the retries wait long enough (about 0.6 s, doubling) for the limit to clear, and the calls below
+ * run two at a time.
+ */
+const publicClient = createPublicClient({
+  chain,
+  transport: http(deployment.rpcUrl, { retryCount: 6, retryDelay: 600 }),
+});
+const multicall = (args: { allowFailure: false; contracts: readonly unknown[] }) =>
+  deployment.multicall3
+    ? publicClient.multicall(args as Parameters<typeof publicClient.multicall>[0])
+    : Promise.all(args.contracts.map((c) => publicClient.readContract(c as never)));
+async function limited<T, R>(items: T[], n: number, fn: (x: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(n, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i] as T);
+      }
+    }),
+  );
+  return out;
+}
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 const DURATION = 900;
@@ -59,8 +87,8 @@ async function compute() {
   const first = Math.ceil(Number(fBlock.timestamp) / DURATION) * DURATION;
   const starts: number[] = [];
   for (let s = first; s <= now - DURATION; s += DURATION) starts.push(s);
-  const addrs: { start: number; a: Address }[] = [];
-  for (const part of chunks(starts, 120)) {
+  // chunks run in parallel: ten calls in a row to the public RPC took twenty seconds on a cold cache
+  const found = await limited(chunks(starts, 200), 2, async (part) => {
     const r = (await multicall({
       allowFailure: false,
       contracts: part.map((s) => ({
@@ -70,20 +98,22 @@ async function compute() {
         args: [asset, BigInt(DURATION), BigInt(s)] as const,
       })),
     })) as Address[];
-    part.forEach((s, i) => r[i] !== ZERO && addrs.push({ start: s, a: r[i]! }));
-  }
-  const states: number[] = [];
-  for (const part of chunks(addrs, 120)) {
-    const r = (await multicall({
-      allowFailure: false,
-      contracts: part.map((x) => ({
-        address: x.a,
-        abi: marketAbi,
-        functionName: "state" as const,
-      })),
-    })) as number[];
-    states.push(...r.map(Number));
-  }
+    return part.flatMap((s, i) => (r[i] !== ZERO ? [{ start: s, a: r[i]! }] : []));
+  });
+  const addrs: { start: number; a: Address }[] = found.flat();
+  const states: number[] = (
+    await limited(chunks(addrs, 200), 2, async (part) => {
+      const r = (await multicall({
+        allowFailure: false,
+        contracts: part.map((x) => ({
+          address: x.a,
+          abi: marketAbi,
+          functionName: "state" as const,
+        })),
+      })) as number[];
+      return r.map(Number);
+    })
+  ).flat();
   let resolved = 0,
     invalid = 0,
     stuck = 0,
@@ -171,24 +201,37 @@ async function compute() {
   };
 }
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < TTL_MS) return NextResponse.json(cache.body);
-  try {
-    let body: Awaited<ReturnType<typeof compute>> | undefined;
-    for (let attempt = 0; ; attempt++) {
-      try {
-        body = await compute();
-        break;
-      } catch (e) {
-        // the public testnet RPC answers 429 under bursts: wait and try again before giving up
-        if (attempt >= 2) throw e;
-        await new Promise((r) => setTimeout(r, 2500));
-      }
+let refreshing: Promise<void> | null = null;
+async function refresh() {
+  let body: Awaited<ReturnType<typeof compute>> | undefined;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      body = await compute();
+      break;
+    } catch (e) {
+      // the public testnet RPC answers 429 under bursts: wait and try again before giving up
+      if (attempt >= 2) throw e;
+      await new Promise((r) => setTimeout(r, 2500));
     }
-    cache = { at: Date.now(), body };
-    return NextResponse.json(body);
+  }
+  cache = { at: Date.now(), body };
+}
+
+/** Stale while revalidate: a request is answered from the last good reading at once; a reading older than the TTL is refreshed behind it. */
+export async function GET() {
+  if (cache) {
+    if (Date.now() - cache.at >= TTL_MS && !refreshing)
+      refreshing = refresh()
+        .catch(() => undefined)
+        .finally(() => (refreshing = null));
+    return NextResponse.json(cache.body);
+  }
+  try {
+    refreshing ??= refresh().finally(() => (refreshing = null));
+    await refreshing;
+    const got = cache as { at: number; body: unknown } | null; // set by refresh(), which TS cannot see from here
+    return NextResponse.json(got?.body ?? { error: "no data" });
   } catch (e) {
-    if (cache) return NextResponse.json(cache.body);
     return NextResponse.json(
       { error: String(e instanceof Error ? e.message : e).slice(0, 200) },
       { status: 503 },

@@ -1,0 +1,357 @@
+{
+  "label": "testnet-window",
+  "when": "2026-10-11T06:32:23.731Z",
+  "indexer": "http://localhost:8081/v1/graphql",
+  "rpc": "https://rpc-testnet.monadinfra.com",
+  "chainId": 10143,
+  "pinnedToIndexerBlock": true,
+  "seed": 1,
+  "requestedN": 60,
+  "populationSize": 29,
+  "sampled": 29,
+  "matched": 27,
+  "mismatched": 2,
+  "fieldComparisons": 235,
+  "percentMatching": 93.10344827586206,
+  "invariants": [
+    {
+      "name": "per market: sum of holder balances (incl. vault and venue) == token total supply",
+      "ok": true,
+      "detail": "5 markets, 0 violations"
+    },
+    {
+      "name": "no negative balance, escrow or cost",
+      "ok": true,
+      "detail": "6 positions, 0 violations"
+    },
+    {
+      "name": "costBasis == upCost + downCost",
+      "ok": true,
+      "detail": "0 violations"
+    },
+    {
+      "name": "sum of LP wallet shares <= vault share supply",
+      "ok": true,
+      "detail": "701032 <= 2981773114"
+    },
+    {
+      "name": "protocol totals == sum over markets == vault fill totals",
+      "ok": true,
+      "detail": "trades 3/3, volume 15616119/15616119"
+    },
+    {
+      "name": "Vault apy7d / apy30d / apySinceInception == recomputed from the NavSnapshot rows",
+      "ok": true,
+      "detail": "6 snapshots; indexer apy7d null, apy30d null; recomputed undefined, undefined"
+    }
+  ],
+  "pass": false,
+  "byKind": {
+    "Market": {
+      "n": 5,
+      "ok": 5
+    },
+    "UserPosition": {
+      "n": 3,
+      "ok": 3
+    },
+    "Trade": {
+      "n": 3,
+      "ok": 3
+    },
+    "NavSnapshotSettlement": {
+      "n": 1,
+      "ok": 1
+    },
+    "NavSnapshot": {
+      "n": 5,
+      "ok": 5
+    },
+    "LPPosition": {
+      "n": 1,
+      "ok": 0
+    },
+    "VaultEpoch": {
+      "n": 1,
+      "ok": 1
+    },
+    "Order": {
+      "n": 9,
+      "ok": 9
+    },
+    "Vault": {
+      "n": 1,
+      "ok": 0
+    }
+  },
+  "mismatches": [
+    {
+      "kind": "LPPosition",
+      "id": "0xe36848e8654a86fd2f7f97ddb3c56042ffd54dd1",
+      "block": 69793600,
+      "checks": [
+        {
+          "field": "shares",
+          "indexer": "701032",
+          "chain": "1000700032"
+        }
+      ],
+      "ok": false,
+      "attempts": 3
+    },
+    {
+      "kind": "Vault",
+      "id": "0x5dd05ffd80f8959abd25c82a57f5bd106c27b082",
+      "block": 69793600,
+      "checks": [
+        {
+          "field": "totalSupply",
+          "indexer": "2981773114",
+          "chain": "3981773114"
+        },
+        {
+          "field": "tvlCap",
+          "indexer": "5000000000",
+          "chain": "5000000000"
+        },
+        {
+          "field": "performanceFeeBps",
+          "indexer": "1000",
+          "chain": "1000"
+        },
+        {
+          "field": "quotingPaused",
+          "indexer": "false",
+          "chain": "false"
+        },
+        {
+          "field": "keeper",
+          "indexer": "0x6e5008e79b3f6bcf314467c8b325b3784a9e9af4",
+          "chain": "0x6e5008e79b3f6bcf314467c8b325b3784a9e9af4"
+        },
+        {
+          "field": "venue",
+          "indexer": "null",
+          "chain": "0xb23836fce92ef669ebef742f685ec960ff7630d9"
+        },
+        {
+          "field": "ppsLower == pricePerShareLower()",
+          "indexer": "1006346330209310866",
+          "chain": "1006346330209310866"
+        },
+        {
+          "field": "quotingHalted",
+          "indexer": "true",
+          "chain": "true"
+        }
+      ],
+      "ok": false,
+      "attempts": 3
+    }
+  ],
+  "results": [
+    {
+      "kind": "Market",
+      "id": "0x2867c5bb2784020c75023a56680cc999dfae2afb",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x90733c9f70e4ca1f6c3c58c01ae0f55ed576f209",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xcb8670ece068d7e00768eed33f17efa0683fa6ac",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0xebdc11a51c5311feb3f8b777c043bfede1be5712",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Market",
+      "id": "0x052c5666abda96de326382186c3062ec4680d6b1",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xe36848e8654a86fd2f7f97ddb3c56042ffd54dd1_0x052c5666abda96de326382186c3062ec4680d6b1",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0xe36848e8654a86fd2f7f97ddb3c56042ffd54dd1_0xcb8670ece068d7e00768eed33f17efa0683fa6ac",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "UserPosition",
+      "id": "0x085e7c77dc2f8fa1359247bcfd57c1f21486a7cf_0x052c5666abda96de326382186c3062ec4680d6b1",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "69789973_37",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "69793103_70",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Trade",
+      "id": "69789978_4",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshotSettlement",
+      "id": "69792903_5",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "69789973_38",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "69793103_71",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "69786085_3",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "69788083_4",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "NavSnapshot",
+      "id": "69791967_39",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "LPPosition",
+      "id": "0xe36848e8654a86fd2f7f97ddb3c56042ffd54dd1",
+      "block": 69793600,
+      "ok": false,
+      "attempts": 3
+    },
+    {
+      "kind": "VaultEpoch",
+      "id": "177",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_17",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_15",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_14",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_16",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_18",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_13",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_21",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_19",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Order",
+      "id": "0xb23836fce92ef669ebef742f685ec960ff7630d9_20",
+      "block": 69793600,
+      "ok": true,
+      "attempts": 1
+    },
+    {
+      "kind": "Vault",
+      "id": "0x5dd05ffd80f8959abd25c82a57f5bd106c27b082",
+      "block": 69793600,
+      "ok": false,
+      "attempts": 3
+    }
+  ]
+}
