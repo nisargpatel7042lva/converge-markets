@@ -159,3 +159,30 @@ describe("per-source staleness", () => {
     expect(ref.snapshot(113_500).healthy).toBe(false); // coinbase 13.5 s: now stale
   });
 });
+
+describe("the shipped configs (found by watching a live keeper flicker)", () => {
+  // Binance's bookTicker only speaks when the best bid or ask changes. Measured on 2026-10-11, both on a direct
+  // connection and through the relay, ETHUSDT went quiet for 2.5 to 3.3 s at a time, which a 3 s limit read as a dead
+  // feed: only Coinbase was left, "FEW_SOURCES" fired, and every quote was pulled for about 15 s, again and again.
+  for (const file of ["keeper.testnet.json", "keeper.mainnet.base.json"]) {
+    it(`${file} lets a quiet Binance book stay healthy and still catches a dead one`, async () => {
+      const { readFileSync } = await import("node:fs");
+      const raw = JSON.parse(
+        readFileSync(new URL(`../../../../config/${file}`, import.meta.url), "utf8"),
+      );
+      const cfg = PriceCfgSchema.parse(raw.price);
+      const ref = new ReferencePrice(cfg, ["binance", "coinbase"]);
+      ref.ingest({ source: "binance", price: 3000, tsMs: 100_000 });
+      ref.ingest({ source: "coinbase", price: 3000, tsMs: 100_000 });
+      // quiet for 5 s, longer than any gap measured: both feeds are alive, so the price is healthy
+      ref.ingest({ source: "coinbase", price: 3000, tsMs: 105_000 });
+      expect(ref.snapshot(105_000).healthy).toBe(true);
+      // but a feed that stays silent past the window (a dead socket) still pulls the quotes
+      ref.ingest({ source: "coinbase", price: 3000, tsMs: 109_000 });
+      expect(ref.snapshot(109_000).reasons).toContain("FEW_SOURCES");
+      // the window sits under the 10 s socket watchdog, so a dead connection is closed and reopened, not trusted
+      expect(cfg.staleMsBySource["binance"]).toBeGreaterThanOrEqual(5_000);
+      expect(cfg.staleMsBySource["binance"]).toBeLessThan(10_000);
+    });
+  }
+});

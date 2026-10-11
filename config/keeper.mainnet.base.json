@@ -8,6 +8,7 @@
     "sanityBps": 200,
     "chainlinkMaxAgeMs": 4200000,
     "staleMsBySource": {
+      "binance": 8000,
       "coinbase": 12000
     }
   },

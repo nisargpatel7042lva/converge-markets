@@ -108,7 +108,7 @@ for (const src of SOURCES) {
         }
         if (type === "heartbeat") {
           const m = lastMsg[src];
-          if (m && Date.now() - m.at > 3000 && Date.now() - lastTrade < 60_000)
+          if (m && Date.now() - m.at > 1000 && Date.now() - lastTrade < 60_000)
             for (const c of wss.clients) if (c.readyState === WebSocket.OPEN) c.send(m.raw);
           return;
         }
