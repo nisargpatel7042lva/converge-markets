@@ -14,7 +14,12 @@
  *   key      what GET /price?asset= takes
  *   binance  the keeper's "binance" symbol, and the stream behind it: Binance itself, or OKX re-shaped as a
  *            Binance bookTicker (Binance does not list MON; OKX does, with the same kind of order-book mid)
- *   coinbase the Coinbase Exchange product
+ *   coinbase the Coinbase Exchange product, or (MON, whose Coinbase market trades only now and then, so its ticker
+ *            goes quiet for minutes) Gate's live order-book feed re-shaped as a Coinbase ticker
+ *
+ * A source that reports order-book changes (OKX, Gate) says nothing while the book is unchanged. Its keep-alive
+ * (a ping answered by a pong) proves the connection is up, so the last price is re-sent: an unchanged book is
+ * an unchanged price. Coinbase's ticker only speaks on trades, so its re-send stops after a minute.
  */
 import { createServer } from "node:http";
 import WebSocket, { WebSocketServer } from "ws";
@@ -25,6 +30,8 @@ type AssetDef = {
   key: string;
   binance: { symbol: string; from: "binance" | "okx"; instId?: string };
   coinbase: string;
+  /** Use Gate's order book (this pair) behind the coinbase-shaped port. */
+  coinbaseFromGate?: string;
 };
 const ASSETS: AssetDef[] = process.env.RELAY_ASSETS
   ? (JSON.parse(process.env.RELAY_ASSETS) as AssetDef[])
@@ -35,6 +42,7 @@ const ASSETS: AssetDef[] = process.env.RELAY_ASSETS
         key: "MON",
         binance: { symbol: "MONUSDT", from: "okx", instId: "MON-USDT" },
         coinbase: "MON-USD",
+        coinbaseFromGate: "MON_USDT",
       },
     ];
 const ports: Record<Src, number> = { binance: 9201, coinbase: 9202 };
@@ -62,6 +70,18 @@ function shape(a: AssetDef, src: Src, raw: string): Mid {
     msg = JSON.parse(raw) as Record<string, unknown>;
   } catch {
     return null;
+  }
+  if (src === "coinbase" && a.coinbaseFromGate) {
+    const r = msg.result as Record<string, string> | undefined;
+    if (msg.event !== "update" || !r) return null;
+    const b = Number(r.b);
+    const k = Number(r.a);
+    if (!(b > 0 && k >= b)) return null;
+    const mid = (b + k) / 2;
+    return {
+      mid,
+      raw: JSON.stringify({ type: "ticker", best_bid: r.b, best_ask: r.a, price: String(mid) }),
+    };
   }
   if (src === "binance" && a.binance.from === "okx") {
     const d = (msg.data as Record<string, string>[] | undefined)?.[0];
@@ -115,9 +135,13 @@ const send = (src: Src, key: string, raw: string) => {
 function connect(a: AssetDef, src: Src) {
   const id = `${src}:${a.key}`;
   const okx = src === "binance" && a.binance.from === "okx";
+  const gate = src === "coinbase" && !!a.coinbaseFromGate;
+  const book = okx || gate; // an order-book feed: quiet means an unchanged price
   const url =
     src === "coinbase"
-      ? "wss://ws-feed.exchange.coinbase.com"
+      ? gate
+        ? "wss://api.gateio.ws/ws/v4/"
+        : "wss://ws-feed.exchange.coinbase.com"
       : okx
         ? "wss://ws.okx.com:8443/ws/v5/public"
         : `wss://stream.binance.com:9443/ws/${a.binance.symbol.toLowerCase()}@bookTicker`;
@@ -136,7 +160,16 @@ function connect(a: AssetDef, src: Src) {
   up.on("open", () => {
     heard = Date.now();
     log({ ev: "upstream open", src, asset: a.key });
-    if (src === "coinbase")
+    if (gate)
+      up.send(
+        JSON.stringify({
+          time: Math.floor(Date.now() / 1000),
+          channel: "spot.book_ticker",
+          event: "subscribe",
+          payload: [a.coinbaseFromGate],
+        }),
+      );
+    else if (src === "coinbase")
       up.send(
         JSON.stringify({
           type: "subscribe",
@@ -151,10 +184,16 @@ function connect(a: AssetDef, src: Src) {
           args: [{ channel: "tickers", instId: a.binance.instId }],
         }),
       );
-      // OKX only speaks when the book or a trade changes; a text "ping" is answered with "pong", which proves
-      // the connection is alive, so the quiet-market re-send below works for it too
+      // a text "ping" is answered with "pong", which proves the connection is alive
       ping = setInterval(() => up.readyState === WebSocket.OPEN && up.send("ping"), 3000);
     }
+    if (gate)
+      ping = setInterval(
+        () =>
+          up.readyState === WebSocket.OPEN &&
+          up.send(JSON.stringify({ time: Math.floor(Date.now() / 1000), channel: "spot.ping" })),
+        3000,
+      );
   });
   const resendQuiet = () => {
     // The Coinbase ticker only speaks when a trade happens, and a quiet market can go 10 s or more without
@@ -164,10 +203,15 @@ function connect(a: AssetDef, src: Src) {
     const m = lastMsg.get(id);
     if (m && Date.now() - m.at > 1000 && Date.now() - lastTrade < 60_000) send(src, a.key, m.raw);
   };
+  const alive = () => {
+    lastTrade = Date.now(); // an order-book feed that is up and quiet has an unchanged price: keep re-sending it
+    resendQuiet();
+  };
   up.on("message", (d) => {
     heard = Date.now();
     const text = String(d);
-    if (okx && text === "pong") return resendQuiet();
+    if (okx && text === "pong") return alive();
+    if (gate && text.includes('"spot.pong"')) return alive();
     if (src === "coinbase") {
       let type: string | undefined;
       try {
@@ -181,7 +225,7 @@ function connect(a: AssetDef, src: Src) {
     const s = shape(a, src, text);
     if (!s) return;
     if (!(s.mid > 0)) return send(src, a.key, s.raw); // an acknowledgement, not a price: pass it on, never replay it
-    if (okx) lastTrade = Date.now();
+    if (book) lastTrade = Date.now();
     last.set(id, s.mid);
     if (Date.now() < muted[src]) return;
     const out = distort(src, s.raw);
