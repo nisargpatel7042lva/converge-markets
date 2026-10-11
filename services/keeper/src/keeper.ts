@@ -194,17 +194,6 @@ export class Keeper {
     this.blocks.start();
     this.slowTimer = setInterval(() => void this.slowTick(), this.d.cfg.slowTickMs);
     this.slowTimer.unref();
-    // Event-loop stall detector: if this process is blocked for a second or more, every price socket looks silent at
-    // once (their messages are waiting unread), which would wrongly read as a dead feed. Log it so a halt can be
-    // told apart from a real feed problem.
-    let lastLoop = this.now();
-    const loopTimer = setInterval(() => {
-      const t = this.now();
-      if (t - lastLoop > 1_000)
-        this.d.log.warn({ stalledMs: t - lastLoop - 200 }, "event loop stalled");
-      lastLoop = t;
-    }, 200);
-    loopTimer.unref();
     // liveness is the process's own heartbeat, not the RPC: an outage must not look like a hang
     this.beatAt = this.now();
     this.beatTimer = setInterval(() => {
@@ -358,7 +347,7 @@ export class Keeper {
           why,
           // which feed was late, and by how long: the difference between a dead feed and a slow one
           sources: prices.flatMap((p) =>
-            p.sources.map((x) => ({ n: x.name, age: x.ageMs, ok: x.healthy })),
+            (p.sources ?? []).map((x) => ({ n: x.name, age: x.ageMs, ok: x.healthy })),
           ),
         },
         "risk state changed",

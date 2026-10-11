@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildQuote, DEFAULT_POLICY, fromTicks, needsRequote, toTicks } from "../src/kuru";
+import {
+  buildQuote,
+  DEFAULT_POLICY,
+  fromBookPrice,
+  fromTicks,
+  needsRequote,
+  toTicks,
+} from "../src/kuru";
 
 describe("toTicks", () => {
   it("rounds bids down and asks up onto the 10-unit grid", () => {
@@ -46,5 +53,25 @@ describe("needsRequote", () => {
   it("re-quotes on a big move or an old quote", () => {
     expect(needsRequote(last, 0.58, 1040, DEFAULT_POLICY)).toBe(true);
     expect(needsRequote(last, 0.5, 1000 + DEFAULT_POLICY.maxAgeSec + 1, DEFAULT_POLICY)).toBe(true);
+  });
+});
+
+describe("fromBookPrice (Kuru changed bestBidAsk's scale between market implementations)", () => {
+  it("reads the older market scale (1e14 per dollar): 8.72e13 is 0.872", () => {
+    expect(fromBookPrice(87_200_000_000_000n)).toBeCloseTo(0.872, 6);
+  });
+  it("reads the newer scale (1e18 per dollar): 4.48e17 is 0.448 and 5.29e17 is 0.529", () => {
+    expect(fromBookPrice(448_000_000_000_000_000n)).toBeCloseTo(0.448, 6);
+    expect(fromBookPrice(529_000_000_000_000_000n)).toBeCloseTo(0.529, 6);
+  });
+  it("treats an empty book (largest uint bid, zero ask) as no quote", () => {
+    expect(fromBookPrice(2n ** 256n - 1n)).toBeNull();
+    expect(fromBookPrice(0n)).toBeNull();
+  });
+  it("reads both scales across the whole quoting band", () => {
+    for (let t = 200; t <= 9800; t += 10) {
+      expect(fromBookPrice(BigInt(t) * 10n ** 10n)).toBeCloseTo(t / 1e4, 6);
+      expect(fromBookPrice(BigInt(t) * 10n ** 14n)).toBeCloseTo(t / 1e4, 6);
+    }
   });
 });

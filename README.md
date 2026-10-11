@@ -24,7 +24,7 @@ Converge separates the two jobs. **Liquidity providers** put USDC into one vault
 
 We backtested our first design and **it lost money**. Keeper-posted quotes were beaten by faster traders: **-$88/day** on the 30-day hold-out against a bot with a one-second information lead. Forward-priced execution fixes that for leads shorter than the delay (**+$49.6/day** under pessimistic flow on a $5,000 vault), but it is not robust to longer leads (**-$145.3/day at a 3 s lead**). The honest read is in [backtest/report/REPORT.md](backtest/report/REPORT.md).
 
-What a person sees ([`apps/web`](apps/web)): sign in with Face ID (a Mera passkey is the whole account), tap Up or Down, confirm once, collect when the round ends. Rounds are meant to be created, opened and resolved by a Chainlink CRE workflow with a fallback keeper ([`services/scheduler`](services/scheduler)): the workflow is **simulated against live testnet but not deployed** (it needs CRE Early Access), so a TypeScript scheduler runs the testnet rounds. A round's UP token can be listed on Kuru's order book ([`services/kuru`](services/kuru)): that has been run for one live testnet round. An Envio indexer ([`indexer`](indexer)) serves history; it runs locally and its hosted deployment is in progress.
+What a person sees ([`apps/web`](apps/web)): sign in with Face ID (a Mera passkey is the whole account), tap Up or Down, confirm once, collect when the round ends. Rounds are meant to be created, opened and resolved by a Chainlink CRE workflow with a fallback keeper ([`services/scheduler`](services/scheduler)): the workflow is **simulated against live testnet but not deployed** (it needs CRE Early Access), so a TypeScript scheduler runs the testnet rounds. A round's UP token can be listed on Kuru's order book ([`services/kuru`](services/kuru)): that has been run for two live testnet rounds. An Envio indexer ([`indexer`](indexer)) serves history; it runs locally and its hosted deployment is in progress.
 
 ## Not a new format
 
@@ -95,6 +95,8 @@ make check-docs-10      # about 10 seconds: demo script timing, launch-thread le
 .demo/start.sh          # a local chain, the real contracts, a funded vault, the keeper, a scheduler, the app
 # open http://localhost:3100 in a phone-sized window; stop with .demo/stop.sh
 ```
+
+If you run `make check-all` before the demo, run `(cd contracts && forge build)` again afterwards: Slither rebuilds the artifacts without the test helpers the demo and the end-to-end tests deploy.
 
 The demo runs on a local chain with test money, so you can create an account with a passkey, add test money, place a bet, watch the keeper fill it two seconds later and collect after the round. Details: [docs/ops/local-demo.md](docs/ops/local-demo.md). The full suite (`make check-all`, which needs Slither, then `make check-10`, plus the 25-minute `make check-9` with mainnet-fork and invariant runs) is described in [docs/phases/PHASE-9-report.md](docs/phases/PHASE-9-report.md).
 

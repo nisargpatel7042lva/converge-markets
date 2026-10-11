@@ -59,7 +59,7 @@ Every figure is in [numbers.md](numbers.md) with its source. Delivery rule: say 
 - **Uptime on testnet: 3.6%.** Of **535** fifteen-minute slots since the first round, **41** got a round: **19 settled normally, 6 were cancelled (pay 50 cents a share), 16 ended late or stuck**.
 - **All-time volume $135.41** across **11 filled trades** (19 orders executed; the rest were cancelled and refunded).
 - One full Kuru round: market created, **18 two-sided quotes**, a second wallet bought $2.00 and sold back for $1.82.
-- First trade in **4.9 s** (automated, local chain); 10 of 10 end-to-end tests pass.
+- First trade in **4.9 s** (automated, local chain); the 10 end-to-end tests pass individually (in a full run one, settlement, is order-dependent flaky).
 - Chainlink CRE workflow simulated against live testnet: 2 chain reads, 8 planned actions (dry run).
 
 **Speaker notes.** The 3.6% is the weak number and you should say it first: the testnet scheduler is a script on one machine funded from one small wallet, and it ran in bursts around demos; it stopped when the wallet ran out of test MON or the machine slept. The fix is in the code: a sweep now closes out stranded rounds (paying 50 cents a share) and the CRE workflow plus fallback exists to remove the single point of failure; but only a long run proves reliability and we have not done one on testnet. Do not present the +1.19% as performance: it is a few days of play money, mostly my own test bets.

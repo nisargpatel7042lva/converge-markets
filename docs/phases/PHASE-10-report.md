@@ -40,7 +40,7 @@ node scripts/numbers/cost-comparison.mjs    # refreshes the live cost inputs
 ## Test summary
 
 - `make check-all`: lint, format, typecheck and all unit tests pass (strategy 102, SDK 97, indexer 100, mainnet tooling 55, web 21, partner demo 9, reconcile 9, Kuru 9, backtest 45, and more), **412 contract tests pass, 0 fail, 2 skipped** (fork tests without an RPC), forge lint and Slither clean at medium and high (113 informational results). `docs/evidence/phase-10/check-all.md`.
-- End to end: **10 of 10** Playwright tests, in the working tree and again in the fresh clone. `docs/evidence/phase-10/e2e.txt`, `fresh-clone.md`.
+- End to end: **10 of 10** Playwright tests passed in the working tree and again in the fresh clone on 2026-10-11 early on. Later that day, in full single-worker runs, the settlement test failed in about half of the runs and passed alone 3 of 3 (see the addendum), so a full run shows 9 or 10 passing. `docs/evidence/phase-10/e2e.txt`, `fresh-clone.md`.
 - One honest note: earlier in the phase a full end-to-end run showed 2 failures. One was a real bug I had introduced (the stats route used a multicall that a local chain lacks); the other (settlement) is an order-dependent flake that passes alone and passed in the final runs.
 
 ## Hostile review
@@ -61,7 +61,7 @@ Found and fixed: a claim contradicted by its own log (CRITICAL); three places th
 ## Known issues and risks
 
 - **Testnet uptime is 3.6%.** The scheduler is a script on one laptop funded from one wallet; it stops when the machine sleeps or the wallet empties. A sweep now closes out stranded rounds. A long run on a funded host has not been done.
-- **The keeper still flickers into a one-second "price unhealthy" halt**, then needs about 15 s to restore quotes, so a live demo can show "Prices are temporarily pulled". I found that both price feeds look healthy when measured; the cause is unresolved. The fix I would try (require the condition to last 2 to 3 s before pulling) loosens a safety check and needs your approval.
+- **The keeper's price-health flicker is fixed** (see the addendum); the fix needs a long soak on a funded host to be called settled, and the keeper must run as a single process (a duplicate keeper on one wallet burned gas during the investigation).
 - **The vault's +1.19% is not performance**: a few days, play money, mostly my own test bets. The NAV includes a 3,000 test-USDC deposit I made.
 - **No users, a mock oracle with a test signer on testnet, no external audit**, and the Chainlink Data Streams path has never run on a real report.
 - **The public Vercel app is an older build** than `main` and answers HTTP 451 in some regions by design; the stats link there shows that older page.
@@ -77,10 +77,24 @@ Found and fixed: a claim contradicted by its own log (CRITICAL); three places th
 4. **Redeploy the public app?** It is an older build; this needs your decision.
 5. **Envio Cloud**: tell me the hosted endpoint when the build finishes, so the stats page and the submission can say "hosted".
 6. **CRE Early Access**: run `cre account access` in your own terminal (my attempt could not be confirmed).
-7. **Approve (or reject) the keeper debounce** for the price-health flicker.
+7. ~~Approve the keeper debounce~~ Done: the flicker was fixed with a per-source freshness window, not a debounce (addendum). Nothing needed from you.
 8. **Fund and keep the testnet stack running** before recording (about 1 MON per hour for the scheduler; the machine must not sleep), then refresh `docs/evidence/phase-10/stats-reading.json` and the ledger rows N39 to N41.
 9. **Confirm the "team" line** (one person) and the voice of the thread.
 
 ## Readiness for the next step
 
 **Yes, for submission, once items 1 to 3 are done.** Phase 10 is the last phase in `docs/STATUS.md`. What remains is recording the video, posting, and the owner decisions above. Mainnet is not a Phase 10 outcome and remains blocked on the items in the Phase 9 report.
+
+## Addendum, 2026-10-11 (afternoon): the keeper flicker and the final sponsor-track checks
+
+You asked for the price-health flicker to be fixed and for every sponsor track to be checked end to end. Full matrix: [docs/evidence/phase-10/sponsor-final-checks.md](../evidence/phase-10/sponsor-final-checks.md).
+
+**The flicker is fixed, and it was not a bug to debounce.** Measured with three listeners side by side, Binance's `bookTicker` goes quiet for 2.5 to 3.3 s at a time (identically on a direct connection and through the relay) and the keeper's 3 s freshness limit read that as a dead feed. A per-source limit of 8 s for Binance (under the 10 s socket watchdog) fixes it without loosening any check; a test reads the shipped configs. About 50 minutes on testnet afterwards: 0 quote pulls, 0 risk events, against roughly one pull a minute before. [Root cause](../evidence/phase-10/price-feed-flicker.md).
+
+**Five real defects found by running things live, all fixed:** the flicker; the faucet returning HTTP 500 for every new account (two back-to-back transactions are rejected by the public RPC); Kuru's `bestBidAsk()` price scale changing between market implementations (the app would have shown 4,480 for a 0.448 bid); the stats endpoint taking 12 s cold (now 21 ms warm, warmed at boot); and my own restart leaving two keepers running. Also found and fixed: a startup warm-up that disturbed the first end-to-end test (now opt-in), and `deployments/kuru-testnet.json` breaking `make check-all`'s format check (now in `.prettierignore`).
+
+**Per track.** Kuru: lister re-run live (the new re-quote policy posted 3 quotes in 7 minutes against 18 in 11 minutes); the app's market lookup matches both live markets. Chainlink CRE: re-simulated against live testnet, same WASM hash, plan shrank from 8 actions to 1 once the stranded rounds were cleaned. Mera: a passkey account was created on the live testnet app and funded by the faucet (verified on chain). Envio: indexed a 7,600-block window of real data; volumes equal the keeper's logged premiums, 6 of 6 invariants pass, 27 of 29 sampled entities match (the tool's verdict is FAIL: too few samples, and the 2 mismatches are the pre-window first LP deposit); the stats and Earn pages query it.
+
+**Blocked on gas, not claimed.** The deployer and keeper wallets are nearly empty (under 0.2 MON between them). So: a bet from the new passkey account on a live round (the test exists in `apps/web/e2e-testnet/`), the Kuru round's teardown and a fresh taker fill, and a CRE broadcast write. The scheduler costs about 0.1 MON per round and each faucet account 0.1 MON; funding for the live checks is about 3 to 5 MON.
+
+**Still open.** The settlement end-to-end test is order-dependent flaky in a full single-worker run (failed in about half of today's full runs, passed alone 3 of 3, and also failed in the first full run today before any keeper change). I did not weaken it. CRE Early Access and the Envio Cloud deployment remain the owner's steps.

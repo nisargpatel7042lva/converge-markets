@@ -60,3 +60,9 @@ pnpm --filter @converge/kuru lister -- --rounds 2       # list, seed, quote, tea
 pnpm --filter @converge/kuru taker -- --usd 2           # buy and sell back on the live book
 pnpm --filter @converge/kuru report                     # regenerate docs/evidence/kuru/rounds.md
 ```
+
+## Findings from a second live run (2026-10-11)
+
+- **The re-quote policy works as designed.** A second round, listed with the current code, posted 3 quotes in its first 7 minutes (the first run, with the old policy, posted 18 in 11 minutes). See [evidence/kuru/rounds.md](../evidence/kuru/rounds.md).
+- **`bestBidAsk()` changed price scale between Kuru market implementations.** On the 2026-10-09 market a 0.872 bid read 8.72e13 (1e14 per dollar); on a market created on 2026-10-11 a 0.448 bid reads 4.48e17 (1e18 per dollar). Kuru does not document this. Quotes always sit between 0.02 and 0.98, so only one reading is a real price: `fromBookPrice` in `services/kuru/src/kuru.ts` (and its copy in the app) takes that one, and treats the empty-book sentinel (largest uint bid, 0 ask) as no quote. Four unit tests pin it.
+- **The app's market lookup matches the lister's markets** for both live rounds (`Router.computeAddress` against the market actually created).

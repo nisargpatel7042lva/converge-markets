@@ -74,9 +74,21 @@ export function buildQuote(fair: number, half = 0.04): Quote | null {
 export type RequotePolicy = { moveThreshold: number; maxAgeSec: number; minGapSec: number };
 export const DEFAULT_POLICY: RequotePolicy = { moveThreshold: 0.06, maxAgeSec: 240, minGapSec: 30 };
 
-/** `bestBidAsk()` reports prices scaled by 1e10 over the market's price precision (checked against live quotes). */
-export const fromBookPrice = (v: bigint): number =>
-  Number(v) / (Number(MARKET_PARAMS.pricePrecision) * 1e10);
+/**
+ * `bestBidAsk()` reports a price as ticks scaled by an undocumented factor that CHANGED between Kuru market
+ * implementations: 1e10 over the 1e4 price precision (so 1e14 per dollar) on the market of 2026-10-09, and 1e18 per
+ * dollar on a market created on 2026-10-11 (4.48e17 for a 0.448 bid). Quotes always sit between 0.02 and 0.98, so only
+ * one of the two readings can be a real price; take that one. An empty book reports the largest uint for the bid and 0
+ * for the ask: those are "no quote", not prices.
+ */
+export function fromBookPrice(v: bigint): number | null {
+  if (v === 0n || v >= 2n ** 255n) return null;
+  for (const scale of [1e14, 1e18]) {
+    const p = Number(v) / scale;
+    if (p > 0.005 && p < 1.5) return p;
+  }
+  return null;
+}
 
 /**
  * Whether to spend gas on a new quote. A re-quote costs about 0.56 M gas (Monad bills the gas limit), so it

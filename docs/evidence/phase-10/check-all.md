@@ -42,3 +42,5 @@ Slither reports 113 informational and optimization results; the project's config
 ## make check-10 (the Phase 10 gate = check-all + the document checks + required files)
 
 Last lines of the run on 2026-10-11: `ledger: 44 rows; documents checked: 5; figures not in the ledger: 0`, `checked 99 links in 9 files (3 transactions, 8 addresses, 8 external)`, then **`check-10 OK`**, exit 0.
+
+**Re-run after the afternoon fixes (2026-10-11):** `make check-10` again passed (`check-10 OK`, exit 0): lint, format, typecheck, every unit test, 412 contract tests, forge lint, Slither, the demo-script, thread and ledger checks, and 101 links. `deployments/kuru-testnet.json`, which the Kuru lister rewrites, was added to `.prettierignore` after it broke the format step.

@@ -33,7 +33,16 @@ test("a Mera passkey account trades on Monad testnet, live", async ({
 
   await page.getByTestId("to-markets").click();
   await page.getByTestId("round-card").first().click();
-  await expect(page.getByTestId("bet-up")).toBeEnabled({ timeout: 60_000 });
+  try {
+    await expect(page.getByTestId("bet-up")).toBeEnabled({ timeout: 60_000 });
+  } catch (e) {
+    // say WHY the market is not bettable (paused, closing, feed down, not quoting) instead of only "disabled"
+    const notes = await page.getByRole("status").allTextContents();
+    const text = (await page.locator("main").innerText()).replace(/\s+/g, " ").slice(0, 400);
+    throw new Error(
+      `the bet button stayed disabled. Notices: ${JSON.stringify(notes)}. Page: ${text}. ${String(e).slice(0, 80)}`,
+    );
+  }
   mark("marketReady");
 
   await page.getByTestId("bet-up").click();

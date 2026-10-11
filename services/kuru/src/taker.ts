@@ -58,7 +58,7 @@ async function main(): Promise<void> {
     "bestBidAsk",
   );
   log(
-    `book on Kuru: best bid ${fromBookPrice(bid).toFixed(3)} / best ask ${fromBookPrice(ask).toFixed(3)} (market ${live.kuru})`,
+    `book on Kuru: best bid ${(fromBookPrice(bid) ?? NaN).toFixed(3)} / best ask ${(fromBookPrice(ask) ?? NaN).toFixed(3)} (market ${live.kuru})`,
   );
 
   const mint = await send(taker, {
@@ -130,8 +130,8 @@ async function main(): Promise<void> {
         market: live.kuru,
         round: live.converge,
         taker: taker.me,
-        bestBid: fromBookPrice(bid),
-        bestAsk: fromBookPrice(ask),
+        bestBid: fromBookPrice(bid) ?? NaN,
+        bestAsk: fromBookPrice(ask) ?? NaN,
         steps: evidence,
         balanceMon: formatEther(await taker.pub.getBalance({ address: taker.me })),
       },

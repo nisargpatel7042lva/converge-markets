@@ -23,8 +23,20 @@ export const KURU_APP = "https://www.kuru.io";
 
 export type KuruBook = { market: Address; bid: number | null; ask: number | null };
 
-/** The price scale `bestBidAsk` reports in: the market's price precision (1e4) times 1e10. */
-const fromBook = (v: bigint): number | null => (v === 0n ? null : Number(v) / 1e14);
+/**
+ * `bestBidAsk` reports ticks scaled by a factor that differs between Kuru market implementations (1e14 per dollar on
+ * older markets, 1e18 on newer ones: found on 2026-10-11). Quotes sit between 0.02 and 0.98, so only one reading is a
+ * real price. The largest uint (the bid of an empty book) and 0 mean "no quote". Mirrors `fromBookPrice` in
+ * services/kuru/src/kuru.ts, which has the unit tests.
+ */
+const fromBook = (v: bigint): number | null => {
+  if (v === 0n || v >= 2n ** 255n) return null;
+  for (const scale of [1e14, 1e18]) {
+    const p = Number(v) / scale;
+    if (p > 0.005 && p < 1.5) return p;
+  }
+  return null;
+};
 
 export async function readKuruBook(round: Round): Promise<KuruBook | null> {
   const market = await publicClient.readContract({

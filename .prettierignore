@@ -30,3 +30,6 @@ apps/web/.next-testnet/
 apps/web/e2e-results/
 docs/evidence/phase-7/*.json
 docs/evidence/phase-7/lighthouse/
+
+# machine-written state files (rewritten by the Kuru lister and the volume scan)
+deployments/kuru-testnet.json

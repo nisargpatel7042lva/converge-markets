@@ -17,7 +17,7 @@ A separate, adversarial pass over `README.md`, `docs/submission.md`, `docs/demo-
 | 9 | MEDIUM | The pitch had no spoken answer for "Passkeys remove the wallet barrier." | Marked "our thesis, not a measured result". |
 | 10 | MEDIUM | The public Vercel app is an older build and returns HTTP 451 in some regions (by design). | Stated in README. **Open: Nisarg decides on a redeploy.** |
 | 11 | MEDIUM | No demo video exists; the raise amount is not set. | Placeholders are explicit (`submission.md`, `x-thread.md`, pitch slide 10). **Open: Nisarg.** |
-| 12 | MEDIUM | The keeper still flickers into a one-second "price unhealthy" halt that pulls quotes for about 15 s, so a live demo can show "Prices are temporarily pulled". | **Not fixed.** The likely fix loosens a safety check and needs Nisarg's approval; the demo script tells the presenter to wait for it to clear and not to hide it. |
+| 12 | MEDIUM | The keeper flickered into a one-second "price unhealthy" halt that pulled quotes for about 15 s, so a live demo could show "Prices are temporarily pulled". | **Fixed later the same day.** Root cause: Binance's book ticker goes quiet for up to 3.3 s and the keeper's 3 s freshness limit read that as a dead feed. A per-source window of 8 s for Binance fixes it without loosening a check; see `docs/evidence/phase-10/price-feed-flicker.md`. |
 | 13 | LOW | Two sources could not be opened (Gambling Insider 403, CertiK's own report). | Not cited; the CertiK figure is attributed to Decrypt as secondary reporting. |
 
 ## Inherited from Phase 9 (not a Phase 10 finding)

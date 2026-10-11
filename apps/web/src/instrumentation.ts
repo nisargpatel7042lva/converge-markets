@@ -5,7 +5,9 @@
  * direct import would warm a different copy of the cache.
  */
 export async function register() {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  // opt-in (WARM_STATS=1, set by .testnet/start-app.sh): the scan only matters on the slow public RPC, and on a local
+  // chain it would compete with the first end-to-end trade for the same few seconds
+  if (process.env.NEXT_RUNTIME !== "nodejs" || process.env.WARM_STATS !== "1") return;
   const port = process.env.PORT ?? "3000";
   setTimeout(() => {
     fetch(`http://127.0.0.1:${port}/api/stats`).catch(() => undefined);
