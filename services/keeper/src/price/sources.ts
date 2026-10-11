@@ -118,3 +118,10 @@ export const coinbaseSubscribe = (product: string) => ({
   product_ids: [product],
   channels: ["ticker"],
 });
+
+/**
+ * A test-hook URL (BINANCE_WS_URL / COINBASE_WS_URL) may hold `{symbol}`, replaced by the asset's own symbol,
+ * so one relay can serve every asset (ws://127.0.0.1:9201/{symbol}). Without the placeholder it is used as is.
+ */
+export const hookUrl = (template: string, symbol: string): string =>
+  template.replace("{symbol}", encodeURIComponent(symbol));

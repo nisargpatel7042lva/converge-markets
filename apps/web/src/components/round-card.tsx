@@ -58,6 +58,7 @@ export function RoundCard({ round }: { round: Round }) {
   const phase = phaseOf(round, now);
   const live = useLiveMarket(phase.phase === "LIVE" ? round : undefined);
   const px = usePrice(round.series);
+  const dp = round.series.decimals;
   const strike = round.strike > 0n ? Number(round.strike) / 1e18 : null;
   const prob = live.prob;
   const isLive = phase.phase === "LIVE";
@@ -120,7 +121,9 @@ export function RoundCard({ round }: { round: Round }) {
           <>
             <p className="mt-3 text-[17px] font-semibold leading-snug tracking-tight">
               Will {round.series.name} finish above{" "}
-              <span className="text-brand">{strike ? `$${price(strike)}` : "its start price"}</span>
+              <span className="text-brand">
+                {strike ? `$${price(strike, dp)}` : "its start price"}
+              </span>
               ?
             </p>
             <div className="mt-3 flex items-end justify-between gap-3">
@@ -136,7 +139,7 @@ export function RoundCard({ round }: { round: Round }) {
                 <p className="tabular mt-1.5 text-xs text-faint">
                   {px.price ? (
                     <>
-                      <AnimatedNumber value={px.price} format={(n) => `$${price(n)}`} /> now
+                      <AnimatedNumber value={px.price} format={(n) => `$${price(n, dp)}`} /> now
                     </>
                   ) : (
                     "Connecting to the price…"

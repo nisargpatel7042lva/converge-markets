@@ -106,7 +106,7 @@ class Feed {
     if (env.mockPrices) return this.startMock();
     // after the first paint: the page is usable before the sockets are
     setTimeout(() => {
-      this.connect("Binance");
+      if (this.series.binance) this.connect("Binance"); // an asset Binance does not list (MON) has Coinbase only
       this.connect("Coinbase");
     }, 800);
     this.startRef();
@@ -126,13 +126,15 @@ class Feed {
       try {
         const c = this.composite(Date.now());
         if (!c) return;
-        const r = await fetch("/api/ref-price", { cache: "no-store" });
+        const r = await fetch(`/api/ref-price?asset=${encodeURIComponent(this.series.name)}`, {
+          cache: "no-store",
+        });
         if (!r.ok) return;
         const ref = ((await r.json()) as { price?: number }).price;
         if (typeof ref !== "number" || !(ref > 0)) return;
         const next = ref - c.p;
         const delta = next - this.basis;
-        if (Math.abs(delta) < 0.05) return;
+        if (Math.abs(delta) < c.p * 2e-5) return; // under 0.002%: noise, whatever the asset's price level
         this.basis = next;
         // keep the chart continuous: move what is already drawn by the same step
         this.state = {
@@ -211,6 +213,7 @@ class Feed {
     let points: Point[] = [];
     let from: SrcName = "Binance";
     try {
+      if (!binance) throw new Error("not listed on Binance");
       const r = await fetch(
         `https://api.binance.com/api/v3/klines?symbol=${binance}&interval=1s&limit=1000`,
         { signal: AbortSignal.timeout(6000) },

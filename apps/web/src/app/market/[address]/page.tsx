@@ -43,6 +43,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
   const r = round.data;
   const now = useNow();
   const px = usePrice(r?.series);
+  const dp = r?.series.decimals ?? 2;
   const { profile } = useAccount();
   const exitOnly = useExitOnly();
   const phase = r ? roundPhase({ state: r.state, start: r.start, end: r.end, now }) : null;
@@ -192,7 +193,10 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
 
           <p className="mt-4 text-[19px] font-bold leading-snug tracking-tight">
             Will {r.series.name} finish above{" "}
-            <span className="text-brand">{strike ? `$${price(strike)}` : "its start price"}</span>?
+            <span className="text-brand">
+              {strike ? `$${price(strike, dp)}` : "its start price"}
+            </span>
+            ?
           </p>
 
           <Card className="mt-3 !p-4">
@@ -204,7 +208,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
                     <AnimatedNumber
                       testId="price"
                       value={px.price}
-                      format={(n) => `$${price(n)}`}
+                      format={(n) => `$${price(n, dp)}`}
                     />
                   ) : (
                     <span data-testid="price">…</span>
@@ -214,7 +218,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
                   <p
                     className={`tabular mt-1.5 text-sm font-semibold ${delta >= 0 ? "text-up" : "text-down"}`}
                   >
-                    {delta >= 0 ? "▲" : "▼"} ${price(Math.abs(delta))}{" "}
+                    {delta >= 0 ? "▲" : "▼"} ${price(Math.abs(delta), dp)}{" "}
                     <span className="font-medium text-muted">
                       {delta >= 0 ? "above" : "below"} the start
                     </span>
@@ -224,7 +228,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
               <div className="text-right">
                 <p className="text-xs font-medium text-faint">Start price</p>
                 <p className="tabular text-base font-semibold">
-                  {strike ? `$${price(strike)}` : "—"}
+                  {strike ? `$${price(strike, dp)}` : "—"}
                 </p>
               </div>
             </div>
@@ -350,7 +354,7 @@ export default function MarketPage({ params }: { params: Promise<{ address: stri
             <ul className="mt-2.5 grid gap-2 text-sm leading-relaxed text-muted">
               <li>
                 <span className="font-semibold text-text">Up wins</span> if {r.series.name} is at or
-                above {strike ? `$${price(strike)}` : "the start price"} when the round ends at{" "}
+                above {strike ? `$${price(strike, dp)}` : "the start price"} when the round ends at{" "}
                 <span className="tabular text-text">
                   {new Date(r.end * 1000).toLocaleTimeString([], {
                     hour: "2-digit",

@@ -8,10 +8,13 @@ import { NextResponse } from "next/server";
  */
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const url = process.env.REF_PRICE_URL;
-  if (!url) return NextResponse.json({ error: "disabled" }, { status: 404 });
+export async function GET(req: Request) {
+  const base = process.env.REF_PRICE_URL;
+  if (!base) return NextResponse.json({ error: "disabled" }, { status: 404 });
+  const asset = new URL(req.url).searchParams.get("asset");
   try {
+    const url = new URL(base);
+    if (asset && /^[A-Za-z]{2,10}$/.test(asset)) url.searchParams.set("asset", asset);
     const r = await fetch(url, { signal: AbortSignal.timeout(1500), cache: "no-store" });
     const j = (await r.json()) as { price?: number | null };
     if (typeof j.price !== "number" || !(j.price > 0))

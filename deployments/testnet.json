@@ -307,5 +307,20 @@
     "globalExposureCap": 500000000,
     "demoPartnerCap": 40000000,
     "redeemFeeBps": 50
+  },
+  "seriesAdded": {
+    "note": "BTC and MON series added on 2026-10-11 by services/keeper/scripts/testnet-add-assets.ts (DataStreamsResolver.configureAsset, MarketFactory.setAsset, ConvergeVault.enableAsset). ETH is the original TEST/USD asset above.",
+    "BTC": {
+      "label": "TEST-BTC/USD",
+      "assetId": "0xefaa6aeed406fef700bda8023f8ff8204685b800b5f7a73254d950e4d2563360",
+      "feedId": "0x0003000000000000000000000000000000000000000000000000000000000002",
+      "sigmaBand": [0.3, 1.0]
+    },
+    "MON": {
+      "label": "TEST-MON/USD",
+      "assetId": "0x449e92f46896fe40c823da94251ccb9b67716b005d960d55f20bbfd58e720f2b",
+      "feedId": "0x0003000000000000000000000000000000000000000000000000000000000003",
+      "sigmaBand": [0.6, 2.0]
+    }
   }
 }

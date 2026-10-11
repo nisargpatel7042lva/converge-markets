@@ -10,6 +10,7 @@ export type Series = {
   pair: string;
   /** Exchange symbols for the live price. */
   symbol: string;
+  /** Binance spot symbol, or "" for an asset Binance does not list (the browser then uses Coinbase alone). */
   binance: string;
   coinbase: string;
   durations: number[];

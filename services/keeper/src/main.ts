@@ -20,6 +20,7 @@ import {
   COINBASE_URL,
   WsPriceSource,
   coinbaseSubscribe,
+  hookUrl,
   parseBinance,
   parseCoinbase,
 } from "./price/sources";
@@ -139,14 +140,16 @@ async function main(): Promise<void> {
     const onTick = (t: Parameters<Keeper["onTick"]>[1]) => keeper.onTick(a.cfg.label, t);
     const b = new WsPriceSource({
       name: "binance",
-      url: env.BINANCE_WS_URL ?? BINANCE_URL(a.cfg.binance),
+      url: env.BINANCE_WS_URL
+        ? hookUrl(env.BINANCE_WS_URL, a.cfg.binance)
+        : BINANCE_URL(a.cfg.binance),
       parse: parseBinance,
       onTick,
       log,
     });
     const c = new WsPriceSource({
       name: "coinbase",
-      url: env.COINBASE_WS_URL ?? COINBASE_URL,
+      url: env.COINBASE_WS_URL ? hookUrl(env.COINBASE_WS_URL, a.cfg.coinbase) : COINBASE_URL,
       subscribe: coinbaseSubscribe(a.cfg.coinbase),
       parse: parseCoinbase,
       onTick,

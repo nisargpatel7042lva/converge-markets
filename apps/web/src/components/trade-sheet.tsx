@@ -329,8 +329,10 @@ export function TradeSheet({
             {strike ? (
               <p className="mt-1 text-sm text-muted">
                 {round.series.name} must finish {up ? "above" : "below"}{" "}
-                <span className="font-semibold text-text">${price(strike)}</span> when the round
-                ends.
+                <span className="font-semibold text-text">
+                  ${price(strike, round.series.decimals)}
+                </span>{" "}
+                when the round ends.
               </p>
             ) : null}
 

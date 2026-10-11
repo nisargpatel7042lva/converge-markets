@@ -25,6 +25,28 @@
       "coinbase": "ETH-USD",
       "durations": [900],
       "decimals": 2
+    },
+    {
+      "label": "TEST-BTC/USD",
+      "assetId": "0xefaa6aeed406fef700bda8023f8ff8204685b800b5f7a73254d950e4d2563360",
+      "name": "BTC",
+      "pair": "BTC/USD",
+      "symbol": "BTC",
+      "binance": "BTCUSDT",
+      "coinbase": "BTC-USD",
+      "durations": [900],
+      "decimals": 2
+    },
+    {
+      "label": "TEST-MON/USD",
+      "assetId": "0x449e92f46896fe40c823da94251ccb9b67716b005d960d55f20bbfd58e720f2b",
+      "name": "MON",
+      "pair": "MON/USD",
+      "symbol": "MON",
+      "binance": "",
+      "coinbase": "MON-USD",
+      "durations": [900],
+      "decimals": 5
     }
   ]
 }

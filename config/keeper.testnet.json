@@ -34,6 +34,32 @@
         "maxAnnualVol": 1.2,
         "scale": 1.1
       }
+    },
+    {
+      "label": "TEST-BTC/USD",
+      "feedId": "0x0003000000000000000000000000000000000000000000000000000000000002",
+      "binance": "BTCUSDT",
+      "coinbase": "BTC-USD",
+      "vol": {
+        "halfLifeSec": 1800,
+        "priorAnnualVol": 0.45,
+        "minAnnualVol": 0.3,
+        "maxAnnualVol": 1.0,
+        "scale": 1.1
+      }
+    },
+    {
+      "label": "TEST-MON/USD",
+      "feedId": "0x0003000000000000000000000000000000000000000000000000000000000003",
+      "binance": "MONUSDT",
+      "coinbase": "MON-USD",
+      "vol": {
+        "halfLifeSec": 1800,
+        "priorAnnualVol": 1.0,
+        "minAnnualVol": 0.6,
+        "maxAnnualVol": 2.0,
+        "scale": 1.1
+      }
     }
   ],
   "slowTickMs": 2000,

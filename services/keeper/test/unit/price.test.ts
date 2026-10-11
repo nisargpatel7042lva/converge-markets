@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PriceCfgSchema } from "../../src/config";
 import { ReferencePrice } from "../../src/price/aggregator";
-import { parseBinance, parseCoinbase } from "../../src/price/sources";
+import { hookUrl, parseBinance, parseCoinbase } from "../../src/price/sources";
 
 const cfg = PriceCfgSchema.parse({});
 const mk = () => new ReferencePrice(cfg, ["binance", "coinbase"]);
@@ -185,4 +185,14 @@ describe("the shipped configs (found by watching a live keeper flicker)", () => 
       expect(cfg.staleMsBySource["binance"]).toBeLessThan(10_000);
     });
   }
+});
+
+describe("hookUrl", () => {
+  it("puts the asset symbol in a templated test-hook URL", () => {
+    expect(hookUrl("ws://127.0.0.1:9201/{symbol}", "BTCUSDT")).toBe("ws://127.0.0.1:9201/BTCUSDT");
+    expect(hookUrl("ws://127.0.0.1:9202/{symbol}", "MON-USD")).toBe("ws://127.0.0.1:9202/MON-USD");
+  });
+  it("leaves a plain URL untouched", () => {
+    expect(hookUrl("ws://127.0.0.1:9201", "ETHUSDT")).toBe("ws://127.0.0.1:9201");
+  });
 });
