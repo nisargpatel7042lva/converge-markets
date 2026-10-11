@@ -90,7 +90,8 @@ Needs Node 22.13 or newer, pnpm 11, and [Foundry](https://getfoundry.sh) (`forge
 git clone https://github.com/nisargpatel7042lva/converge-markets.git
 cd converge-markets
 pnpm install --frozen-lockfile
-make check-docs-10      # a minute: demo script timing, launch-thread length, the numbers ledger, every link and transaction
+(cd contracts && forge build)   # compiles the contracts the demo deploys (about 20 seconds)
+make check-docs-10      # about 10 seconds: demo script timing, launch-thread length, the numbers ledger, every link and transaction
 .demo/start.sh          # a local chain, the real contracts, a funded vault, the keeper, a scheduler, the app
 # open http://localhost:3100 in a phone-sized window; stop with .demo/stop.sh
 ```
