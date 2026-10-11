@@ -8,6 +8,10 @@ const evidence = resolve(
   "../../../docs/evidence/phase-10",
 );
 
+/** TRADE_ASSET=BTC (or MON) bets on that asset's round instead of the first one, and writes its own evidence file. */
+const asset = process.env.TRADE_ASSET;
+const suffix = asset ? `-${asset.toLowerCase()}` : "";
+
 test("a Mera passkey account trades on Monad testnet, live", async ({
   page,
   authenticator,
@@ -32,7 +36,8 @@ test("a Mera passkey account trades on Monad testnet, live", async ({
   mark("funded");
 
   await page.getByTestId("to-markets").click();
-  await page.getByTestId("round-card").first().click();
+  const cards = page.getByTestId("round-card");
+  await (asset ? cards.filter({ hasText: new RegExp(`^\\s*${asset}\\b`) }) : cards).first().click();
   try {
     await expect(page.getByTestId("bet-up")).toBeEnabled({ timeout: 60_000 });
   } catch (e) {
@@ -74,7 +79,7 @@ test("a Mera passkey account trades on Monad testnet, live", async ({
   expect(problems, problems.join("\n")).toEqual([]);
 
   writeFileSync(
-    resolve(evidence, "mera-testnet-trade.json"),
+    resolve(evidence, `mera-testnet-trade${suffix}.json`),
     JSON.stringify(
       {
         note: "Wall-clock milliseconds from page.goto('/') on a 375x812 mobile profile, against the live Monad testnet app, the live keeper and a live 15-minute round. Includes creating the passkey account (Chromium virtual authenticator with PRF), the in-app faucet, the approval and the order, and the keeper's fill.",
@@ -92,6 +97,6 @@ test("a Mera passkey account trades on Monad testnet, live", async ({
   );
   await page.close();
   const video = await page.video()?.path();
-  if (video) copyFileSync(video, resolve(evidence, "mera-testnet-trade.webm"));
+  if (video) copyFileSync(video, resolve(evidence, `mera-testnet-trade${suffix}.webm`));
   expect(filled, `the bet was not filled: ${outcome}`).toBe(true);
 });
