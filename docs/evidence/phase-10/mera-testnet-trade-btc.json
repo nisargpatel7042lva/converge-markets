@@ -1,0 +1,17 @@
+{
+  "note": "Wall-clock milliseconds from page.goto('/') on a 375x812 mobile profile, against the live Monad testnet app, the live keeper and a live 15-minute round. Includes creating the passkey account (Chromium virtual authenticator with PRF), the in-app faucet, the approval and the order, and the keeper's fill.",
+  "handle": "epic-elk-11",
+  "address": "0x58a0aA4b0b634fF10a52f77657A35b6ECA2722B2",
+  "filled": true,
+  "resultText": "You're in on Up$4.46 for $7.20 of Up. If you're right when the round ends, you collect $7.20. Good luck!View on the explorerDoneMy bets",
+  "steps": {
+    "landing": 265,
+    "accountCreated": 493,
+    "funded": 6331,
+    "marketReady": 9766,
+    "confirmed": 10161,
+    "resultShown": 18618
+  },
+  "totalMs": 18618,
+  "at": "2026-10-11T08:39:47.676Z"
+}
