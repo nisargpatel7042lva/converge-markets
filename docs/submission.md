@@ -2,6 +2,8 @@
 
 Repo: https://github.com/nisargpatel7042lva/converge-markets. Links below use `…/blob/main/<path>#L<line>` and are checked by `node scripts/docs/check-links.mjs` (every path exists and every line is in range; every transaction hash exists on Monad testnet). Every number is in [numbers.md](numbers.md) with its source.
 
+**The final text as entered in the form (project description, steps to try, and the answers for the Kuru, Chainlink CRE, Mera and Envio bounties) is in [submission-form.md](submission-form.md); the videos' scripts and sources are in [pitch-video/](pitch-video/), [demo-video/](demo-video/) and [promo-video/](promo-video/).**
+
 **Honesty note for the form.** Everything runs on Monad testnet with test money. There are no outside users yet. The oracle on testnet is a mock verifier with a test signer. The code is reviewed internally, not externally audited. Where a bounty has a gap, it is stated under that bounty.
 
 ## Track

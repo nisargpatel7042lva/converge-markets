@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Converge promo, motion cut (30 s, 120 BPM)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #0f1218;
+        --text: #eef0f6;
+        --muted: #a4abbc;
+        --up: #5fd7ae;
+        --down: #f48b98;
+        --brand: #b6aaf6;
+        --warn: #f3c874;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        background: var(--ink);
+        overflow: hidden;
+      }
+      body {
+        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
+      #stage {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+      canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .layer {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+      .w {
+        display: inline-block;
+        opacity: 0;
+        will-change: transform;
+        white-space: pre;
+      }
+      .line {
+        display: block;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.02;
+      }
+      #hook .wrap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 190px;
+      }
+      #fix .wrap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 250px;
+      }
+      #frame {
+        position: absolute;
+        left: 260px;
+        top: 46px;
+        width: 1400px;
+        height: 788px;
+        border-radius: 28px;
+        overflow: hidden;
+        background: #000;
+        border: 2px solid #323a4f;
+      }
+      #frame video {
+        width: 1400px;
+        height: 788px;
+        display: block;
+      }
+      #cap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 862px;
+        text-align: center;
+        font-size: 66px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      #steps {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 972px;
+        display: flex;
+        justify-content: center;
+        gap: 22px;
+      }
+      .step {
+        font-size: 30px;
+        font-weight: 800;
+        padding: 10px 26px;
+        border-radius: 999px;
+        border: 2px solid #2a3040;
+        color: #7f879b;
+        background: #161a23;
+      }
+      .chip {
+        position: absolute;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 16px 34px;
+        opacity: 0;
+        will-change: transform;
+        white-space: nowrap;
+      }
+      .coin {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 170px;
+        height: 170px;
+        border-radius: 50%;
+        opacity: 0;
+        will-change: transform;
+        box-shadow: 0 0 60px rgba(182, 170, 246, 0.45);
+      }
+      #flash {
+        position: absolute;
+        inset: 0;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #mark {
+        position: absolute;
+        left: 70px;
+        top: 44px;
+        height: 46px;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <canvas id="cv" width="1920" height="1080"></canvas>
+      <img id="mark" src="assets/logo-dark.svg" alt="" />
+
+      <div class="layer" id="hook">
+        <div class="wrap">
+          <span class="line" style="font-size: 156px" id="h1"
+            ><span class="w">Every</span> <span class="w">short</span>
+            <span class="w">market</span></span
+          >
+          <span class="line" style="font-size: 196px; color: var(--down); margin-top: 6px" id="h2"
+            ><span class="w">starts</span> <span class="w">empty.</span></span
+          >
+        </div>
+        <div
+          class="chip"
+          id="pill96"
+          style="
+            left: 660px;
+            top: 688px;
+            background: #2a171d;
+            border: 3px solid #7a2f3d;
+            color: var(--down);
+            font-size: 50px;
+          "
+        >
+          96 empty starts a day
+        </div>
+      </div>
+
+      <div class="layer" id="fix">
+        <div class="wrap">
+          <span class="line" style="font-size: 176px" id="f1"><span class="w">Converge</span></span>
+          <span class="line" style="font-size: 176px; margin-top: 4px" id="f2"
+            ><span
+              class="w"
+              style="
+                background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a);
+                -webkit-background-clip: text;
+                color: transparent;
+              "
+              >fills it.</span
+            ></span
+          >
+          <span
+            class="line"
+            style="
+              font-size: 56px;
+              font-weight: 700;
+              color: var(--muted);
+              margin-top: 34px;
+              letter-spacing: -0.01em;
+            "
+            id="f3"
+            ><span class="w">One</span> <span class="w">vault.</span> <span class="w">Every</span>
+            <span class="w">round.</span></span
+          >
+        </div>
+      </div>
+
+      <div class="layer" id="demo">
+        <div id="frame">
+          <video id="v" src="assets/footage.webm" muted playsinline preload="auto"></video>
+        </div>
+        <div id="cap"></div>
+        <div id="steps">
+          <div class="step" id="s1">1 · Sign in</div>
+          <div class="step" id="s2">2 · Bet</div>
+          <div class="step" id="s3">3 · Collect</div>
+        </div>
+        <div
+          class="chip"
+          id="chipFace"
+          style="
+            left: 1380px;
+            top: 96px;
+            background: #262443;
+            border: 3px solid #7566dc;
+            color: var(--brand);
+            font-size: 44px;
+          "
+        >
+          ✓ Face ID
+        </div>
+        <div
+          class="chip"
+          id="chipFill"
+          style="
+            left: 300px;
+            top: 640px;
+            background: #13291f;
+            border: 3px solid #1f5a43;
+            color: var(--up);
+            font-size: 46px;
+          "
+        >
+          ⚡ Filled in 2 s
+        </div>
+        <div
+          class="chip"
+          id="chipWin"
+          style="
+            left: 1330px;
+            top: 420px;
+            background: #13291f;
+            border: 3px solid #1f5a43;
+            color: var(--up);
+            font-size: 84px;
+            padding: 20px 44px;
+          "
+        >
+          +$7.54
+        </div>
+      </div>
+
+      <div class="layer" id="assets">
+        <span
+          class="line"
+          style="position: absolute; left: 0; right: 0; top: 96px; font-size: 120px"
+          id="a1"
+          ><span class="w">One</span> <span class="w">vault.</span>
+          <span
+            class="w"
+            style="
+              background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a);
+              -webkit-background-clip: text;
+              color: transparent;
+            "
+            >Three</span
+          >
+          <span
+            class="w"
+            style="
+              background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a);
+              -webkit-background-clip: text;
+              color: transparent;
+            "
+            >markets.</span
+          ></span
+        >
+        <img class="coin" id="cE" src="assets/eth.svg" /><img
+          class="coin"
+          id="cB"
+          src="assets/btc.svg"
+        /><img class="coin" id="cM" src="assets/mon.svg" />
+        <div
+          class="chip"
+          id="st1"
+          style="
+            left: 150px;
+            top: 900px;
+            background: #161a23;
+            border: 3px solid #2a3040;
+            font-size: 50px;
+          "
+        >
+          <span style="color: var(--up)">0.302 s</span> blocks
+        </div>
+        <div
+          class="chip"
+          id="st2"
+          style="
+            left: 700px;
+            top: 900px;
+            background: #161a23;
+            border: 3px solid #2a3040;
+            font-size: 50px;
+          "
+        >
+          <span style="color: var(--up)">$0.0017</span> a trade
+        </div>
+        <div
+          class="chip"
+          id="st3"
+          style="
+            left: 1260px;
+            top: 900px;
+            background: #2e2510;
+            border: 3px solid #5b4a1d;
+            color: var(--warn);
+            font-size: 44px;
+            padding-top: 20px;
+          "
+        >
+          Live on Monad testnet
+        </div>
+      </div>
+
+      <div
+        class="layer"
+        id="end"
+        style="
+          background: radial-gradient(
+            circle at 50% 44%,
+            rgba(117, 102, 220, 0.4),
+            rgba(15, 18, 24, 0.97) 64%
+          );
+        "
+      >
+        <img
+          id="logoBig"
+          src="assets/logo-dark.svg"
+          style="position: absolute; left: 580px; top: 210px; width: 760px"
+        />
+        <span
+          class="line"
+          style="position: absolute; left: 0; right: 0; top: 470px; font-size: 100px"
+          id="e1"
+          ><span class="w">A</span> <span class="w">market</span> <span class="w">maker</span>
+          <span class="w">for</span></span
+        >
+        <span
+          class="line"
+          style="position: absolute; left: 0; right: 0; top: 586px; font-size: 100px"
+          id="e2"
+          ><span
+            class="w"
+            style="
+              background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a);
+              -webkit-background-clip: text;
+              color: transparent;
+            "
+            >every</span
+          >
+          <span
+            class="w"
+            style="
+              background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a);
+              -webkit-background-clip: text;
+              color: transparent;
+            "
+            >short</span
+          >
+          <span
+            class="w"
+            style="
+              background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a);
+              -webkit-background-clip: text;
+              color: transparent;
+            "
+            >round.</span
+          ></span
+        >
+        <div
+          class="chip"
+          id="tag"
+          style="
+            left: 690px;
+            top: 800px;
+            background: #2e2510;
+            border: 3px solid #5b4a1d;
+            color: var(--warn);
+            font-size: 38px;
+          "
+        >
+          Monad testnet · test money
+        </div>
+      </div>
+      <div id="flash"></div>
+    </div>
+    <script>
+      const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+      const eo = (x) => 1 - Math.pow(1 - x, 3);
+      const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+      const $ = (id) => document.getElementById(id);
+      const BEAT = 0.5;
+      const S = { hook: [0, 4], fix: [4, 6], demo: [6, 24], assets: [24, 28], end: [28, 30] };
+      const cv = $("cv"),
+        g = cv.getContext("2d");
+      // a spring that overshoots then settles: x seconds since the start
+      const pop = (x) => (x <= 0 ? 0 : 1 - Math.exp(-9 * x) * Math.cos(15 * x));
+      const kick = (t) => (t >= 4 && t < 28 ? Math.exp(-10 * ((t - 4) % BEAT)) : 0);
+      const rnd = (() => {
+        let s = 7;
+        return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+      })();
+      const P = Array.from({ length: 80 }, () => ({
+        x: rnd() * 1920,
+        y: rnd() * 1080,
+        r: 1.5 + rnd() * 3.5,
+        v: 20 + rnd() * 60,
+        a: 0.1 + rnd() * 0.35,
+        ph: rnd() * 6.28,
+      }));
+      const STREAK = Array.from({ length: 28 }, () => ({
+        y: rnd() * 1080,
+        len: 300 + rnd() * 900,
+        sp: 3000 + rnd() * 3000,
+        off: rnd() * 1920,
+        w: 2 + rnd() * 3,
+      }));
+      function wordsPop(id, times, rise = 50, rot = 5) {
+        document.querySelectorAll(`#${id} .w`).forEach((el, i) => {
+          const x = clamp(0, 0, 0);
+          const k = pop(window.__t - times[i]);
+          el.style.opacity = k > 0.001 ? 1 : 0;
+          el.style.transform = `translateY(${(1 - k) * rise}px) scale(${0.55 + 0.45 * k}) rotate(${(1 - k) * rot * (i % 2 ? -1 : 1)}deg)`;
+        });
+      }
+      function glow(x, y, r, c0, c1) {
+        const gr = g.createRadialGradient(x, y, 0, x, y, r);
+        gr.addColorStop(0, c0);
+        gr.addColorStop(1, c1);
+        g.fillStyle = gr;
+        g.fillRect(x - r, y - r, r * 2, r * 2);
+      }
+      function book(t, mode) {
+        // an order book: empty outlines, then filling with depth on the beat
+        const cx = 960,
+          y0 = 770,
+          rows = 9,
+          rh = 24,
+          gap = 8;
+        for (let side = 0; side < 2; side++)
+          for (let i = 0; i < rows; i++) {
+            const y = y0 + i * (rh + gap),
+              wMax = 400 - i * 38;
+            const x = side === 0 ? cx - 24 - wMax : cx + 24;
+            if (mode === "empty") {
+              g.setLineDash([10, 9]);
+              g.strokeStyle = `rgba(244,139,152,${0.18 + 0.14 * Math.sin(t * 6 + i)})`;
+              g.lineWidth = 2;
+              g.strokeRect(x, y, wMax, rh);
+              g.setLineDash([]);
+            } else {
+              const k = eo(clamp((t - 4.15 - i * 0.07 - side * 0.03) / 0.35));
+              const w = wMax * k;
+              g.fillStyle =
+                side === 0
+                  ? `rgba(95,215,174,${0.85 - i * 0.06})`
+                  : `rgba(244,139,152,${0.85 - i * 0.06})`;
+              const xx = side === 0 ? cx - 24 - w : cx + 24;
+              g.beginPath();
+              g.roundRect(xx, y, w, rh, 8);
+              g.fill();
+            }
+          }
+      }
+      function draw(t) {
+        g.clearRect(0, 0, 1920, 1080);
+        g.fillStyle = "#0f1218";
+        g.fillRect(0, 0, 1920, 1080);
+        const k = kick(t),
+          calm = t < 4 ? 0.7 : 1;
+        glow(
+          300 + Math.sin(t / 2) * 160,
+          160 + Math.cos(t / 2.4) * 80,
+          900,
+          `rgba(88,70,190,${0.5 * calm + 0.18 * k})`,
+          "rgba(88,70,190,0)",
+        );
+        glow(
+          1500 + Math.cos(t / 2.2) * 120,
+          780 + Math.sin(t / 2.7) * 90,
+          800,
+          `rgba(20,110,86,${0.42 * calm + 0.2 * k})`,
+          "rgba(20,110,86,0)",
+        );
+        glow(
+          260 + Math.sin(t / 3) * 100,
+          900,
+          650,
+          `rgba(150,50,70,${0.3 * calm + 0.15 * k})`,
+          "rgba(150,50,70,0)",
+        );
+        // particles rising faster once the beat drops
+        const sp = t < 4 ? 0.5 : 1.6;
+        for (const p of P) {
+          const y = ((((p.y - t * p.v * sp) % 1180) + 1180) % 1180) - 50;
+          const x = p.x + Math.sin(t * 0.8 + p.ph) * 30;
+          g.fillStyle = `rgba(182,170,246,${p.a * (0.7 + 0.5 * k)})`;
+          g.beginPath();
+          g.arc(x, y, p.r * (1 + 0.5 * k), 0, 7);
+          g.fill();
+        }
+        // sonar rings on every kick
+        if (t >= 4 && t < 28)
+          for (let n = 0; n < 5; n++) {
+            const idx = Math.floor((t - 4) / BEAT) - n;
+            if (idx < 0) continue;
+            const age = t - (4 + idx * BEAT);
+            g.strokeStyle = `rgba(182,170,246,${0.4 * Math.exp(-age * 2.4)})`;
+            g.lineWidth = 4;
+            g.beginPath();
+            g.arc(960, 470, 220 + age * 820, 0, 7);
+            g.stroke();
+          }
+        if (t < 4) book(t, "empty");
+        if (t >= 4 && t < 6.4) book(t, "full");
+        // speed streaks across every cut
+        for (const [a, b] of [
+          [3.55, 4.12],
+          [5.6, 6.1],
+          [23.55, 24.1],
+          [27.55, 28.1],
+        ])
+          if (t >= a && t < b) {
+            const u = (t - a) / (b - a);
+            g.globalAlpha = Math.sin(Math.PI * u) * 0.7;
+            for (const s of STREAK) {
+              const x = ((s.off + (t - a) * s.sp) % 2600) - 500;
+              g.fillStyle = "#cfc8ff";
+              g.fillRect(x, s.y, s.len, s.w);
+            }
+            g.globalAlpha = 1;
+          }
+        // the vault ring in the "one vault, three markets" scene
+        if (t >= 24 && t < 28.2) {
+          const k2 = eo(clamp((t - 24.05) / 0.5)),
+            cx = 960,
+            cy = 560,
+            r = 190 * k2 + 14 * kick(t);
+          const gr = g.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+          gr.addColorStop(0, "#5fe0b4");
+          gr.addColorStop(0.5, "#b6aaf6");
+          gr.addColorStop(1, "#f58a9a");
+          g.lineWidth = 12;
+          g.strokeStyle = gr;
+          g.beginPath();
+          g.arc(cx, cy, r, t * 1.2, t * 1.2 + 5.3);
+          g.stroke();
+          g.lineWidth = 3;
+          g.strokeStyle = "rgba(182,170,246,.35)";
+          g.beginPath();
+          g.arc(cx, cy, 340, 0, 7);
+          g.stroke();
+          glow(cx, cy, 300, `rgba(182,170,246,${0.18 * k2})`, "rgba(182,170,246,0)");
+        }
+      }
+      const seek = async (v, t) => {
+        const tt = clamp(t, 0, (v.duration || 18) - 0.04);
+        if (Math.abs(v.currentTime - tt) < 0.004) return;
+        await new Promise((res) => {
+          const d = () => {
+            v.removeEventListener("seeked", d);
+            res();
+          };
+          v.addEventListener("seeked", d);
+          v.currentTime = tt;
+          setTimeout(res, 900);
+        });
+      };
+      const win = (id, t, fi = 0.001, fo = 0.001) => {
+        const [a, b] = S[id];
+        return Math.min(clamp((t - a) / fi), 1 - clamp((t - (b - fo)) / fo));
+      };
+      const CAPS = [
+        [6.0, 11.0, "Face ID. No seed phrase."],
+        [11.0, 18.0, "Tap Up. Filled in 2 seconds."],
+        [18.0, 24.0, "Signed oracle report. One tap to collect."],
+      ];
+      window.__total = 30;
+      window.render = async (t) => {
+        window.__t = t;
+        draw(t);
+        const k = kick(t);
+        // hook
+        $("hook").style.opacity = t < 4.6 ? 1 : 0;
+        wordsPop("hook", [0.1, 0.6, 1.1, 1.9, 2.4], 60, 6);
+        const gl = t > 3.55 && t < 4 ? (t - 3.55) / 0.45 : 0; // glitch out into the drop
+        const sh = t > 2.4 && t < 2.55 ? (1 - (t - 2.4) / 0.15) * 14 : 0; // shake as "empty." lands
+        $("hook").firstElementChild.style.transform =
+          `translate(${(rnd() - 0.5) * (sh + gl * 36)}px, ${(rnd() - 0.5) * (sh + gl * 18)}px)`;
+        $("hook").firstElementChild.style.textShadow = gl
+          ? `${gl * 14}px 0 rgba(244,139,152,.8), ${-gl * 14}px 0 rgba(95,215,174,.8)`
+          : "none";
+        const p = pop(t - 3.0);
+        $("pill96").style.opacity = t > 3.0 && t < 4.0 ? 1 : 0;
+        $("pill96").style.transform = `scale(${0.4 + 0.6 * p}) rotate(${(1 - p) * -8}deg)`;
+        // fix: a circular reveal from the middle on the drop
+        const r = eo(clamp((t - 4.0) / 0.55)) * 1500;
+        $("fix").style.opacity = t >= 4.0 && t < 6.0 ? 1 : 0;
+        $("fix").style.clipPath = `circle(${r}px at 50% 50%)`;
+        wordsPop(
+          "fix",
+          [4.05, 4.55, 5.0, 5.15, 5.3, 5.45].slice(0, 1).concat([4.55, 5.0, 5.15, 5.3, 5.45]),
+          60,
+          4,
+        );
+        $("fix").querySelector("#f1").style.transform = `scale(${1 + 0.03 * k})`;
+        // demo
+        const dv = t >= 5.9 && t < 24 ? 1 : 0;
+        $("demo").style.opacity = dv;
+        if (dv) {
+          await seek($("v"), t - 6.0);
+          const ent = pop(t - 5.95),
+            zoom = 1 + 0.06 * clamp((t - 6) / 18),
+            tilt = Math.sin(t * 0.6) * 0.5;
+          const out = eo(clamp((t - 23.6) / 0.4));
+          $("frame").style.transform =
+            `translateY(${(1 - ent) * 900 - out * 300}px) scale(${zoom * (1 + 0.012 * k)}) rotate(${tilt}deg)`;
+          $("frame").style.boxShadow =
+            `0 0 ${90 + 120 * k}px rgba(117,102,220,${0.4 + 0.45 * k}), 0 30px 90px rgba(0,0,0,.55)`;
+          const cap = CAPS.find(([a, b]) => t >= a && t < b),
+            el = $("cap");
+          if (cap) {
+            const ws = cap[2].split(" ");
+            if (el.dataset.c !== cap[2]) {
+              el.innerHTML = ws.map((w) => `<span class="w">${w}</span>`).join(" ");
+              el.dataset.c = cap[2];
+            }
+            el.querySelectorAll(".w").forEach((w, i) => {
+              const q = pop(t - cap[0] - 0.12 - i * 0.12);
+              w.style.opacity = q > 0.001 ? 1 : 0;
+              w.style.transform = `translateY(${(1 - q) * 36}px) scale(${0.6 + 0.4 * q})`;
+            });
+            el.style.opacity = 1 - clamp((t - (cap[1] - 0.15)) / 0.15) * (cap[1] < 24 ? 1 : 0);
+          } else el.style.opacity = 0;
+          const act = t < 11 ? 1 : t < 18 ? 2 : 3;
+          for (const [i, id] of [
+            [1, "s1"],
+            [2, "s2"],
+            [3, "s3"],
+          ]) {
+            const e = $(id),
+              on = i === act,
+              done = i < act;
+            e.style.background = on ? "#b6aaf6" : done ? "#13291f" : "#161a23";
+            e.style.color = on ? "#17141f" : done ? "#5fd7ae" : "#7f879b";
+            e.style.borderColor = on ? "#b6aaf6" : done ? "#1f5a43" : "#2a3040";
+            e.style.transform = `scale(${on ? 1.08 + 0.03 * k : 1})`;
+          }
+          const chip = (id, a, b, rise = 0) => {
+            const e = $(id),
+              q = pop(t - a),
+              vis = t >= a && t < b ? 1 : 0;
+            e.style.opacity = vis * Math.min(1, 1 - clamp((t - (b - 0.25)) / 0.25));
+            e.style.transform = `translateY(${(1 - q) * 40 - rise * clamp((t - a) / 1.6) * 50}px) scale(${0.4 + 0.6 * q}) rotate(${(1 - q) * -6}deg)`;
+          };
+          chip("chipFace", 7.0, 10.6);
+          chip("chipFill", 16.4, 19.6);
+          chip("chipWin", 22.0, 24.0, 1);
+        }
+        // assets
+        $("assets").style.opacity = t >= 23.9 && t < 28.1 ? 1 : 0;
+        wordsPop("assets", [24.05, 24.5, 24.9, 25.15], 50, 4);
+        const coins = [
+          ["cE", 24.25, 0],
+          ["cB", 24.4, 2.094],
+          ["cM", 24.55, 4.188],
+        ];
+        for (const [id, t0, a0] of coins) {
+          const q = pop(t - t0),
+            ang = a0 + (t - 24) * 1.7,
+            R = 340,
+            e = $(id);
+          e.style.opacity = t >= t0 && t < 28.1 ? 1 : 0;
+          e.style.transform = `translate(${960 + Math.cos(ang) * R - 85}px, ${560 + Math.sin(ang) * R * 0.62 - 85}px) scale(${q * (1 + 0.08 * k)})`;
+        }
+        for (const [id, a] of [
+          ["st1", 25.4],
+          ["st2", 25.9],
+          ["st3", 26.5],
+        ]) {
+          const q = pop(t - a),
+            e = $(id);
+          e.style.opacity = t >= a && t < 28.1 ? 1 : 0;
+          e.style.transform = `translateY(${(1 - q) * 60}px) scale(${0.5 + 0.5 * q})`;
+        }
+        // end
+        $("end").style.opacity = t >= 28 ? 1 : 0;
+        const lg = pop(t - 28.05);
+        $("logoBig").style.opacity = t >= 28 ? 1 : 0;
+        $("logoBig").style.transform = `scale(${0.5 + 0.5 * lg}) rotate(${(1 - lg) * -12}deg)`;
+        wordsPop("end", [28.5, 28.65, 28.8, 28.95, 29.15, 29.3, 29.45], 50, 4);
+        const tg = pop(t - 29.4);
+        $("tag").style.opacity = t >= 29.4 ? 1 : 0;
+        $("tag").style.transform = `translateY(${(1 - tg) * 30}px) scale(${0.6 + 0.4 * tg})`;
+        $("mark").style.opacity = (t > 0.3 && t < 3.6) || (t > 24.2 && t < 27.8) ? 0.9 : 0;
+        // a white flash on each cut, decaying on the beat
+        let fl = 0;
+        for (const B of [4, 6, 24, 28]) if (t >= B) fl += 0.55 * Math.exp(-16 * (t - B));
+        $("flash").style.opacity = Math.min(0.7, fl);
+        return true;
+      };
+      Promise.resolve()
+        .then(
+          () =>
+            new Promise((r) => {
+              const v = $("v");
+              v.onloadeddata = r;
+              if (v.readyState >= 2) r();
+            }),
+        )
+        .then(() => document.fonts.ready)
+        .then(() => (window.__ready = true));
+    </script>
+  </body>
+</html>

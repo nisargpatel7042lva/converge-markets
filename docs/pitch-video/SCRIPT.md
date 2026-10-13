@@ -1,4 +1,6 @@
-# Converge pitch video: script for the AI voiceover
+# Converge pitch video, long cut (2:44): script for the AI voiceover
+
+> The submission form allows a pitch of up to 2 minutes: use [SCRIPT-2min.md](SCRIPT-2min.md). This longer cut is kept for other uses.
 
 **Length:** about 2:43 at a normal reading pace (373 words, 150 words a minute). Paste the plain text below into your voice tool. The captions in the video are burned in from this same text, so keep the words as written.
 
