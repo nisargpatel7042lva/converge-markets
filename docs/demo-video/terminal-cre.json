@@ -1,0 +1,101 @@
+{
+  "scenes": [
+    {
+      "steps": [
+        {
+          "cmd": "sed -n 98,112p services/scheduler/cre/scheduler/main.ts",
+          "out": [
+            "const onCron = (runtime: Runtime<Config>): string => {",
+            "  const cfg = runtime.config;",
+            "  const series: SeriesConfig = parseSeriesConfig(cfg.series);",
+            "  const network = getNetwork({ chainFamily: \"evm\", chainSelectorName: cfg.chainSelectorName });",
+            "  if (!network) throw new Error(`unknown chain ${cfg.chainSelectorName}`);",
+            "  const evm = new EVMClient(network.chainSelector.selector);",
+            "  let reads = 0;",
+            "  const exec = (to: Address, data: Hex): Hex => {",
+            "    if (++reads > CRE_MAX_EVM_READS) throw new Error(\"EVM read quota exceeded\");",
+            "    return bytesToHex(",
+            "      evm.callContract(runtime, { call: encodeCallMsg({ from: zeroAddress, to, data }) }).result()",
+            "        .data,",
+            "    );",
+            "  };",
+            ""
+          ],
+          "speed": 0.09
+        }
+      ]
+    },
+    {
+      "steps": [
+        {
+          "cmd": "bash scripts/cre/simulate-testnet.sh   # cre workflow simulate scheduler --target staging-settings",
+          "out": [
+            "Initializing...",
+            "Loading settings...",
+            "! Using default private key for chain write simulation. To use your own key, set CRE_ETH_PRIVATE_KEY in your .env file or system environment.",
+            "Checking RPC connectivity...",
+            "Compiling workflow...",
+            "\u2713 Workflow compiled",
+            "\u2713 Simulation limits enabled",
+            "  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb",
+            "  Binary hash: d23aa1b9a66557b2030e22b543aaf7bd8e53916d30991fa8219433b4de9926f5",
+            "  Config hash: f0b2550557d490a07b7d9711fb14f3a87161170acefa6b28da6c928a35f8e4b0",
+            "! Secret \"DATA_STREAMS_API_KEY\" uses itself as the env var name \u2014 this is fragile and may cause confusion. Consider using a distinct env var name (e.g. \"CRE_DATA_STREAMS_API_KEY\").",
+            "! Secret \"DATA_STREAMS_API_SECRET\" uses itself as the env var name \u2014 this is fragile and may cause confusion. Consider using a distinct env var name (e.g. \"CRE_DATA_STREAMS_API_SECRET\").",
+            "2026-10-13T12:21:34Z [SIMULATION] Simulator Initialized",
+            "",
+            "2026-10-13T12:21:34Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0",
+            "2026-10-13T12:21:35Z [USER LOG] LATE: CREATE TEST/USD 900s @1791883800",
+            "2026-10-13T12:21:35Z [USER LOG] sent 3 actions in 0x0000000000000000000000000000000000000000000000000000000000000000 (2 EVM reads): CREATE@1791883800,CREATE@1791884700,CREATE@1791885600",
+            "",
+            "\u2713 Workflow Simulation Result:",
+            "\"0x0000000000000000000000000000000000000000000000000000000000000000\"",
+            "",
+            "2026-10-13T12:21:35Z [SIMULATION] Execution finished signal received",
+            "2026-10-13T12:21:35Z [SIMULATION] Skipping WorkflowEngineV2",
+            "",
+            "\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e",
+            "\u2502 Simulation complete! Ready to deploy your workflow?  \u2502",
+            "\u2502                                                      \u2502",
+            "\u2502 Run cre account access to request deployment access. \u2502",
+            "\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f"
+          ],
+          "speed": 0.085
+        }
+      ]
+    },
+    {
+      "steps": [
+        {
+          "cmd": "grep \"USER LOG\" docs/evidence/cre/simulate-testnet.txt   # an earlier run, 2026-10-10",
+          "out": [
+            "2026-10-10T09:41:31Z [USER LOG] LATE: CREATE TEST/USD 900s @1791614700",
+            "2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791557100",
+            "2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791556200",
+            "2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791522900",
+            "2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791522000",
+            "2026-10-10T09:41:31Z [USER LOG] LATE: INVALIDATE TEST/USD 900s @1791521100",
+            "2026-10-10T09:41:31Z [USER LOG] sent 8 actions in 0x0000000000000000000000000000000000000000000000000000000000000000 (2 EVM reads): INVALIDATE@1791521100,INVALIDATE@1791522000,INVALIDATE@1791522900,INVALIDATE@1791556200,INVALIDATE@1791557100,CREATE@1791614700,CREATE@1791615600,CREATE@1791616500"
+          ],
+          "speed": 0.2
+        }
+      ]
+    },
+    {
+      "steps": [
+        {
+          "cmd": "cast receipt 0xf84bf488de7305b79d575f32f17dbc57ad7629b5cc6a7bd31dcb5cb77bbeb76d status --rpc-url $MONAD_TESTNET_RPC",
+          "out": ["true"]
+        },
+        {
+          "cmd": "cast receipt 0xf84bf488de7305b79d575f32f17dbc57ad7629b5cc6a7bd31dcb5cb77bbeb76d blockNumber --rpc-url $MONAD_TESTNET_RPC",
+          "out": ["70057947"]
+        },
+        {
+          "cmd": "cast receipt 0xf84bf488de7305b79d575f32f17dbc57ad7629b5cc6a7bd31dcb5cb77bbeb76d gasUsed --rpc-url $MONAD_TESTNET_RPC",
+          "out": ["2500000"]
+        }
+      ]
+    }
+  ]
+}

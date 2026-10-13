@@ -170,7 +170,9 @@
             ? `<span class="wn">${esc(l)}</span>`
             : esc(l);
       async function init() {
-        const d = await (await fetch("terminal.json")).json();
+        const d = await (
+          await fetch(new URLSearchParams(location.search).get("data") ?? "terminal.json")
+        ).json();
         let t = 0;
         const scenes = d.scenes.map((s) => {
           const sc = { start: t, steps: [] };

@@ -45,10 +45,12 @@ const server = createServer((req, res) => {
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 page.on("pageerror", (e) => console.error("PAGE ERROR", e.message));
-await page.goto(`http://127.0.0.1:${server.address().port}/`);
+const dataFile = process.argv[2] ?? "terminal.json";
+const outName = process.argv[3] ?? "terminal";
+await page.goto(`http://127.0.0.1:${server.address().port}/?data=${dataFile}`);
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
 mkdirSync(join(here, "work"), { recursive: true });
-const out = join(here, "work", `${scene}.mp4`);
+const out = join(here, "work", `${outName}.mp4`);
 const ff = spawn(
   ffmpeg,
   [
