@@ -720,9 +720,9 @@
         const lg = pop(t - 28.05);
         $("logoBig").style.opacity = t >= 28 ? 1 : 0;
         $("logoBig").style.transform = `scale(${0.5 + 0.5 * lg}) rotate(${(1 - lg) * -12}deg)`;
-        wordsPop("end", [28.5, 28.65, 28.8, 28.95, 29.15, 29.3, 29.45], 50, 4);
-        const tg = pop(t - 29.4);
-        $("tag").style.opacity = t >= 29.4 ? 1 : 0;
+        wordsPop("end", [28.2, 28.3, 28.4, 28.5, 28.65, 28.8, 28.95], 50, 4);
+        const tg = pop(t - 29.2);
+        $("tag").style.opacity = t >= 29.2 ? 1 : 0;
         $("tag").style.transform = `translateY(${(1 - tg) * 30}px) scale(${0.6 + 0.4 * tg})`;
         $("mark").style.opacity = (t > 0.3 && t < 3.6) || (t > 24.2 && t < 27.8) ? 0.9 : 0;
         // a white flash on each cut, decaying on the beat

@@ -17,7 +17,10 @@ const FPS = 30;
 const types = { ".html": "text/html", ".webm": "video/webm", ".svg": "image/svg+xml" };
 const server = createServer((req, res) => {
   const u = new URL(req.url, "http://x");
-  const path = join(here, u.pathname === "/" ? "/promo.html" : decodeURIComponent(u.pathname));
+  const path = join(
+    here,
+    u.pathname === "/" ? `/${process.env.PAGE ?? "promo.html"}` : decodeURIComponent(u.pathname),
+  );
   if (!path.startsWith(here) || !existsSync(path)) return res.writeHead(404).end();
   const buf = readFileSync(path);
   const range = req.headers.range;
@@ -45,10 +48,22 @@ const server = createServer((req, res) => {
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 page.on("pageerror", (e) => console.error("PAGE ERROR", e.message));
-const outName = "promo";
+const outName = process.env.OUT ?? "promo";
 await page.goto(`http://127.0.0.1:${server.address().port}/`);
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
 mkdirSync(join(here, "work"), { recursive: true });
+const pv = process.argv.indexOf("--preview");
+if (pv > 0) {
+  for (const sec of process.argv[pv + 1].split(",").map(Number)) {
+    await page.evaluate((t) => window.render(t), sec);
+    await page.waitForTimeout(120);
+    await page.screenshot({ path: join(here, "work", `pv-${String(sec).replace(".", "_")}.png`) });
+  }
+  console.log("previews written");
+  await browser.close();
+  server.close();
+  process.exit(0);
+}
 const out = join(here, "work", `${outName}.mp4`);
 const ff = spawn(
   ffmpeg,
