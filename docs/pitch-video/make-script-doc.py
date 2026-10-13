@@ -1,6 +1,7 @@
 # Regenerates SCRIPT.md from scenes.json and timeline.json (run `node make-timeline.mjs` first).
 import json
-sc = json.load(open('scenes.json'))['scenes']; tl = json.load(open('timeline.json'))
+import os
+sc = json.load(open(os.environ.get('SCENES','scenes.json')))['scenes']; tl = json.load(open('timeline.json'))
 fmt = lambda x: f"{int(x // 60)}:{int(x % 60):02d}"
 beats = {
  'cold-start': 'The empty-market card; "No price. No counterparty. 96 times a day."',
@@ -30,4 +31,4 @@ o.append("## What the video deliberately does not say\n")
 o.append("- No users, volume or revenue claims: there are none yet.\n- It does not call the code audited (it is internally reviewed twice) and does not say the CRE workflow is deployed (it is not: Early Access). The Envio tile says hosting is still to come.\n- It shows the 3-second break in the speed fix on screen: a judge who finds a limit alone trusts you less than one who is told.\n- The partner footnote says the end-to-end demo ran on a local chain, and the speed claim is labelled a backtest.\n- \"The trades you just watched ran live\" refers only to the phone footage; the backtest and the empty-market card are labelled as such.\n")
 o.append("## Re-timing to your audio\n")
 o.append("Generate the voice, note its length in seconds, then run `node make-timeline.mjs --audio-seconds <length>` and `node render.mjs --audio your-voice.mp3`. Every scene and caption scales to fit, and the result is `out/converge-pitch-with-voice.mp4`. Or send me the audio file and I will do it.\n")
-open('SCRIPT.md', 'w').write("\n".join(o))
+open(os.environ.get('SCRIPT_OUT','SCRIPT.md'), 'w').write("\n".join(o))

@@ -1,0 +1,155 @@
+1
+00:00:00,250 --> 00:00:02,250
+Every prediction market starts empty.
+
+2
+00:00:02,250 --> 00:00:03,850
+No price, no counterparty.
+
+3
+00:00:03,850 --> 00:00:07,450
+A fifteen-minute market does that ninety-six times a day.
+
+4
+00:00:07,450 --> 00:00:09,850
+Nobody has solved the cold start.
+
+5
+00:00:10,850 --> 00:00:12,119
+Converge ends it.
+
+6
+00:00:12,119 --> 00:00:15,504
+Liquidity becomes infrastructure: deposit once into one vault,
+
+7
+00:00:15,504 --> 00:00:18,888
+and it makes the market in every round,
+
+8
+00:00:18,888 --> 00:00:21,850
+on every asset, from the first second.
+
+9
+00:00:22,850 --> 00:00:25,650
+Faster traders hunt on-chain quotes: our first
+
+10
+00:00:25,650 --> 00:00:28,050
+design lost eighty-eight dollars a day.
+
+11
+00:00:28,050 --> 00:00:30,850
+So orders now fill two seconds later,
+
+12
+00:00:30,850 --> 00:00:33,650
+at the oracle's price for that second.
+
+13
+00:00:33,650 --> 00:00:36,450
+About fifty dollars a day, in backtest.
+
+14
+00:00:36,450 --> 00:00:38,850
+It breaks at a three-second lead.
+
+15
+00:00:38,850 --> 00:00:40,050
+We say so.
+
+16
+00:00:41,050 --> 00:00:43,097
+Watch a new user.
+
+17
+00:00:43,097 --> 00:00:47,190
+Face ID creates the account, no seed phrase.
+
+18
+00:00:47,190 --> 00:00:50,771
+Add test money, tap Up, confirm once.
+
+19
+00:00:50,771 --> 00:00:52,817
+The keeper fills it.
+
+20
+00:00:52,817 --> 00:00:55,887
+Eighteen point seven seconds, landing page
+
+21
+00:00:55,887 --> 00:00:58,957
+to live bet, on Monad testnet.
+
+22
+00:00:58,957 --> 00:01:03,050
+Ethereum, Bitcoin, MON: one vault quotes them all.
+
+23
+00:01:04,050 --> 00:01:06,450
+Monad's blocks take three hundred milliseconds.
+
+24
+00:01:06,450 --> 00:01:10,050
+Serving a trade costs a sixth of a cent.
+
+25
+00:01:10,050 --> 00:01:12,050
+On Ethereum, about ten cents.
+
+26
+00:01:13,050 --> 00:01:14,471
+Chainlink CRE orchestrates.
+
+27
+00:01:14,471 --> 00:01:18,734
+Kuru lists each Up token as an order book.
+
+28
+00:01:18,734 --> 00:01:19,682
+Envio indexes.
+
+29
+00:01:19,682 --> 00:01:22,050
+Mera is the account layer.
+
+30
+00:01:23,050 --> 00:01:25,450
+Any Monad app can launch a
+
+31
+00:01:25,450 --> 00:01:27,850
+market with depth in one call.
+
+32
+00:01:27,850 --> 00:01:32,250
+Loss limits are on-chain: one percent per market, eight in total.
+
+33
+00:01:32,250 --> 00:01:33,850
+Users can always exit.
+
+34
+00:01:34,850 --> 00:01:37,087
+I'm Nisarg, building this alone.
+
+35
+00:01:37,087 --> 00:01:39,771
+It runs on testnet with test
+
+36
+00:01:39,771 --> 00:01:42,455
+money, and no outside users yet.
+
+37
+00:01:42,455 --> 00:01:45,587
+Mainnet needs Chainlink Data Streams, CRE deploy
+
+38
+00:01:45,587 --> 00:01:48,271
+access, Kuru rights and an audit.
+
+39
+00:01:48,271 --> 00:01:51,850
+Converge: a market maker for every short round.

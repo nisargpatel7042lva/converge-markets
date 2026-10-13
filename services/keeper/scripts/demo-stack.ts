@@ -69,7 +69,12 @@ async function main() {
     );
   const endPrice = new Map<number, number>();
   const endOf = (start: number) => {
-    if (!endPrice.has(start)) endPrice.set(start, BASE * (1 + (Math.random() - 0.5) * 0.004));
+    // DEMO_END=up makes every round end a little above its start (for a recorded walkthrough of a winning bet)
+    if (!endPrice.has(start))
+      endPrice.set(
+        start,
+        process.env.DEMO_END === "up" ? BASE * 1.002 : BASE * (1 + (Math.random() - 0.5) * 0.004),
+      );
     return endPrice.get(start)!;
   };
   const done = new Set<string>();

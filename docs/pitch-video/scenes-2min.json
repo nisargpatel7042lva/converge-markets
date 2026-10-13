@@ -1,0 +1,22 @@
+{
+  "wordsPerSecond": 2.5,
+  "padSeconds": 1.0,
+  "scenes": [
+    { "id": "cold-start", "label": "The cold start", "minSeconds": 10,
+      "vo": "Every prediction market starts empty. No price, no counterparty. A fifteen-minute market does that ninety-six times a day. Nobody has solved the cold start." },
+    { "id": "infrastructure", "label": "Liquidity as infrastructure", "minSeconds": 12,
+      "vo": "Converge ends it. Liquidity becomes infrastructure: deposit once into one vault, and it makes the market in every round, on every asset, from the first second." },
+    { "id": "speed", "label": "The speed fix", "minSeconds": 16,
+      "vo": "Faster traders hunt on-chain quotes: our first design lost eighty-eight dollars a day. So orders now fill two seconds later, at the oracle's price for that second. About fifty dollars a day, in backtest. It breaks at a three-second lead. We say so." },
+    { "id": "demo", "label": "First trade, live", "minSeconds": 23,
+      "vo": "Watch a new user. Face ID creates the account, no seed phrase. Add test money, tap Up, confirm once. The keeper fills it. Eighteen point seven seconds, landing page to live bet, on Monad testnet. Ethereum, Bitcoin, MON: one vault quotes them all." },
+    { "id": "monad", "label": "Why Monad", "minSeconds": 9,
+      "vo": "Monad's blocks take three hundred milliseconds. Serving a trade costs a sixth of a cent. On Ethereum, about ten cents." },
+    { "id": "stack", "label": "The stack", "minSeconds": 10,
+      "vo": "Chainlink CRE orchestrates. Kuru lists each Up token as an order book. Envio indexes. Mera is the account layer." },
+    { "id": "platform", "label": "Platform and safety", "minSeconds": 9,
+      "vo": "Any Monad app can launch a market with depth in one call. Loss limits are on-chain: one percent per market, eight in total. Users can always exit." },
+    { "id": "ask", "label": "Team, honest status and the ask", "minSeconds": 18,
+      "vo": "I'm Nisarg, building this alone. It runs on testnet with test money, and no outside users yet. Mainnet needs Chainlink Data Streams, CRE deploy access, Kuru rights and an audit. Converge: a market maker for every short round." }
+  ]
+}

@@ -1,7 +1,9 @@
 // Builds timeline.json (scene starts, caption cues), captions.srt and script-vo.txt from scenes.json.
 // Re-time to a real voiceover: node make-timeline.mjs --audio-seconds 171.4  (scales every scene proportionally)
 import { readFileSync, writeFileSync } from "node:fs";
-const cfg = JSON.parse(readFileSync(new URL("./scenes.json", import.meta.url)));
+const cfg = JSON.parse(
+  readFileSync(new URL(`./${process.env.SCENES ?? "scenes.json"}`, import.meta.url)),
+);
 const argAudio = process.argv.indexOf("--audio-seconds");
 const audioSeconds = argAudio > 0 ? Number(process.argv[argAudio + 1]) : null;
 const words = (s) => s.trim().split(/\s+/).length;
@@ -28,7 +30,16 @@ for (const sc of scenes) {
     const ws = sen.split(/\s+/);
     const parts = [];
     for (let i = 0; i < ws.length; i += 11) parts.push(ws.slice(i, i + 11).join(" "));
-    const balanced = parts.length > 1 ? (() => { const n = Math.ceil(ws.length / 11), sz = Math.ceil(ws.length / n); const r = []; for (let i = 0; i < ws.length; i += sz) r.push(ws.slice(i, i + sz).join(" ")); return r; })() : parts;
+    const balanced =
+      parts.length > 1
+        ? (() => {
+            const n = Math.ceil(ws.length / 11),
+              sz = Math.ceil(ws.length / n);
+            const r = [];
+            for (let i = 0; i < ws.length; i += sz) r.push(ws.slice(i, i + sz).join(" "));
+            return r;
+          })()
+        : parts;
     for (const p of balanced) {
       const d = (words(p) / tw) * speak;
       cues.push({ start: cursor, end: cursor + d, text: p, scene: sc.id });
@@ -37,9 +48,27 @@ for (const sc of scenes) {
   }
 }
 const total = scenes.at(-1).start + scenes.at(-1).duration;
-writeFileSync(new URL("./timeline.json", import.meta.url), JSON.stringify({ total, scenes, cues }, null, 1));
-const f = (x) => { const ms = Math.round(x * 1000); const p = (n, l = 2) => String(n).padStart(l, "0"); return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms / 60000) % 60)}:${p(Math.floor(ms / 1000) % 60)},${p(ms % 1000, 3)}`; };
-writeFileSync(new URL("./captions.srt", import.meta.url), cues.map((c, i) => `${i + 1}\n${f(c.start)} --> ${f(c.end)}\n${c.text}\n`).join("\n"));
-writeFileSync(new URL("./script-vo.txt", import.meta.url), cfg.scenes.map((s) => s.vo).join("\n\n") + "\n");
-console.log(`scenes ${scenes.length}, words ${scenes.reduce((a, s) => a + s.words, 0)}, design length ${design.toFixed(1)} s, video length ${total.toFixed(1)} s`);
-for (const s of scenes) console.log(`${s.start.toFixed(1).padStart(6)}  ${s.duration.toFixed(1).padStart(5)}s  ${s.words}w  ${s.id}`);
+writeFileSync(
+  new URL("./timeline.json", import.meta.url),
+  JSON.stringify({ total, scenes, cues }, null, 1),
+);
+const f = (x) => {
+  const ms = Math.round(x * 1000);
+  const p = (n, l = 2) => String(n).padStart(l, "0");
+  return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms / 60000) % 60)}:${p(Math.floor(ms / 1000) % 60)},${p(ms % 1000, 3)}`;
+};
+writeFileSync(
+  new URL("./captions.srt", import.meta.url),
+  cues.map((c, i) => `${i + 1}\n${f(c.start)} --> ${f(c.end)}\n${c.text}\n`).join("\n"),
+);
+writeFileSync(
+  new URL("./script-vo.txt", import.meta.url),
+  cfg.scenes.map((s) => s.vo).join("\n\n") + "\n",
+);
+console.log(
+  `scenes ${scenes.length}, words ${scenes.reduce((a, s) => a + s.words, 0)}, design length ${design.toFixed(1)} s, video length ${total.toFixed(1)} s`,
+);
+for (const s of scenes)
+  console.log(
+    `${s.start.toFixed(1).padStart(6)}  ${s.duration.toFixed(1).padStart(5)}s  ${s.words}w  ${s.id}`,
+  );

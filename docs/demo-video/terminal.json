@@ -1,0 +1,164 @@
+{
+ "scenes": [
+  {
+   "steps": [
+    {
+     "cmd": "bash scripts/cre/simulate-testnet.sh",
+     "out": [
+      "Initializing...",
+      "Loading settings...",
+      "! Using default private key for chain write simulation. To use your own key, set CRE_ETH_PRIVATE_KEY in your .env file or system environment.",
+      "Checking RPC connectivity...",
+      "Compiling workflow...",
+      "\u2713 Workflow compiled",
+      "\u2713 Simulation limits enabled",
+      "  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb",
+      "  Binary hash: d23aa1b9a66557b2030e22b543aaf7bd8e53916d30991fa8219433b4de9926f5",
+      "  Config hash: f0b2550557d490a07b7d9711fb14f3a87161170acefa6b28da6c928a35f8e4b0",
+      "! Secret \"DATA_STREAMS_API_KEY\" uses itself as the env var name \u2014 this is fragile and may cause confusion. Consider using a distinct env var name (e.g. \"CRE_DATA_STREAMS_API_KEY\").",
+      "! Secret \"DATA_STREAMS_API_SECRET\" uses itself as the env var name \u2014 this is fragile and may cause confusion. Consider using a distinct env var name (e.g. \"CRE_DATA_STREAMS_API_SECRET\").",
+      "2026-10-13T12:21:34Z [SIMULATION] Simulator Initialized",
+      "",
+      "2026-10-13T12:21:34Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0",
+      "2026-10-13T12:21:35Z [USER LOG] LATE: CREATE TEST/USD 900s @1791883800",
+      "2026-10-13T12:21:35Z [USER LOG] sent 3 actions in 0x0000000000000000000000000000000000000000000000000000000000000000 (2 EVM reads): CREATE@1791883800,CREATE@1791884700,CREATE@1791885600",
+      "",
+      "\u2713 Workflow Simulation Result:",
+      "\"0x0000000000000000000000000000000000000000000000000000000000000000\"",
+      "",
+      "2026-10-13T12:21:35Z [SIMULATION] Execution finished signal received",
+      "2026-10-13T12:21:35Z [SIMULATION] Skipping WorkflowEngineV2",
+      "",
+      "\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e",
+      "\u2502 Simulation complete! Ready to deploy your workflow?  \u2502",
+      "\u2502                                                      \u2502",
+      "\u2502 Run cre account access to request deployment access. \u2502",
+      "\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f"
+     ],
+     "speed": 0.075
+    }
+   ]
+  },
+  {
+   "steps": [
+    {
+     "cmd": "cast receipt 0xf84bf488de7305b79d575f32f17dbc57ad7629b5cc6a7bd31dcb5cb77bbeb76d status --rpc-url $MONAD_TESTNET_RPC",
+     "out": [
+      "true"
+     ]
+    },
+    {
+     "cmd": "cast receipt 0xf84bf488de7305b79d575f32f17dbc57ad7629b5cc6a7bd31dcb5cb77bbeb76d blockNumber --rpc-url $MONAD_TESTNET_RPC",
+     "out": [
+      "70057947"
+     ]
+    },
+    {
+     "cmd": "cast receipt 0xf84bf488de7305b79d575f32f17dbc57ad7629b5cc6a7bd31dcb5cb77bbeb76d gasUsed --rpc-url $MONAD_TESTNET_RPC",
+     "out": [
+      "2500000"
+     ]
+    }
+   ]
+  },
+  {
+   "steps": [
+    {
+     "cmd": "cast call $VAULT \"assetCfg(bytes32)\" $ASSET_ETH | head -3   # enabled, feed, sigma",
+     "out": [
+      "true",
+      "0x0003000000000000000000000000000000000000000000000000000000000001",
+      "400000001000000000 [4e17]"
+     ]
+    },
+    {
+     "cmd": "cast call $VAULT \"assetCfg(bytes32)\" $ASSET_BTC | head -3   # enabled, feed, sigma",
+     "out": [
+      "true",
+      "0x0003000000000000000000000000000000000000000000000000000000000002",
+      "300000001000000000 [3e17]"
+     ]
+    },
+    {
+     "cmd": "cast call $VAULT \"assetCfg(bytes32)\" $ASSET_MON | head -3   # enabled, feed, sigma",
+     "out": [
+      "true",
+      "0x0003000000000000000000000000000000000000000000000000000000000003",
+      "788929911000000000 [7.889e17]"
+     ]
+    }
+   ]
+  },
+  {
+   "steps": [
+    {
+     "cmd": "grep -E \"created|opened|resolved\" .testnet/scheduler.log | head -16",
+     "out": [
+      "[sched 08:29:24] BTC: created round 08:30",
+      "[sched 08:29:25] BTC: created round 08:45",
+      "[sched 08:29:32] MON: created round 08:30",
+      "[sched 08:29:32] MON: created round 08:45",
+      "[sched 08:30:05] MON: created round 09:00",
+      "[sched 08:30:13] ETH: created round 09:00",
+      "[sched 08:30:18] BTC: created round 09:00",
+      "[sched 08:30:27] MON: round 08:30 opened",
+      "[sched 08:30:31] ETH: round 08:15 resolved",
+      "[sched 08:30:32] ETH: round 08:30 opened",
+      "[sched 08:30:43] BTC: round 08:30 opened",
+      "[sched 08:45:07] ETH: created round 09:15",
+      "[sched 08:45:13] BTC: created round 09:15",
+      "[sched 08:45:19] MON: created round 09:15",
+      "[sched 08:45:28] ETH: round 08:30 resolved",
+      "[sched 08:45:29] ETH: round 08:45 opened"
+     ],
+     "speed": 0.11
+    }
+   ]
+  },
+  {
+   "steps": [
+    {
+     "cmd": "cat .testnet/kuru.log",
+     "out": [
+      "[kuru 07:55:23] maker 0xe36848e8654a86Fd2F7f97DDB3C56042fFD54dd1, up to 3 rounds, reserve 0.3 MON",
+      "[kuru 07:55:27] closed 0xb6a447 (it was left open past its end): quotes pulled, margin withdrawn",
+      "[kuru 07:55:29] redeemed 0xb6a447",
+      "[kuru 08:00:32] listed 08:00 on Kuru: 0x0f1B763e316293C349C78Ca5B4a74eB689a3Fb31",
+      "[kuru 08:00:41] quote 0.479 / 0.560 around fair 0.519 (872s left)",
+      "[kuru 08:02:29] quote 0.415 / 0.496 around fair 0.456 (755s left)",
+      "[kuru 08:05:44] quote 0.476 / 0.557 around fair 0.517 (560s left)",
+      "[kuru 08:09:47] quote 0.474 / 0.555 around fair 0.514 (318s left)",
+      "[kuru 08:10:34] quote 0.541 / 0.622 around fair 0.582 (270s left)",
+      "[kuru 08:14:35] quote 0.601 / 0.682 around fair 0.642 (29s left)",
+      "[kuru 08:14:50] closed 0x8CD37B: quotes pulled, margin withdrawn",
+      "[kuru 08:15:51] redeemed 0x8CD37B",
+      "[kuru 08:15:51] done: every round listed, closed and redeemed"
+     ],
+     "speed": 0.13
+    }
+   ]
+  },
+  {
+   "steps": [
+    {
+     "cmd": "grep \"tests passed\" docs/evidence/phase-10/check-all.md",
+     "out": [
+      "Ran 29 test suites in 20.88s (57.75s CPU time): 412 tests passed, 0 failed, 2 skipped (414 total tests)"
+     ]
+    },
+    {
+     "cmd": "pnpm --filter @converge/indexer test | tail -6",
+     "out": [
+      " \u2713 test/lifecycle.test.ts (20 tests) 342ms",
+      "",
+      " Test Files  8 passed (8)",
+      "      Tests  100 passed (100)",
+      "   Start at  07:05:54",
+      "   Duration  1.75s (transform 1.39s, setup 0ms, collect 3.29s, tests 972ms, environment 2ms, prepare 1.97s)"
+     ],
+     "speed": 0.1
+    }
+   ]
+  }
+ ]
+}
