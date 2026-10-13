@@ -1,0 +1,22 @@
+{
+  "wordsPerSecond": 2.5,
+  "padSeconds": 1.3,
+  "scenes": [
+    { "id": "cold-start", "label": "The cold start", "minSeconds": 16,
+      "vo": "Every prediction market dies the same way. It opens empty. No price. No counterparty. The first trader finds nothing, and walks away. A fifteen-minute market does that ninety-six times a day. Nobody has solved the cold start." },
+    { "id": "infrastructure", "label": "Liquidity as infrastructure", "minSeconds": 16,
+      "vo": "Converge ends it. We turn liquidity into infrastructure. Deposit once into a single vault. That vault makes the market in every round, on every asset, from the very first second. Liquidity providers earn from spreads, never from token emissions." },
+    { "id": "speed", "label": "The speed fix", "minSeconds": 24,
+      "vo": "But a vault that quotes on-chain gets hunted by faster traders. We measured it. Our first design lost eighty-eight dollars a day to a bot with a one-second lead. So we redesigned the market itself. Orders fill two seconds later, at the oracle's price for that second. Backtested on ninety-one days of real prices, that turns the loss into about fifty dollars a day, under pessimistic assumptions. It breaks if a rival leads by three seconds. We say that out loud." },
+    { "id": "demo", "label": "First trade, live", "minSeconds": 24,
+      "vo": "Now watch a brand-new user. Face ID. No seed phrase, no extension: Mera turns a passkey into the wallet. Add test money, tap Up, confirm once. The keeper fills it. Eighteen point seven seconds from landing page to a live bet, on Monad testnet. Ethereum, Bitcoin, MON: one vault quotes them all." },
+    { "id": "monad", "label": "Why Monad", "minSeconds": 13,
+      "vo": "This only works on Monad. A block every three hundred milliseconds. Serving a trade costs about a sixth of a cent. On Ethereum, about ten cents. Fifty-seven times cheaper, at today's gas prices." },
+    { "id": "stack", "label": "The stack", "minSeconds": 15,
+      "vo": "The whole stack is real. Chainlink CRE is the orchestration layer, and we've broadcast its reports on-chain. Each round's Up token becomes its own order book on Kuru. Envio indexes the history. Mera is the entire account layer." },
+    { "id": "platform", "label": "Platform and safety", "minSeconds": 14,
+      "vo": "And it's a platform. Any Monad app can launch a market with instant depth: one call, under hard caps. Loss limits are enforced on-chain: one percent per market, eight percent in total. And users can always exit." },
+    { "id": "ask", "label": "Honest status and the ask", "minSeconds": 26,
+      "vo": "The trades you just watched ran live on testnet, with test money. No outside users yet. We're telling you first. Ten phases built, with four hundred and twelve contract tests. Four things unlock mainnet: Chainlink Data Streams access, CRE deploy access, Kuru market-creation rights, and an external audit. Converge. A market maker for every short round." }
+  ]
+}

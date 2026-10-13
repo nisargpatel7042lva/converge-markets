@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Converge pitch video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0f1218; --surface: #161a23; --raised: #202533; --line: #2a3040;
+    --text: #eef0f6; --muted: #a4abbc; --faint: #7f879b;
+    --up: #5fd7ae; --up-soft: #13291f; --down: #f48b98; --down-soft: #2a171d;
+    --brand: #b6aaf6; --brand-deep: #7566dc; --brand-soft: #262443; --warn: #f3c874; --warn-soft: #2e2510;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; background: var(--ink); overflow: hidden; }
+  body { font-family: "Plus Jakarta Sans", system-ui, sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(140px); opacity: .5; }
+  #b1 { width: 900px; height: 900px; background: #3b3278; }
+  #b2 { width: 760px; height: 760px; background: #14503f; opacity: .38; }
+  #b3 { width: 620px; height: 620px; background: #5a2631; opacity: .28; }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .brandbar { position: absolute; left: 70px; top: 46px; display: flex; align-items: center; gap: 14px; z-index: 5; }
+  .brandbar img { height: 46px; }
+  .testchip { position: absolute; right: 70px; top: 52px; z-index: 5; font-size: 22px; font-weight: 700; color: var(--warn); background: var(--warn-soft); border: 1.5px solid #5b4a1d; padding: 8px 20px; border-radius: 999px; letter-spacing: .01em; }
+  .kicker { font-size: 26px; font-weight: 800; letter-spacing: .18em; color: var(--brand); text-transform: uppercase; }
+  .h1 { font-size: 92px; line-height: 1.04; font-weight: 800; letter-spacing: -.02em; }
+  .h2 { font-size: 66px; line-height: 1.08; font-weight: 800; letter-spacing: -.02em; }
+  .sub { font-size: 36px; line-height: 1.35; color: var(--muted); font-weight: 600; }
+  .card { background: var(--surface); border: 1.5px solid var(--line); border-radius: 30px; }
+  .chip { display: inline-block; font-size: 26px; font-weight: 700; padding: 10px 24px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); border: 1.5px solid #3a3670; }
+  .chip.up { background: var(--up-soft); color: var(--up); border-color: #1f5a43; }
+  .chip.down { background: var(--down-soft); color: var(--down); border-color: #6a2d3a; }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); border-color: #5b4a1d; }
+  .foot { position: absolute; left: 140px; right: 140px; top: 122px; font-size: 22px; color: var(--faint); font-weight: 600; }
+  .abs { position: absolute; }
+  .mono { font-family: "DejaVu Sans Mono", ui-monospace, Menlo, monospace; }
+  #caption { position: absolute; left: 50%; bottom: 62px; transform: translateX(-50%); max-width: 1560px; text-align: center; z-index: 10; opacity: 0;
+    font-size: 48px; line-height: 1.22; font-weight: 700; letter-spacing: -.005em; padding: 16px 34px 18px; border-radius: 22px;
+    background: rgba(10, 12, 18, .78); border: 1.5px solid rgba(255,255,255,.08); box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+  #progress { position: absolute; left: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a); z-index: 11; width: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob" id="b1"></div><div class="blob" id="b2"></div><div class="blob" id="b3"></div>
+  <div class="brandbar"><img src="assets/logo-dark.svg" alt="" /></div>
+  <div class="testchip">Monad testnet · test money</div>
+
+  <!-- 1 · the cold start -->
+  <section class="scene" id="s-cold-start">
+    <div class="abs" style="left:140px; top:230px; width:900px">
+      <div class="kicker" id="c1k">The cold start</div>
+      <div class="h1" style="margin-top:26px" id="c1h">Every market<br />starts empty.</div>
+      <div style="margin-top:46px; display:flex; flex-direction:column; gap:14px">
+        <div class="h2" style="color:var(--down); font-size:58px" id="c1a">No price.</div>
+        <div class="h2" style="color:var(--down); font-size:58px" id="c1b">No counterparty.</div>
+        <div class="h2" style="color:var(--brand); font-size:58px" id="c1c">96 times a day.</div>
+      </div>
+    </div>
+    <div class="card abs" id="c1card" style="left:1060px; top:200px; width:720px; padding:34px 36px">
+      <div style="display:flex; align-items:center; justify-content:space-between">
+        <div style="display:flex; align-items:center; gap:16px"><img src="assets/eth.svg" style="width:56px;height:56px;border-radius:50%" /><div style="font-size:32px;font-weight:800">ETH · 15 min</div></div>
+        <div id="c1time" style="font-size:44px;font-weight:800;color:var(--muted)" class="mono">15:00</div>
+      </div>
+      <div style="font-size:40px;font-weight:800;margin-top:28px;line-height:1.2">Will ETH finish above $—?</div>
+      <div style="display:flex;align-items:baseline;gap:16px;margin-top:20px"><div style="font-size:120px;font-weight:800;color:var(--faint);line-height:1">—%</div><div class="sub" style="font-size:30px">chance of Up</div></div>
+      <div style="margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:18px">
+        <div style="border:2px dashed #3a4256;border-radius:18px;padding:22px;text-align:center;font-size:30px;font-weight:700;color:var(--faint)">Bids: none</div>
+        <div style="border:2px dashed #3a4256;border-radius:18px;padding:22px;text-align:center;font-size:30px;font-weight:700;color:var(--faint)">Asks: none</div>
+      </div>
+      <div style="margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div style="background:#1b2029;border-radius:18px;padding:24px;text-align:center;font-size:34px;font-weight:800;color:#555d70">Up · —</div>
+        <div style="background:#1b2029;border-radius:18px;padding:24px;text-align:center;font-size:34px;font-weight:800;color:#555d70">Down · —</div>
+      </div>
+    </div>
+    <div class="abs" id="c1count" style="left:1060px; top:800px; width:720px; text-align:center">
+      <span class="sub" style="font-size:30px">Empty starts per market, per day: </span><span id="c1n" style="font-size:54px;font-weight:800;color:var(--down)">0</span>
+    </div>
+  </section>
+
+  <!-- 2 · liquidity as infrastructure -->
+  <section class="scene" id="s-infrastructure">
+    <div class="abs" style="left:0; right:0; top:170px; text-align:center">
+      <div class="kicker" id="c2k">The Converge vault</div>
+      <div class="h1" style="margin-top:20px; font-size:100px" id="c2h">Liquidity, as <span style="background:linear-gradient(90deg,#5fe0b4,#b6aaf6,#f58a9a);-webkit-background-clip:text;color:transparent">infrastructure.</span></div>
+    </div>
+    <svg class="abs" id="c2svg" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080">
+      <g id="c2lines" fill="none" stroke-width="3" stroke="#3a3670" stroke-dasharray="6 10"></g>
+      <g id="c2dots"></g>
+    </svg>
+    <div class="abs" id="c2lp" style="left:150px; top:470px; width:360px">
+      <div class="sub" style="font-size:30px;margin-bottom:22px;font-weight:700;color:var(--text)">Liquidity providers</div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="card" style="padding:20px 26px;font-size:30px;font-weight:700">Deposit USDC once</div>
+        <div class="card" style="padding:20px 26px;font-size:30px;font-weight:700;color:var(--muted)">Withdraw any epoch</div>
+      </div>
+    </div>
+    <div class="card abs" id="c2vault" style="left:680px; top:440px; width:560px; height:330px; background:linear-gradient(160deg,#262443,#161a23); border-color:#4a4590; padding:36px; text-align:center; box-shadow:0 0 90px rgba(117,102,220,.4)">
+      <div class="kicker" style="font-size:22px">One vault</div>
+      <div style="font-size:60px;font-weight:800;margin-top:14px;letter-spacing:-.02em">Converge Vault</div>
+      <div class="sub" style="font-size:30px;margin-top:14px">quotes both sides of every round</div>
+      <div style="margin-top:22px"><span class="chip">re-priced every trade</span></div>
+    </div>
+    <div class="abs" id="c2out" style="left:1400px; top:400px; width:380px; display:flex; flex-direction:column; gap:22px">
+      <div class="card" style="padding:20px 26px;display:flex;align-items:center;gap:18px"><img src="assets/eth.svg" style="width:62px;height:62px;border-radius:50%" /><div><div style="font-size:34px;font-weight:800">ETH · 15 min</div><div class="chip up" style="font-size:20px;padding:4px 14px;margin-top:6px">quoted</div></div></div>
+      <div class="card" style="padding:20px 26px;display:flex;align-items:center;gap:18px"><img src="assets/btc.svg" style="width:62px;height:62px;border-radius:50%" /><div><div style="font-size:34px;font-weight:800">BTC · 15 min</div><div class="chip up" style="font-size:20px;padding:4px 14px;margin-top:6px">quoted</div></div></div>
+      <div class="card" style="padding:20px 26px;display:flex;align-items:center;gap:18px"><img src="assets/mon.svg" style="width:62px;height:62px;border-radius:50%" /><div><div style="font-size:34px;font-weight:800">MON · 15 min</div><div class="chip up" style="font-size:20px;padding:4px 14px;margin-top:6px">quoted</div></div></div>
+    </div>
+    <div class="abs" style="left:0;right:0;top:800px;text-align:center;display:flex;justify-content:center;gap:22px">
+      <span class="chip" id="c2p1">Deposit once</span><span class="chip up" id="c2p2">Every round, every asset</span><span class="chip warn" id="c2p3">Paid from spreads, never emissions</span>
+    </div>
+  </section>
+
+  <!-- 3 · the speed fix -->
+  <section class="scene" id="s-speed">
+    <div class="abs" style="left:140px; top:190px; width:880px">
+      <div class="kicker">Every on-chain market maker's problem</div>
+      <div class="h2" style="margin-top:22px" id="c3h">Faster traders hunt a slow quote.</div>
+      <div class="sub" style="margin-top:20px; font-size:34px" id="c3s">So we changed when the trade happens.</div>
+      <div id="c3flow" style="margin-top:52px; position:relative; height:250px">
+        <div style="position:absolute;left:0;right:0;top:78px;height:6px;background:var(--line);border-radius:3px"></div>
+        <div id="c3dot" style="position:absolute;top:62px;left:0;width:38px;height:38px;border-radius:50%;background:var(--brand);box-shadow:0 0 30px var(--brand)"></div>
+        <div style="position:absolute;left:0;top:112px;width:260px"><div style="font-size:30px;font-weight:800">Order placed</div><div class="sub" style="font-size:24px">price not yet known</div></div>
+        <div style="position:absolute;left:310px;top:0;width:240px;text-align:center"><span class="chip" style="font-size:32px;white-space:nowrap">+ 2 seconds</span></div>
+        <div style="position:absolute;left:560px;top:112px;width:330px"><div style="font-size:30px;font-weight:800;color:var(--up)">Filled</div><div class="sub" style="font-size:24px">at the oracle's price for that second</div></div>
+      </div>
+    </div>
+    <div class="card abs" style="left:1060px; top:190px; width:720px; height:610px; padding:34px 40px" id="c3chart">
+      <div style="font-size:28px;font-weight:700;color:var(--muted)">Backtest: result per day, $5,000 vault</div>
+      <div class="abs" style="left:40px;right:40px;top:316px;height:3px;background:#3a4256"></div>
+      <div class="abs" id="c3bad" style="left:110px;top:319px;width:210px;border-radius:0 0 14px 14px;background:linear-gradient(180deg,#f48b98,#a8434f);height:0"></div>
+      <div class="abs" id="c3good" style="left:410px;width:210px;border-radius:14px 14px 0 0;background:linear-gradient(0deg,#3fae88,#5fd7ae);height:0;bottom:0"></div>
+      <div class="abs mono" id="c3badn" style="left:90px;width:250px;text-align:center;top:484px;font-size:46px;font-weight:800;color:var(--down)">−$88</div>
+      <div class="abs" id="c3badl" style="left:70px;width:290px;text-align:center;top:548px;font-size:24px;font-weight:700;color:var(--muted)">First design</div>
+      <div class="abs mono" id="c3goodn" style="left:390px;width:250px;text-align:center;top:90px;font-size:46px;font-weight:800;color:var(--up)">+$49.6</div>
+      <div class="abs" id="c3goodl" style="left:370px;width:290px;text-align:center;top:548px;font-size:24px;font-weight:700;color:var(--muted)">Forward-priced</div>
+    </div>
+    <div class="abs" id="c3warn" style="left:1060px; top:830px; width:720px"><span class="chip warn" style="font-size:26px">Breaks if a rival leads by 3 s: −$145.3/day</span></div>
+    <div class="foot">Backtest: 91 days of 1-second prices, search on the first 60, last 30 never seen. Pessimistic flow. Excludes keeper gas and fees.</div>
+  </section>
+
+  <!-- 4 · the demo -->
+  <section class="scene" id="s-demo">
+    <div class="abs" id="c4phone" style="left:260px; top:60px; width:466px; height:974px; border-radius:46px; background:#000; border:6px solid #2d3445; box-shadow:0 0 80px rgba(117,102,220,.35); overflow:hidden">
+      <video id="c4v" src="assets/trade-eth.webm" muted playsinline preload="auto" style="width:454px;height:962px;object-fit:cover;display:block"></video>
+    </div>
+    <div class="abs" style="left:900px; top:150px; width:880px">
+      <div class="kicker">First trade · live on Monad testnet</div>
+      <div style="display:flex;align-items:baseline;gap:20px;margin-top:20px"><div id="c4t" class="mono" style="font-size:124px;font-weight:800;letter-spacing:-.04em;color:var(--up);line-height:1">0.0</div><div class="h2" style="color:var(--muted)">seconds</div></div>
+      <div class="sub" style="font-size:30px;margin-top:6px">from landing page to a filled bet</div>
+      <div id="c4steps" style="margin-top:30px;display:flex;flex-direction:column;gap:12px">
+        <div class="card c4s" style="padding:12px 28px;font-size:31px;font-weight:700">1 · Face ID creates the account <span style="color:var(--faint);font-size:26px">no seed phrase</span></div>
+        <div class="card c4s" style="padding:12px 28px;font-size:31px;font-weight:700">2 · Add test money <span style="color:var(--faint);font-size:26px">in-app faucet</span></div>
+        <div class="card c4s" style="padding:12px 28px;font-size:31px;font-weight:700">3 · Tap Up, confirm once</div>
+        <div class="card c4s" style="padding:12px 28px;font-size:31px;font-weight:700">4 · The keeper fills it <span style="color:var(--faint);font-size:26px">2 s later, oracle price</span></div>
+      </div>
+      <div id="c4chips" style="margin-top:26px;display:flex;gap:18px">
+        <div class="card" style="padding:12px 22px;display:flex;align-items:center;gap:12px;font-size:28px;font-weight:800"><img src="assets/eth.svg" style="width:40px;height:40px;border-radius:50%" />ETH <span class="mono" style="color:var(--up)">18.7 s ✓</span></div>
+        <div class="card" style="padding:12px 22px;display:flex;align-items:center;gap:12px;font-size:28px;font-weight:800"><img src="assets/btc.svg" style="width:40px;height:40px;border-radius:50%" />BTC <span class="mono" style="color:var(--up)">18.6 s ✓</span></div>
+        <div class="card" style="padding:12px 22px;display:flex;align-items:center;gap:12px;font-size:28px;font-weight:800"><img src="assets/mon.svg" style="width:40px;height:40px;border-radius:50%" />MON <span class="mono" style="color:var(--up)">22.7 s ✓</span></div>
+      </div>
+    </div>
+    <div class="foot" style="left:900px; top:800px; right:140px">Automated run, fresh passkey account, live keeper. Footage: ETH. BTC and MON were separate runs.</div>
+  </section>
+
+  <!-- 5 · why Monad -->
+  <section class="scene" id="s-monad">
+    <div class="abs" style="left:140px; top:230px; width:760px">
+      <div class="kicker">Why Monad</div>
+      <div class="mono" id="c5n" style="white-space:nowrap;font-size:190px;font-weight:800;letter-spacing:-.05em;color:var(--up);line-height:1;margin-top:20px">0.302 s</div>
+      <div class="sub" style="margin-top:14px">per block, measured over 200,000 blocks</div>
+      <div class="sub" style="margin-top:34px;font-size:32px;color:var(--text)">A vault can re-quote every few blocks, for a fraction of a cent.</div>
+    </div>
+    <div class="card abs" style="left:1000px; top:190px; width:780px; height:640px; padding:36px 44px">
+      <div style="font-size:28px;font-weight:700;color:var(--muted)">What it costs to serve one trade</div>
+      <div class="abs" style="left:44px; top:150px; font-size:30px; font-weight:800">Monad</div>
+      <div class="abs" id="c5m" style="left:44px; top:200px; height:70px; width:6px; border-radius:12px; background:linear-gradient(90deg,#3fae88,#5fd7ae)"></div>
+      <div class="abs mono" id="c5mn" style="left:64px; top:204px; font-size:44px; font-weight:800; color:var(--up)">$0.0017</div>
+      <div class="abs" style="left:44px; top:340px; font-size:30px; font-weight:800">Ethereum mainnet</div>
+      <div class="abs" id="c5e" style="left:44px; top:390px; height:70px; width:0; border-radius:12px; background:linear-gradient(90deg,#a8434f,#f48b98)"></div>
+      <div class="abs mono" id="c5en" style="left:64px; top:394px; font-size:44px; font-weight:800; color:#2a0d13">$0.0965</div>
+      <div class="abs" id="c5x" style="right:44px; bottom:36px; font-size:96px; font-weight:800; letter-spacing:-.03em; color:var(--brand)">57× cheaper</div>
+    </div>
+    <div class="foot" style="top:122px">Monad: measured gas at 102 gwei, MON $0.025. Ethereum: the same gas at today's 0.0669 gwei, ETH $2,493 (an estimate; at 10 gwei the gap is far wider).</div>
+  </section>
+
+  <!-- 6 · the stack -->
+  <section class="scene" id="s-stack">
+    <div class="abs" style="left:0; right:0; top:170px; text-align:center">
+      <div class="kicker">The whole stack is real</div>
+      <div class="h1" style="margin-top:18px; font-size:84px">Four integrations. One product.</div>
+    </div>
+    <div class="abs" style="left:110px; right:110px; top:410px; display:grid; grid-template-columns:repeat(4,1fr); gap:28px">
+      <div class="card c6" style="padding:34px; height:470px"><div style="font-size:50px;font-weight:800;color:var(--brand)">Mera</div><div style="font-size:34px;font-weight:700;margin-top:14px;line-height:1.25">The entire account layer</div><div class="sub" style="font-size:26px;margin-top:16px">A passkey is the wallet. No seed phrase, no extension.</div><div style="margin-top:26px"><span class="chip up" style="font-size:22px">live bets filled</span></div></div>
+      <div class="card c6" style="padding:34px; height:470px"><div style="font-size:50px;font-weight:800;color:var(--brand)">Chainlink CRE</div><div style="font-size:34px;font-weight:700;margin-top:14px;line-height:1.25">The orchestration layer</div><div class="sub" style="font-size:26px;margin-top:16px">Creates and settles rounds via the forwarder.</div><div style="margin-top:26px"><span class="chip up" style="font-size:22px">broadcast on testnet</span></div></div>
+      <div class="card c6" style="padding:34px; height:470px"><div style="font-size:50px;font-weight:800;color:var(--brand)">Kuru</div><div style="font-size:34px;font-weight:700;margin-top:14px;line-height:1.25">Each Up token, its own order book</div><div class="sub" style="font-size:26px;margin-top:16px">Two-sided quotes around the vault's fair value.</div><div style="margin-top:26px"><span class="chip up" style="font-size:22px">live quotes and fills</span></div></div>
+      <div class="card c6" style="padding:34px; height:470px"><div style="font-size:50px;font-weight:800;color:var(--brand)">Envio</div><div style="font-size:34px;font-weight:700;margin-top:14px;line-height:1.25">Indexes the history</div><div class="sub" style="font-size:26px;margin-top:16px">History, volume and stats from HyperIndex.</div><div style="margin-top:26px"><span class="chip warn" style="font-size:22px">hosting still to come</span></div></div>
+    </div>
+  </section>
+
+  <!-- 7 · platform + safety -->
+  <section class="scene" id="s-platform">
+    <div class="abs" style="left:140px; top:200px; width:1000px">
+      <div class="kicker">A platform, with hard limits</div>
+      <div class="h2" style="margin-top:20px">Any Monad app can launch<br />a market with depth.</div>
+      <div class="card abs" style="left:0; top:250px; width:960px; padding:36px 42px; background:#0b0d12">
+        <div class="mono" id="c7code" style="font-size:34px; line-height:1.55; color:#d7dbea; white-space:pre">&nbsp;</div>
+      </div>
+      <div class="sub abs" id="c7res" style="left:0; top:575px; font-size:32px; color:var(--up); white-space:nowrap">→ a market with two-sided depth, under hard caps</div>
+    </div>
+    <div class="abs" style="left:1230px; top:230px; width:550px; display:flex; flex-direction:column; gap:26px">
+      <div class="card c7" style="padding:28px 32px"><div class="mono" style="font-size:70px;font-weight:800;color:var(--up);line-height:1">1%</div><div style="font-size:30px;font-weight:700;margin-top:6px">max loss per market</div></div>
+      <div class="card c7" style="padding:28px 32px"><div class="mono" style="font-size:70px;font-weight:800;color:var(--up);line-height:1">8%</div><div style="font-size:30px;font-weight:700;margin-top:6px">max loss in total, enforced on-chain</div></div>
+      <div class="card c7" style="padding:28px 32px"><div style="font-size:48px;font-weight:800;color:var(--brand);line-height:1.1">Users can always exit</div><div class="sub" style="font-size:26px;margin-top:8px">a pause never blocks a redeem or a withdrawal</div></div>
+    </div>
+    <div class="foot">Partner registry deployed on Monad testnet; the end-to-end partner demo ran on a local chain.</div>
+  </section>
+
+  <!-- 8 · honest status + ask -->
+  <section class="scene" id="s-ask">
+    <div class="abs" id="c8a" style="left:0;right:0;top:230px;text-align:center">
+      <div class="kicker">Where we are, plainly</div>
+      <div class="h1" style="margin-top:26px;font-size:96px">Testnet. Test money.<br /><span style="color:var(--warn)">No outside users yet.</span></div>
+      <div class="sub" style="margin-top:34px;font-size:40px;color:var(--text)">We say it first.</div>
+      <div class="sub" style="margin-top:40px;font-size:30px">Built: contracts · keeper · scheduler · indexer · partner API · 412 contract tests</div>
+    </div>
+    <div class="abs" id="c8b" style="left:0;right:0;top:210px;text-align:center">
+      <div class="kicker">What unlocks mainnet</div>
+      <div style="display:flex;flex-direction:column;gap:22px;align-items:center;margin-top:34px">
+        <div class="card c8" style="width:1100px;padding:24px 36px;font-size:44px;font-weight:800;text-align:left"><span style="color:var(--brand)">1</span>&nbsp;&nbsp;Chainlink Data Streams access</div>
+        <div class="card c8" style="width:1100px;padding:24px 36px;font-size:44px;font-weight:800;text-align:left"><span style="color:var(--brand)">2</span>&nbsp;&nbsp;CRE deploy access</div>
+        <div class="card c8" style="width:1100px;padding:24px 36px;font-size:44px;font-weight:800;text-align:left"><span style="color:var(--brand)">3</span>&nbsp;&nbsp;Kuru market-creation rights</div>
+        <div class="card c8" style="width:1100px;padding:24px 36px;font-size:44px;font-weight:800;text-align:left"><span style="color:var(--brand)">4</span>&nbsp;&nbsp;An external audit</div>
+      </div>
+    </div>
+    <div class="abs" id="c8c" style="left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%, rgba(117,102,220,.35), rgba(15,18,24,.96) 62%)">
+      <img src="assets/logo-dark.svg" style="width:760px" />
+      <div class="h2" style="margin-top:34px;font-size:64px;text-align:center">A market maker for<br />every short round.</div>
+    </div>
+  </section>
+
+  <div id="caption"></div>
+  <div id="progress"></div>
+</div>
+
+<script>
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const $ = (id) => document.getElementById(id);
+const reveal = (el, p, rise = 26) => { el.style.opacity = eo(p); el.style.transform = `translateY(${(1 - eo(p)) * rise}px)`; };
+let TL = null;
+
+async function init() {
+  TL = await (await fetch("timeline.json")).json();
+  await document.fonts.ready;
+  // static svg lines for scene 2
+  const L = $("c2lines");
+  const paths = [[510, 540, 680, 560], [510, 640, 680, 650], [1240, 560, 1400, 470], [1240, 600, 1400, 600], [1240, 640, 1400, 730]];
+  L.innerHTML = paths.map(([x1, y1, x2, y2]) => `<path d="M${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}" />`).join("");
+  window.__paths = paths;
+  window.__ready = true;
+}
+
+function sceneAlpha(sc, t) { return Math.min(seg(t, sc.start - .35, sc.start + .35), 1 - seg(t, sc.start + sc.duration - .35, sc.start + sc.duration + .35)); }
+
+function pulses(t, p0, count, col) {
+  return window.__paths.slice(p0, p0 + count).map(([x1, y1, x2, y2], i) => {
+    const f = ((t * .5 + i * .33) % 1);
+    const u = f, mx = (x1 + x2) / 2;
+    const x = (1 - u) ** 3 * x1 + 3 * (1 - u) ** 2 * u * mx + 3 * (1 - u) * u * u * mx + u ** 3 * x2;
+    const y = (1 - u) ** 3 * y1 + 3 * (1 - u) ** 2 * u * y1 + 3 * (1 - u) * u * u * y2 + u ** 3 * y2;
+    return `<circle cx="${x}" cy="${y}" r="9" fill="${col}" opacity="${Math.sin(u * Math.PI)}"/>`;
+  }).join("");
+}
+
+async function render(t) {
+  if (!TL) await init();
+  // background drift
+  $("b1").style.transform = `translate(${300 + Math.sin(t / 9) * 120}px, ${-180 + Math.cos(t / 11) * 80}px)`;
+  $("b2").style.transform = `translate(${1250 + Math.cos(t / 8) * 110}px, ${420 + Math.sin(t / 10) * 90}px)`;
+  $("b3").style.transform = `translate(${-120 + Math.sin(t / 12) * 90}px, ${620 + Math.cos(t / 9) * 70}px)`;
+  const byId = Object.fromEntries(TL.scenes.map((s) => [s.id, s]));
+  for (const sc of TL.scenes) $("s-" + sc.id).style.opacity = sceneAlpha(sc, t);
+
+  // 1 · cold start
+  { const sc = byId["cold-start"], s = t - sc.start, D = sc.duration;
+    reveal($("c1k"), seg(s, .2, .8)); reveal($("c1h"), seg(s, .4, 1.4), 34);
+    reveal($("c1a"), seg(s, D * .30, D * .30 + .5)); reveal($("c1b"), seg(s, D * .39, D * .39 + .5)); reveal($("c1c"), seg(s, D * .72, D * .72 + .5));
+    reveal($("c1card"), seg(s, .6, 1.5), 40);
+    const cyc = 5.4, ph = (s % cyc) / cyc; const rem = Math.max(0, Math.round(900 * (1 - ph)));
+    $("c1time").textContent = `${Math.floor(rem / 60)}:${String(rem % 60).padStart(2, "0")}`;
+    $("c1count").style.opacity = eo(seg(s, D * .66, D * .66 + .6));
+    $("c1n").textContent = String(Math.max(1, Math.round(96 * eio(seg(s, D * .66, D * .90)))));
+  }
+  // 2 · infrastructure
+  { const sc = byId["infrastructure"], s = t - sc.start, D = sc.duration;
+    reveal($("c2k"), seg(s, .2, .7)); reveal($("c2h"), seg(s, .4, 1.3), 30);
+    reveal($("c2lp"), seg(s, D * .30, D * .30 + .7), 30); reveal($("c2vault"), seg(s, D * .42, D * .42 + .8), 30); reveal($("c2out"), seg(s, D * .56, D * .56 + .8), 30);
+    $("c2lines").style.opacity = eo(seg(s, D * .42, D * .42 + .8));
+    $("c2dots").innerHTML = s > D * .42 ? pulses(s, 0, 2, "#b6aaf6") + pulses(s, 2, 3, "#5fd7ae") : "";
+    reveal($("c2p1"), seg(s, D * .30, D * .30 + .5), 14); reveal($("c2p2"), seg(s, D * .60, D * .60 + .5), 14); reveal($("c2p3"), seg(s, D * .80, D * .80 + .5), 14);
+  }
+  // 3 · speed
+  { const sc = byId["speed"], s = t - sc.start, D = sc.duration;
+    reveal($("c3h"), seg(s, .3, 1.0)); reveal($("c3s"), seg(s, D * .30, D * .30 + .6));
+    $("c3flow").style.opacity = eo(seg(s, D * .42, D * .42 + .7));
+    const f = seg(s, D * .46, D * .60); $("c3dot").style.left = `${eio(f) * 850}px`;
+    reveal($("c3chart"), seg(s, D * .20, D * .20 + .8), 30);
+    const bad = eio(seg(s, D * .30, D * .30 + 1.2)), good = eio(seg(s, D * .70, D * .70 + 1.4));
+    $("c3bad").style.height = `${bad * 150}px`; $("c3badn").style.opacity = bad; $("c3badl").style.opacity = eo(seg(s, D * .20 + .6, D * .20 + 1.2));
+    // bars share one scale: 150 px = $88, so $49.6 = 85 px
+    $("c3good").style.top = `${316 - good * 85}px`; $("c3good").style.bottom = "auto"; $("c3good").style.height = `${good * 85}px`;
+    $("c3goodn").style.opacity = good; $("c3goodn").style.top = `${316 - good * 85 - 70}px`; $("c3goodl").style.opacity = eo(seg(s, D * .20 + .6, D * .20 + 1.2));
+    reveal($("c3warn"), seg(s, D * .90, D * .90 + .6), 14);
+  }
+  // 4 · demo (real footage, seeked per frame)
+  { const sc = byId["demo"], s = t - sc.start, D = sc.duration;
+    const v = $("c4v"); const vt = clamp(s - 0.9, 0, 21.8);
+    if (Math.abs(v.currentTime - vt) > 0.01) { await new Promise((res) => { const done = () => { v.removeEventListener("seeked", done); res(); }; v.addEventListener("seeked", done); v.currentTime = vt; setTimeout(res, 800); }); }
+    reveal($("c4phone"), seg(s, .1, .8), 40);
+    const secs = clamp(s - 0.9, 0, 18.7); $("c4t").textContent = secs.toFixed(1);
+    $("c4t").style.color = secs >= 18.7 ? "#5fd7ae" : "#eef0f6";
+    const steps = [0.9, 2.2, 5.2, 10.4]; const cur = steps.reduce((a, x, i) => (s >= x ? i : a), -1);
+    document.querySelectorAll(".c4s").forEach((el, i) => { reveal(el, seg(s, .6 + i * .25, 1.2 + i * .25), 20); el.style.borderColor = i === cur ? "#b6aaf6" : (i < cur ? "#1f5a43" : "#2a3040"); el.style.background = i === cur ? "#262443" : "#161a23"; });
+    reveal($("c4chips"), seg(s, 20.0, 20.8), 20);
+  }
+  // 5 · monad
+  { const sc = byId["monad"], s = t - sc.start, D = sc.duration;
+    reveal($("c5n"), seg(s, .2, 1.0), 30);
+    const m = eio(seg(s, D * .35, D * .35 + 1)), e = eio(seg(s, D * .50, D * .50 + 1.6));
+    $("c5m").style.width = `${6 + m * 8}px`; $("c5mn").style.opacity = m; $("c5mn").style.left = `${64 + m * 16}px`;
+    $("c5e").style.width = `${e * 640}px`; $("c5en").style.opacity = e; $("c5en").style.left = `${64 + e * 0}px`;
+    reveal($("c5x"), seg(s, D * .74, D * .74 + .6), 20);
+  }
+  // 6 · stack
+  { const sc = byId["stack"], s = t - sc.start, D = sc.duration;
+    document.querySelectorAll(".c6").forEach((el, i) => reveal(el, seg(s, 1.0 + i * (D * .17), 1.7 + i * (D * .17)), 40));
+  }
+  // 7 · platform
+  { const sc = byId["platform"], s = t - sc.start, D = sc.duration;
+    const code = "// one call from any Monad app\nPartnerRegistry.createThresholdMarket(\n  feed, strike, end\n)";
+    const n = Math.floor(code.length * clamp(seg(s, D * .12, D * .45)));
+    $("c7code").textContent = code.slice(0, n) + (n < code.length && Math.floor(t * 3) % 2 ? "▍" : "");
+    reveal($("c7res"), seg(s, D * .46, D * .46 + .6), 14);
+    document.querySelectorAll(".c7").forEach((el, i) => reveal(el, seg(s, D * (.50 + i * .13), D * (.50 + i * .13) + .6), 30));
+  }
+  // 8 · ask
+  { const sc = byId["ask"], s = t - sc.start, D = sc.duration;
+    const a = Math.min(seg(s, .2, .9), 1 - seg(s, D * .44, D * .44 + .5)); $("c8a").style.opacity = a;
+    const b = Math.min(seg(s, D * .46, D * .46 + .5), 1 - seg(s, D * .84, D * .84 + .4)); $("c8b").style.opacity = b;
+    document.querySelectorAll(".c8").forEach((el, i) => reveal(el, seg(s, D * (.50 + i * .075), D * (.50 + i * .075) + .5), 24));
+    $("c8c").style.opacity = eo(seg(s, D * .84, D * .84 + .8));
+  }
+  // caption
+  const cue = TL.cues.find((c) => t >= c.start && t < c.end);
+  const cap = $("caption");
+  const inDemo = t >= byId["demo"].start - .2 && t < byId["demo"].start + byId["demo"].duration + .2;
+  cap.style.left = inDemo ? "1340px" : "50%"; cap.style.maxWidth = inDemo ? "880px" : "1560px"; cap.style.fontSize = inDemo ? "40px" : "48px";
+  if (cue) { if (cap.dataset.t !== cue.text) { cap.textContent = cue.text; cap.dataset.t = cue.text; } cap.style.opacity = Math.min(seg(t, cue.start, cue.start + .12), 1 - seg(t, cue.end - .1, cue.end)); }
+  else cap.style.opacity = 0;
+  $("progress").style.width = `${(t / TL.total) * 100}%`;
+  return true;
+}
+window.render = render; init();
+</script>
+</body>
+</html>

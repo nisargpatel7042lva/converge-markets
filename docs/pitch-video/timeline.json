@@ -1,0 +1,433 @@
+{
+ "total": 163.79999999999998,
+ "scenes": [
+  {
+   "id": "cold-start",
+   "label": "The cold start",
+   "minSeconds": 16,
+   "vo": "Every prediction market dies the same way. It opens empty. No price. No counterparty. The first trader finds nothing, and walks away. A fifteen-minute market does that ninety-six times a day. Nobody has solved the cold start.",
+   "words": 37,
+   "start": 0,
+   "duration": 16.1
+  },
+  {
+   "id": "infrastructure",
+   "label": "Liquidity as infrastructure",
+   "minSeconds": 16,
+   "vo": "Converge ends it. We turn liquidity into infrastructure. Deposit once into a single vault. That vault makes the market in every round, on every asset, from the very first second. Liquidity providers earn from spreads, never from token emissions.",
+   "words": 39,
+   "start": 16.1,
+   "duration": 16.9
+  },
+  {
+   "id": "speed",
+   "label": "The speed fix",
+   "minSeconds": 24,
+   "vo": "But a vault that quotes on-chain gets hunted by faster traders. We measured it. Our first design lost eighty-eight dollars a day to a bot with a one-second lead. So we redesigned the market itself. Orders fill two seconds later, at the oracle's price for that second. Backtested on ninety-one days of real prices, that turns the loss into about fifty dollars a day, under pessimistic assumptions. It breaks if a rival leads by three seconds. We say that out loud.",
+   "words": 81,
+   "start": 33,
+   "duration": 33.699999999999996
+  },
+  {
+   "id": "demo",
+   "label": "First trade, live",
+   "minSeconds": 24,
+   "vo": "Now watch a brand-new user. Face ID. No seed phrase, no extension: Mera turns a passkey into the wallet. Add test money, tap Up, confirm once. The keeper fills it. Eighteen point seven seconds from landing page to a live bet, on Monad testnet. Ethereum, Bitcoin, MON: one vault quotes them all.",
+   "words": 52,
+   "start": 66.69999999999999,
+   "duration": 24
+  },
+  {
+   "id": "monad",
+   "label": "Why Monad",
+   "minSeconds": 13,
+   "vo": "This only works on Monad. A block every three hundred milliseconds. Serving a trade costs about a sixth of a cent. On Ethereum, about ten cents. Fifty-seven times cheaper, at today's gas prices.",
+   "words": 33,
+   "start": 90.69999999999999,
+   "duration": 14.5
+  },
+  {
+   "id": "stack",
+   "label": "The stack",
+   "minSeconds": 15,
+   "vo": "The whole stack is real. Chainlink CRE is the orchestration layer, and we've broadcast its reports on-chain. Each round's Up token becomes its own order book on Kuru. Envio indexes the history. Mera is the entire account layer.",
+   "words": 38,
+   "start": 105.19999999999999,
+   "duration": 16.5
+  },
+  {
+   "id": "platform",
+   "label": "Platform and safety",
+   "minSeconds": 14,
+   "vo": "And it's a platform. Any Monad app can launch a market with instant depth: one call, under hard caps. Loss limits are enforced on-chain: one percent per market, eight percent in total. And users can always exit.",
+   "words": 37,
+   "start": 121.69999999999999,
+   "duration": 16.1
+  },
+  {
+   "id": "ask",
+   "label": "Honest status and the ask",
+   "minSeconds": 26,
+   "vo": "The trades you just watched ran live on testnet, with test money. No outside users yet. We're telling you first. Ten phases built, with four hundred and twelve contract tests. Four things unlock mainnet: Chainlink Data Streams access, CRE deploy access, Kuru market-creation rights, and an external audit. Converge. A market maker for every short round.",
+   "words": 56,
+   "start": 137.79999999999998,
+   "duration": 26
+  }
+ ],
+ "cues": [
+  {
+   "start": 0.25,
+   "end": 3.0500000000000003,
+   "text": "Every prediction market dies the same way.",
+   "scene": "cold-start"
+  },
+  {
+   "start": 3.0500000000000003,
+   "end": 4.25,
+   "text": "It opens empty.",
+   "scene": "cold-start"
+  },
+  {
+   "start": 4.25,
+   "end": 5.05,
+   "text": "No price.",
+   "scene": "cold-start"
+  },
+  {
+   "start": 5.05,
+   "end": 5.85,
+   "text": "No counterparty.",
+   "scene": "cold-start"
+  },
+  {
+   "start": 5.85,
+   "end": 9.05,
+   "text": "The first trader finds nothing, and walks away.",
+   "scene": "cold-start"
+  },
+  {
+   "start": 9.05,
+   "end": 12.650000000000002,
+   "text": "A fifteen-minute market does that ninety-six times a day.",
+   "scene": "cold-start"
+  },
+  {
+   "start": 12.650000000000002,
+   "end": 15.050000000000002,
+   "text": "Nobody has solved the cold start.",
+   "scene": "cold-start"
+  },
+  {
+   "start": 16.35,
+   "end": 17.55,
+   "text": "Converge ends it.",
+   "scene": "infrastructure"
+  },
+  {
+   "start": 17.55,
+   "end": 19.55,
+   "text": "We turn liquidity into infrastructure.",
+   "scene": "infrastructure"
+  },
+  {
+   "start": 19.55,
+   "end": 21.95,
+   "text": "Deposit once into a single vault.",
+   "scene": "infrastructure"
+  },
+  {
+   "start": 21.95,
+   "end": 25.15,
+   "text": "That vault makes the market in every round,",
+   "scene": "infrastructure"
+  },
+  {
+   "start": 25.15,
+   "end": 28.349999999999998,
+   "text": "on every asset, from the very first second.",
+   "scene": "infrastructure"
+  },
+  {
+   "start": 28.349999999999998,
+   "end": 31.949999999999996,
+   "text": "Liquidity providers earn from spreads, never from token emissions.",
+   "scene": "infrastructure"
+  },
+  {
+   "start": 33.25,
+   "end": 37.65,
+   "text": "But a vault that quotes on-chain gets hunted by faster traders.",
+   "scene": "speed"
+  },
+  {
+   "start": 37.65,
+   "end": 38.85,
+   "text": "We measured it.",
+   "scene": "speed"
+  },
+  {
+   "start": 38.85,
+   "end": 42.050000000000004,
+   "text": "Our first design lost eighty-eight dollars a day",
+   "scene": "speed"
+  },
+  {
+   "start": 42.050000000000004,
+   "end": 44.85,
+   "text": "to a bot with a one-second lead.",
+   "scene": "speed"
+  },
+  {
+   "start": 44.85,
+   "end": 47.25,
+   "text": "So we redesigned the market itself.",
+   "scene": "speed"
+  },
+  {
+   "start": 47.25,
+   "end": 49.65,
+   "text": "Orders fill two seconds later, at",
+   "scene": "speed"
+  },
+  {
+   "start": 49.65,
+   "end": 52.05,
+   "text": "the oracle's price for that second.",
+   "scene": "speed"
+  },
+  {
+   "start": 52.05,
+   "end": 56.05,
+   "text": "Backtested on ninety-one days of real prices, that turns the",
+   "scene": "speed"
+  },
+  {
+   "start": 56.05,
+   "end": 60.05,
+   "text": "loss into about fifty dollars a day, under pessimistic assumptions.",
+   "scene": "speed"
+  },
+  {
+   "start": 60.05,
+   "end": 63.65,
+   "text": "It breaks if a rival leads by three seconds.",
+   "scene": "speed"
+  },
+  {
+   "start": 63.65,
+   "end": 65.64999999999999,
+   "text": "We say that out loud.",
+   "scene": "speed"
+  },
+  {
+   "start": 66.94999999999999,
+   "end": 69.1326923076923,
+   "text": "Now watch a brand-new user.",
+   "scene": "demo"
+  },
+  {
+   "start": 69.1326923076923,
+   "end": 70.00576923076922,
+   "text": "Face ID.",
+   "scene": "demo"
+  },
+  {
+   "start": 70.00576923076922,
+   "end": 72.62499999999999,
+   "text": "No seed phrase, no extension: Mera",
+   "scene": "demo"
+  },
+  {
+   "start": 72.62499999999999,
+   "end": 75.24423076923075,
+   "text": "turns a passkey into the wallet.",
+   "scene": "demo"
+  },
+  {
+   "start": 75.24423076923075,
+   "end": 78.29999999999998,
+   "text": "Add test money, tap Up, confirm once.",
+   "scene": "demo"
+  },
+  {
+   "start": 78.29999999999998,
+   "end": 80.04615384615383,
+   "text": "The keeper fills it.",
+   "scene": "demo"
+  },
+  {
+   "start": 80.04615384615383,
+   "end": 83.10192307692306,
+   "text": "Eighteen point seven seconds from landing page",
+   "scene": "demo"
+  },
+  {
+   "start": 83.10192307692306,
+   "end": 86.15769230769229,
+   "text": "to a live bet, on Monad testnet.",
+   "scene": "demo"
+  },
+  {
+   "start": 86.15769230769229,
+   "end": 89.64999999999998,
+   "text": "Ethereum, Bitcoin, MON: one vault quotes them all.",
+   "scene": "demo"
+  },
+  {
+   "start": 90.94999999999999,
+   "end": 92.94999999999999,
+   "text": "This only works on Monad.",
+   "scene": "monad"
+  },
+  {
+   "start": 92.94999999999999,
+   "end": 95.35,
+   "text": "A block every three hundred milliseconds.",
+   "scene": "monad"
+  },
+  {
+   "start": 95.35,
+   "end": 99.35,
+   "text": "Serving a trade costs about a sixth of a cent.",
+   "scene": "monad"
+  },
+  {
+   "start": 99.35,
+   "end": 101.35,
+   "text": "On Ethereum, about ten cents.",
+   "scene": "monad"
+  },
+  {
+   "start": 101.35,
+   "end": 104.14999999999999,
+   "text": "Fifty-seven times cheaper, at today's gas prices.",
+   "scene": "monad"
+  },
+  {
+   "start": 105.44999999999999,
+   "end": 107.44999999999999,
+   "text": "The whole stack is real.",
+   "scene": "stack"
+  },
+  {
+   "start": 107.44999999999999,
+   "end": 109.85,
+   "text": "Chainlink CRE is the orchestration layer,",
+   "scene": "stack"
+  },
+  {
+   "start": 109.85,
+   "end": 112.25,
+   "text": "and we've broadcast its reports on-chain.",
+   "scene": "stack"
+  },
+  {
+   "start": 112.25,
+   "end": 116.65,
+   "text": "Each round's Up token becomes its own order book on Kuru.",
+   "scene": "stack"
+  },
+  {
+   "start": 116.65,
+   "end": 118.25,
+   "text": "Envio indexes the history.",
+   "scene": "stack"
+  },
+  {
+   "start": 118.25,
+   "end": 120.65,
+   "text": "Mera is the entire account layer.",
+   "scene": "stack"
+  },
+  {
+   "start": 121.94999999999999,
+   "end": 123.54999999999998,
+   "text": "And it's a platform.",
+   "scene": "platform"
+  },
+  {
+   "start": 123.54999999999998,
+   "end": 126.74999999999999,
+   "text": "Any Monad app can launch a market with",
+   "scene": "platform"
+  },
+  {
+   "start": 126.74999999999999,
+   "end": 129.54999999999998,
+   "text": "instant depth: one call, under hard caps.",
+   "scene": "platform"
+  },
+  {
+   "start": 129.54999999999998,
+   "end": 132.35,
+   "text": "Loss limits are enforced on-chain: one percent",
+   "scene": "platform"
+  },
+  {
+   "start": 132.35,
+   "end": 134.75,
+   "text": "per market, eight percent in total.",
+   "scene": "platform"
+  },
+  {
+   "start": 134.75,
+   "end": 136.75,
+   "text": "And users can always exit.",
+   "scene": "platform"
+  },
+  {
+   "start": 138.04999999999998,
+   "end": 140.69642857142856,
+   "text": "The trades you just watched ran",
+   "scene": "ask"
+  },
+  {
+   "start": 140.69642857142856,
+   "end": 143.34285714285713,
+   "text": "live on testnet, with test money.",
+   "scene": "ask"
+  },
+  {
+   "start": 143.34285714285713,
+   "end": 145.10714285714283,
+   "text": "No outside users yet.",
+   "scene": "ask"
+  },
+  {
+   "start": 145.10714285714283,
+   "end": 146.87142857142854,
+   "text": "We're telling you first.",
+   "scene": "ask"
+  },
+  {
+   "start": 146.87142857142854,
+   "end": 151.28214285714282,
+   "text": "Ten phases built, with four hundred and twelve contract tests.",
+   "scene": "ask"
+  },
+  {
+   "start": 151.28214285714282,
+   "end": 155.25178571428566,
+   "text": "Four things unlock mainnet: Chainlink Data Streams access, CRE",
+   "scene": "ask"
+  },
+  {
+   "start": 155.25178571428566,
+   "end": 159.2214285714285,
+   "text": "deploy access, Kuru market-creation rights, and an external audit.",
+   "scene": "ask"
+  },
+  {
+   "start": 159.2214285714285,
+   "end": 159.66249999999994,
+   "text": "Converge.",
+   "scene": "ask"
+  },
+  {
+   "start": 159.66249999999994,
+   "end": 162.74999999999994,
+   "text": "A market maker for every short round.",
+   "scene": "ask"
+  }
+ ]
+}

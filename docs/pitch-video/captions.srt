@@ -1,0 +1,235 @@
+1
+00:00:00,250 --> 00:00:03,050
+Every prediction market dies the same way.
+
+2
+00:00:03,050 --> 00:00:04,250
+It opens empty.
+
+3
+00:00:04,250 --> 00:00:05,050
+No price.
+
+4
+00:00:05,050 --> 00:00:05,850
+No counterparty.
+
+5
+00:00:05,850 --> 00:00:09,050
+The first trader finds nothing, and walks away.
+
+6
+00:00:09,050 --> 00:00:12,650
+A fifteen-minute market does that ninety-six times a day.
+
+7
+00:00:12,650 --> 00:00:15,050
+Nobody has solved the cold start.
+
+8
+00:00:16,350 --> 00:00:17,550
+Converge ends it.
+
+9
+00:00:17,550 --> 00:00:19,550
+We turn liquidity into infrastructure.
+
+10
+00:00:19,550 --> 00:00:21,950
+Deposit once into a single vault.
+
+11
+00:00:21,950 --> 00:00:25,150
+That vault makes the market in every round,
+
+12
+00:00:25,150 --> 00:00:28,350
+on every asset, from the very first second.
+
+13
+00:00:28,350 --> 00:00:31,950
+Liquidity providers earn from spreads, never from token emissions.
+
+14
+00:00:33,250 --> 00:00:37,650
+But a vault that quotes on-chain gets hunted by faster traders.
+
+15
+00:00:37,650 --> 00:00:38,850
+We measured it.
+
+16
+00:00:38,850 --> 00:00:42,050
+Our first design lost eighty-eight dollars a day
+
+17
+00:00:42,050 --> 00:00:44,850
+to a bot with a one-second lead.
+
+18
+00:00:44,850 --> 00:00:47,250
+So we redesigned the market itself.
+
+19
+00:00:47,250 --> 00:00:49,650
+Orders fill two seconds later, at
+
+20
+00:00:49,650 --> 00:00:52,050
+the oracle's price for that second.
+
+21
+00:00:52,050 --> 00:00:56,050
+Backtested on ninety-one days of real prices, that turns the
+
+22
+00:00:56,050 --> 00:01:00,050
+loss into about fifty dollars a day, under pessimistic assumptions.
+
+23
+00:01:00,050 --> 00:01:03,650
+It breaks if a rival leads by three seconds.
+
+24
+00:01:03,650 --> 00:01:05,650
+We say that out loud.
+
+25
+00:01:06,950 --> 00:01:09,133
+Now watch a brand-new user.
+
+26
+00:01:09,133 --> 00:01:10,006
+Face ID.
+
+27
+00:01:10,006 --> 00:01:12,625
+No seed phrase, no extension: Mera
+
+28
+00:01:12,625 --> 00:01:15,244
+turns a passkey into the wallet.
+
+29
+00:01:15,244 --> 00:01:18,300
+Add test money, tap Up, confirm once.
+
+30
+00:01:18,300 --> 00:01:20,046
+The keeper fills it.
+
+31
+00:01:20,046 --> 00:01:23,102
+Eighteen point seven seconds from landing page
+
+32
+00:01:23,102 --> 00:01:26,158
+to a live bet, on Monad testnet.
+
+33
+00:01:26,158 --> 00:01:29,650
+Ethereum, Bitcoin, MON: one vault quotes them all.
+
+34
+00:01:30,950 --> 00:01:32,950
+This only works on Monad.
+
+35
+00:01:32,950 --> 00:01:35,350
+A block every three hundred milliseconds.
+
+36
+00:01:35,350 --> 00:01:39,350
+Serving a trade costs about a sixth of a cent.
+
+37
+00:01:39,350 --> 00:01:41,350
+On Ethereum, about ten cents.
+
+38
+00:01:41,350 --> 00:01:44,150
+Fifty-seven times cheaper, at today's gas prices.
+
+39
+00:01:45,450 --> 00:01:47,450
+The whole stack is real.
+
+40
+00:01:47,450 --> 00:01:49,850
+Chainlink CRE is the orchestration layer,
+
+41
+00:01:49,850 --> 00:01:52,250
+and we've broadcast its reports on-chain.
+
+42
+00:01:52,250 --> 00:01:56,650
+Each round's Up token becomes its own order book on Kuru.
+
+43
+00:01:56,650 --> 00:01:58,250
+Envio indexes the history.
+
+44
+00:01:58,250 --> 00:02:00,650
+Mera is the entire account layer.
+
+45
+00:02:01,950 --> 00:02:03,550
+And it's a platform.
+
+46
+00:02:03,550 --> 00:02:06,750
+Any Monad app can launch a market with
+
+47
+00:02:06,750 --> 00:02:09,550
+instant depth: one call, under hard caps.
+
+48
+00:02:09,550 --> 00:02:12,350
+Loss limits are enforced on-chain: one percent
+
+49
+00:02:12,350 --> 00:02:14,750
+per market, eight percent in total.
+
+50
+00:02:14,750 --> 00:02:16,750
+And users can always exit.
+
+51
+00:02:18,050 --> 00:02:20,696
+The trades you just watched ran
+
+52
+00:02:20,696 --> 00:02:23,343
+live on testnet, with test money.
+
+53
+00:02:23,343 --> 00:02:25,107
+No outside users yet.
+
+54
+00:02:25,107 --> 00:02:26,871
+We're telling you first.
+
+55
+00:02:26,871 --> 00:02:31,282
+Ten phases built, with four hundred and twelve contract tests.
+
+56
+00:02:31,282 --> 00:02:35,252
+Four things unlock mainnet: Chainlink Data Streams access, CRE
+
+57
+00:02:35,252 --> 00:02:39,221
+deploy access, Kuru market-creation rights, and an external audit.
+
+58
+00:02:39,221 --> 00:02:39,662
+Converge.
+
+59
+00:02:39,662 --> 00:02:42,750
+A market maker for every short round.
