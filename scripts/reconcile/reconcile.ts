@@ -39,6 +39,23 @@ import {
   sleep,
 } from "./lib/common";
 
+// A hosted indexer (Envio Cloud's development plan) answers 429 when it is queried in parallel: space the requests out and back off.
+{
+  const realFetch = globalThis.fetch;
+  let chain: Promise<unknown> = Promise.resolve();
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(typeof input === "string" || input instanceof URL ? input : input.url);
+    if (!url.includes("hyperindex.xyz")) return realFetch(input, init);
+    const turn = chain.then(() => new Promise((r) => setTimeout(r, 420)));
+    chain = turn;
+    await turn;
+    for (let attempt = 0; ; attempt++) {
+      const r = await realFetch(input, init);
+      if (r.status !== 429 || attempt >= 8) return r;
+      await new Promise((res) => setTimeout(res, 1200 * (attempt + 1)));
+    }
+  }) as typeof fetch;
+}
 const args = parseArgs(process.argv.slice(2));
 const indexerUrl = opt(args, "indexer", "INDEXER_URL", "http://localhost:8080/v1/graphql")!;
 const rpcUrl = opt(args, "rpc", "RPC_URL", "http://127.0.0.1:8611")!;
@@ -66,7 +83,7 @@ const gql = {
   url: indexerUrl,
   headers: parseHeaders(opt(args, "headers", "INDEXER_HEADERS")),
   apiKey: opt(args, "api-key", "INDEXER_API_KEY"),
-  timeoutMs: 30_000,
+  timeoutMs: 180_000, // long: a hosted endpoint that rate-limits is waited out by the back-off above
 };
 const pub: PublicClient = createPublicClient({
   transport: http(rpcUrl, { timeout: 30_000, retryCount: 4 }),
@@ -521,6 +538,7 @@ const checkers: Record<string, Checker> = {
 };
 
 // ---- main
+const noAggregateNoted = new Set<string>();
 async function pagedRows<T>(entity: string, fields: string, order = "id"): Promise<T[]> {
   const out: T[] = [];
   for (let offset = 0; ; offset += pageSize) {
@@ -532,13 +550,25 @@ async function pagedRows<T>(entity: string, fields: string, order = "id"): Promi
     if (d[entity]!.length < pageSize) break;
   }
   // a row cap on the endpoint (or a concurrent write) must not silently shrink the population
-  const c = await indexerQuery<Record<string, { aggregate: { count: number } }>>(
-    gql,
-    `{ ${entity}_aggregate { aggregate { count } } }`,
-  );
-  const total = c[`${entity}_aggregate`]!.aggregate.count;
-  if (Math.abs(total - out.length) > Math.max(5, total * 0.01)) {
-    throw new Error(`${entity}: paged ${out.length} rows but the aggregate count is ${total}`);
+  // (Envio Cloud's hosted endpoint exposes no `_aggregate` roots: there the guard is skipped and said so)
+  let c: Record<string, { aggregate: { count: number } }> | null = null;
+  try {
+    c = await indexerQuery<Record<string, { aggregate: { count: number } }>>(
+      gql,
+      `{ ${entity}_aggregate { aggregate { count } } }`,
+    );
+  } catch (e) {
+    if (!/not found in type/.test(String(e instanceof Error ? e.message : e))) throw e;
+    if (!noAggregateNoted.has(entity)) {
+      noAggregateNoted.add(entity);
+      console.log(`  note: no ${entity}_aggregate on this endpoint; row-count cross-check skipped`);
+    }
+  }
+  if (c) {
+    const total = c[`${entity}_aggregate`]!.aggregate.count;
+    if (Math.abs(total - out.length) > Math.max(5, total * 0.01)) {
+      throw new Error(`${entity}: paged ${out.length} rows but the aggregate count is ${total}`);
+    }
   }
   return out;
 }

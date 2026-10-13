@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Converge promo (30 s)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #0f1218;
+        --text: #eef0f6;
+        --muted: #a4abbc;
+        --up: #5fd7ae;
+        --down: #f48b98;
+        --brand: #b6aaf6;
+        --warn: #f3c874;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        background: var(--ink);
+        overflow: hidden;
+      }
+      body {
+        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
+      #stage {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(150px);
+      }
+      #b1 {
+        width: 900px;
+        height: 900px;
+        background: #3b3278;
+        opacity: 0.55;
+      }
+      #b2 {
+        width: 760px;
+        height: 760px;
+        background: #14503f;
+        opacity: 0.4;
+      }
+      #b3 {
+        width: 620px;
+        height: 620px;
+        background: #5a2631;
+        opacity: 0.3;
+      }
+      .layer {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+      .center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .big {
+        font-size: 128px;
+        line-height: 1.04;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .mid {
+        font-size: 52px;
+        font-weight: 700;
+        color: var(--muted);
+        margin-top: 26px;
+      }
+      #frame {
+        position: absolute;
+        left: 210px;
+        top: 62px;
+        width: 1500px;
+        height: 844px;
+        border-radius: 26px;
+        overflow: hidden;
+        border: 2px solid #2d3445;
+        background: #000;
+        box-shadow:
+          0 0 110px rgba(117, 102, 220, 0.42),
+          0 30px 90px rgba(0, 0, 0, 0.55);
+      }
+      #frame video {
+        width: 1500px;
+        height: 844px;
+        display: block;
+      }
+      #cap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 944px;
+        text-align: center;
+        font-size: 66px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .chips {
+        display: flex;
+        gap: 28px;
+        margin-top: 54px;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 16px 34px 16px 22px;
+        border-radius: 999px;
+        background: #161a23;
+        border: 2px solid #2a3040;
+        font-size: 54px;
+        font-weight: 800;
+      }
+      .chip img {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--warn);
+        background: #2e2510;
+        border: 2px solid #5b4a1d;
+        padding: 10px 26px;
+        border-radius: 999px;
+        margin-top: 34px;
+      }
+      #mark {
+        position: absolute;
+        left: 70px;
+        top: 44px;
+        height: 46px;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <div class="blob" id="b1"></div>
+      <div class="blob" id="b2"></div>
+      <div class="blob" id="b3"></div>
+      <img id="mark" src="assets/logo-dark.svg" alt="" />
+      <div class="layer center" id="hook">
+        <div class="big">
+          Every short market<br /><span style="color: var(--down)">starts empty.</span>
+        </div>
+      </div>
+      <div class="layer center" id="fix">
+        <div class="big">
+          Converge
+          <span
+            style="
+              background: linear-gradient(90deg, #5fe0b4, #b6aaf6, #f58a9a);
+              -webkit-background-clip: text;
+              color: transparent;
+            "
+            >fills it.</span
+          >
+        </div>
+        <div class="mid">One vault. Every round.</div>
+      </div>
+      <div class="layer" id="demo">
+        <div id="frame">
+          <video id="v" src="assets/footage.webm" muted playsinline preload="auto"></video>
+        </div>
+        <div id="cap"></div>
+      </div>
+      <div class="layer center" id="assets">
+        <div class="big" style="font-size: 92px">ETH · BTC · MON</div>
+        <div class="chips">
+          <div class="chip"><img src="assets/eth.svg" />ETH</div>
+          <div class="chip"><img src="assets/btc.svg" />BTC</div>
+          <div class="chip"><img src="assets/mon.svg" />MON</div>
+        </div>
+        <div class="mid" style="margin-top: 44px">Live on Monad testnet</div>
+      </div>
+      <div class="layer center" id="end">
+        <img src="assets/logo-dark.svg" style="width: 760px" />
+        <div class="big" style="font-size: 78px; margin-top: 40px">
+          A market maker for<br />every short round.
+        </div>
+        <div class="tag">Monad testnet · test money</div>
+      </div>
+    </div>
+    <script>
+      const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+      const eo = (x) => 1 - Math.pow(1 - x, 3);
+      const $ = (id) => document.getElementById(id);
+      const FADE = 0.35;
+      // scene windows (seconds): the 30 s promo
+      const S = {
+        hook: [0, 3.4],
+        fix: [3.4, 6.2],
+        demo: [6.2, 24.2],
+        assets: [24.2, 27.0],
+        end: [27.0, 30.0],
+      };
+      const CAPS = [
+        [6.2, 11.2, "Face ID. No seed phrase."],
+        [11.2, 18.2, "Tap Up. Filled in 2 seconds."],
+        [18.2, 24.2, "Settled by a signed oracle report. One tap to collect."],
+      ];
+      const vis = (id, t) => {
+        const [a, b] = S[id];
+        const o = Math.min(clamp((t - a) / FADE), 1 - clamp((t - (b - FADE)) / FADE));
+        $(id).style.opacity = id === "end" ? clamp((t - a) / FADE) : o;
+        return o;
+      };
+      async function seek(v, t) {
+        const tt = clamp(t, 0, (v.duration || 18) - 0.04);
+        if (Math.abs(v.currentTime - tt) < 0.004) return;
+        await new Promise((res) => {
+          const d = () => {
+            v.removeEventListener("seeked", d);
+            res();
+          };
+          v.addEventListener("seeked", d);
+          v.currentTime = tt;
+          setTimeout(res, 900);
+        });
+      }
+      window.__total = 30;
+      window.render = async (t) => {
+        $("b1").style.transform =
+          `translate(${300 + Math.sin(t / 5) * 140}px, ${-180 + Math.cos(t / 6) * 90}px)`;
+        $("b2").style.transform =
+          `translate(${1250 + Math.cos(t / 5) * 120}px, ${420 + Math.sin(t / 6) * 100}px)`;
+        $("b3").style.transform =
+          `translate(${-120 + Math.sin(t / 7) * 100}px, ${620 + Math.cos(t / 5) * 80}px)`;
+        $("mark").style.opacity = (t > 0.4 && t < 5.9) || (t > 24.6 && t < 26.8) ? 0.9 : 0; // hidden while the footage frame is up
+        const h = vis("hook", t);
+        $("hook").firstElementChild.style.transform =
+          `translateY(${(1 - eo(clamp(t / 0.7))) * 30}px)`;
+        vis("fix", t);
+        const f = clamp((t - S.fix[0]) / 0.6);
+        $("fix").style.transform = `scale(${0.96 + 0.04 * eo(f)})`;
+        const d = vis("demo", t);
+        if (d > 0) {
+          await seek($("v"), t - S.demo[0]);
+          const cap = CAPS.find(([a, b]) => t >= a && t < b);
+          if (cap) {
+            $("cap").textContent = cap[2];
+            const k = Math.min(clamp((t - cap[0]) / 0.3), 1 - clamp((t - (cap[1] - 0.3)) / 0.3));
+            $("cap").style.opacity = k;
+            $("cap").style.transform = `translateY(${(1 - k) * 14}px)`;
+          } else $("cap").style.opacity = 0;
+        }
+        vis("assets", t);
+        vis("end", t);
+        return true;
+      };
+      Promise.resolve()
+        .then(
+          () =>
+            new Promise((r) => {
+              const v = $("v");
+              v.onloadeddata = r;
+              if (v.readyState >= 2) r();
+            }),
+        )
+        .then(() => document.fonts.ready)
+        .then(() => (window.__ready = true));
+    </script>
+  </body>
+</html>
